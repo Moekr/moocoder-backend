@@ -1,0 +1,30 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  mail:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  servlet:
+    multipart:
+      max-file-size: 16MB
+      max-request-size: 16MB
+server:
+  tomcat:
+    remote-ip-header: X-Forwarded-For
+    protocol-header: X-Forwarded-Proto
+management:
+  endpoints:
+    web:
+      base-path: /api/actuator
+  endpoint:
+    shutdown:
+      enabled: true

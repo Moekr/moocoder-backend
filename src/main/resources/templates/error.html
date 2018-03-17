@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="theme-color" content="#C8C8C8">
+    <title>发生错误</title>
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            white-space: nowrap;
+            margin: 0 auto;
+            width: 100%;
+            background-color: white;
+            text-align: center;
+            color: #767676;
+            padding-bottom: 100px;
+        }
+        h1 {
+            font-size: 10em;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 th:text="${error}"></h1>
+    <h2 th:text="${message}"></h2>
+</div>
+</body>
+</html>

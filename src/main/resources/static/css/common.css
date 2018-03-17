@@ -1,0 +1,29 @@
+@charset "UTF-8";
+
+.row {
+	margin-bottom: 25px;
+}
+
+.caution {
+	margin: 0;
+	padding: 8px 0;
+	color: #777;
+}
+
+.table-container {
+	white-space: nowrap;
+	overflow-x: auto;
+}
+
+.table-container table {
+	margin: 0;
+}
+
+.table-container .progress-bar p {
+	white-space: pre-line;
+}
+
+footer {
+	margin-top: 30px;
+	color: #777;
+}

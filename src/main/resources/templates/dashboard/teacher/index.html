@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:with="ToolKit=${T(com.moekr.aes.util.ToolKit)}">
+<head>
+    <meta charset='utf-8'/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
+    <meta name="theme-color" content="#C8C8C8"/>
+    <title>教师管理 | Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
+</head>
+<body>
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#header">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" th:href="@{/dashboard/}" th:text="${ToolKit.BANNER}"></a>
+        </div>
+        <div class="collapse navbar-collapse" id="header">
+            <ul class="nav navbar-nav">
+                <li><a th:href="@{/dashboard/}">首页</a></li>
+                <li class="active"><a th:href="@{/dashboard/teacher/}">教师管理</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span>管理员</span><span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a th:href="@{/logout.html}">退出登录</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="row col-md-12">
+        <h2 style="display: inline-block;">教师列表</h2>
+        <button type="button" class="btn btn-md btn-primary" style="margin-left: 24px;margin-bottom: 12px;" onclick="window.location.href='./register.html'">注册教师</button>
+        <div class="table-container">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>用户ID</th>
+                    <th>用户名</th>
+                    <th>邮箱</th>
+                    <th>注册时间</th>
+                    <th>上传题目数</th>
+                    <th>创建考试数</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user,ustate:${userList}">
+                    <td th:text="${user.id}"></td>
+                    <td th:text="${user.username}"></td>
+                    <td th:text="${user.email}"></td>
+                    <td th:text="${#dates.format(new java.util.Date(user.createdAt*1000))}"></td>
+                    <td th:text="${user.problemCount}"></td>
+                    <td th:text="${user.examinationCount}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(userList)}">
+                    <td class="text-center" colspan="6">没有记录！</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <div class="container">
+        <p class="text-center">©2018 Powered by <span th:text="${ToolKit.BANNER}"></span> ver <span th:text="${ToolKit.VERSION}"></span></p>
+    </div>
+</footer>
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:with="ToolKit=${T(com.moekr.aes.util.ToolKit)}">
+<head>
+    <meta charset='utf-8'/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
+    <meta name="theme-color" content="#C8C8C8"/>
+    <title>提交详情 | Automated Examination System</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
+</head>
+<body>
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#header">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" th:href="@{/t/}" th:text="${ToolKit.BANNER}"></a>
+        </div>
+        <div class="collapse navbar-collapse" id="header">
+            <ul class="nav navbar-nav">
+                <li><a th:href="@{/t/}">首页</a></li>
+                <li><a th:href="@{/t/examination/}">考试与成绩</a></li>
+                <li><a th:href="@{/t/problem/}">题库</a></li>
+                <li class="active"><a th:href="@{/t/record/}">提交记录</a></li>
+                <li><a th:href="@{/t/help.html}">帮助</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span th:text="${user.username}"></span><span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a th:href="@{/password.html}">修改密码</a></li>
+                        <li class="divider"></li>
+                        <li><a th:href="@{/logout.html}">退出登录</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="row col-md-6">
+        <h2>提交详情</h2>
+        <div class="table-container">
+            <table class="table table-striped">
+                <tbody>
+                <tr>
+                    <th>编号</th>
+                    <td th:text="'#'+${record.id}"></td>
+                </tr>
+                <tr>
+                    <th>隶属于</th>
+                    <td><a th:href="'../examination/detail.html?e='+${record.examinationId}" th:text="${record.examinationName}"></a></td>
+                </tr>
+                <tr>
+                    <th>记录时间</th>
+                    <td th:text="${#dates.format(new java.util.Date(record.createdAt*1000))}"></td>
+                </tr>
+                <tr>
+                    <th>通过用例数</th>
+                    <td th:text="${record.compiled}?${record.passSet.size()}:'编译失败'"></td>
+                </tr>
+                <tr>
+                    <th>未通过用例数</th>
+                    <td th:text="${record.compiled}?${record.failSet.size()}:'编译失败'"></td>
+                </tr>
+                <tr>
+                    <th>分数</th>
+                    <td th:text="${record.score}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row col-md-12">
+        <h2>未通过用例列表</h2>
+        <div class="table-container">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>用例名称</th>
+                    <th>错误信息</th>
+                </tr>
+                </thead>
+                <tbody>
+                <th:block th:each="fail,fstate:${record.failSet}">
+                    <tr>
+                        <td th:text="${fail.name}"></td>
+                        <td th:text="${fail.details}"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><pre><code th:text="${fail.trace}"></code></pre></td>
+                    </tr>
+                </th:block>
+                <tr th:if="${#sets.isEmpty(record.failSet)}">
+                    <td class="text-center" colspan="2">没有记录！</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <div class="container">
+        <p class="text-center">©2018 Powered by <span th:text="${ToolKit.BANNER}"></span> ver <span th:text="${ToolKit.VERSION}"></span></p>
+    </div>
+</footer>
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</body>
+</html>

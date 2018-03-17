@@ -1,0 +1,29 @@
+@charset "UTF-8";
+
+.tile {
+	height: 250px;
+	padding: auto;
+}
+
+.tile-button {
+	height: 200px;
+	width: 200px;
+	margin: 25px auto;
+	background-color: #f1f1f1;
+	border-radius: 20px;
+	cursor: pointer;
+}
+
+.tile-button:hover {
+	background-color: #dedede;
+}
+
+.tile-button i {
+	font-size: 60px;
+	margin: 55px 70px 0;
+}
+
+.tile-button p {
+	font-size: 1.4em;
+	padding-top: 10px;
+}

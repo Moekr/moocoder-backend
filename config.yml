@@ -1,0 +1,39 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/aes?useUnicode=true&characterEncoding=UTF-8&useSSL=true
+    username: username
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL57InnoDBDialect
+  security:
+    user:
+      name: name
+      password: password
+  mail:
+    host: smtp.example.com
+    username: aes@example.com
+    password: password
+
+aes:
+  local:
+    host: http://aes.example.com
+    secret: RandomSecret
+  gitlab:
+    host: http://repo.aes.example.com
+    username: username
+    token: token
+  jenkins:
+    host: http://ci.aes.example.com
+    username: username
+    token: token
+    credential: credential
+    delete-after-close: true
+  mail:
+    from: aes@example.com
+  storage:
+    host: http://aes.example.com/upload
+    type: local
+    properties:
+      location: /srv/aes/upload

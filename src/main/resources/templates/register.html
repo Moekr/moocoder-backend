@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:with="ToolKit=${T(com.moekr.aes.util.ToolKit)}">
+<head>
+    <meta charset='utf-8'/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
+    <meta name="theme-color" content="#C8C8C8"/>
+    <meta th:if="${success}" http-equiv="refresh" content="5;url=./">
+    <title>学生注册 | Automated Examination System</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/input.css}" />
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-offset-3 col-md-6">
+            <form class="form-horizontal" data-toggle="validator" method="post" onsubmit="return checkInput();">
+                <span class="heading">学生注册</span>
+                <div class="alert alert-success text-center" th:if="${success}" th:text="${success}"></div>
+                <div class="alert alert-danger text-center" th:if="${error}" th:text="${error}"></div>
+                <th:block th:if="!${success}">
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="username" id="username-input" placeholder="用户名">
+                        <i class="fa fa-user"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" class="form-control" name="email" id="email-input" placeholder="邮箱">
+                        <i class="fa fa-envelope"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" name="password" id="password-input" placeholder="密码">
+                        <i class="fa fa-lock"></i>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" name="confirm" id="confirm-input"  placeholder="确认密码">
+                        <i class="fa fa-lock"></i>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-default btn-input pull-left" onclick="window.location.href='./login.html'">已有账号？前往登录</button>
+                        <button type="submit" class="btn btn-default btn-input">注册</button>
+                    </div>
+                </th:block>
+            </form>
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <div class="container">
+        <p class="text-center">©2018 Powered by <span th:text="${ToolKit.BANNER}"></span> ver <span th:text="${ToolKit.VERSION}"></span></p>
+    </div>
+</footer>
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script th:src="@{/js/bundle.js}"></script>
+</body>
+</html>

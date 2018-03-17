@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<maven2-moduleset plugin="maven-plugin@3.1">
+    <actions/>
+    <description></description>
+    <keepDependencies>false</keepDependencies>
+    <properties>
+        <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.4.6">
+            <gitLabConnection></gitLabConnection>
+        </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    </properties>
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@3.8.0">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+            <hudson.plugins.git.UserRemoteConfig>
+                <url>{%GIT_HOST%}/{%NAMESPACE%}/{%PROJECT%}</url>
+                <credentialsId>{%CREDENTIAL%}</credentialsId>
+            </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+            <hudson.plugins.git.BranchSpec>
+                <name>*/master</name>
+            </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions/>
+    </scm>
+    <canRoam>true</canRoam>
+    <disabled>false</disabled>
+    <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+    <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+    <triggers>
+        <com.dabsquared.gitlabjenkins.GitLabPushTrigger plugin="gitlab-plugin@1.4.6">
+            <spec></spec>
+            <triggerOnPush>true</triggerOnPush>
+            <triggerOnMergeRequest>false</triggerOnMergeRequest>
+            <triggerOnAcceptedMergeRequest>false</triggerOnAcceptedMergeRequest>
+            <triggerOnClosedMergeRequest>false</triggerOnClosedMergeRequest>
+            <triggerOpenMergeRequestOnPush>never</triggerOpenMergeRequestOnPush>
+            <triggerOnNoteRequest>false</triggerOnNoteRequest>
+            <noteRegex>Jenkins please retry a build</noteRegex>
+            <ciSkip>true</ciSkip>
+            <skipWorkInProgressMergeRequest>true</skipWorkInProgressMergeRequest>
+            <setBuildDescription>true</setBuildDescription>
+            <branchFilterType>All</branchFilterType>
+            <includeBranchesSpec></includeBranchesSpec>
+            <excludeBranchesSpec></excludeBranchesSpec>
+            <targetBranchRegex></targetBranchRegex>
+            <secretToken></secretToken>
+        </com.dabsquared.gitlabjenkins.GitLabPushTrigger>
+    </triggers>
+    <concurrentBuild>false</concurrentBuild>
+    <aggregatorStyleBuild>true</aggregatorStyleBuild>
+    <incrementalBuild>false</incrementalBuild>
+    <ignoreUpstremChanges>true</ignoreUpstremChanges>
+    <ignoreUnsuccessfulUpstreams>false</ignoreUnsuccessfulUpstreams>
+    <archivingDisabled>false</archivingDisabled>
+    <siteArchivingDisabled>false</siteArchivingDisabled>
+    <fingerprintingDisabled>false</fingerprintingDisabled>
+    <resolveDependencies>false</resolveDependencies>
+    <processPlugins>false</processPlugins>
+    <mavenValidationLevel>-1</mavenValidationLevel>
+    <runHeadless>false</runHeadless>
+    <disableTriggerDownstreamProjects>false</disableTriggerDownstreamProjects>
+    <blockTriggerWhenBuilding>true</blockTriggerWhenBuilding>
+    <settings class="jenkins.mvn.DefaultSettingsProvider"/>
+    <globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider"/>
+    <reporters/>
+    <publishers/>
+    <buildWrappers/>
+    <prebuilders>
+        <hudson.tasks.Shell>
+            <command>
+                if [ ! -d &quot;/tmp/aes/{%PROBLEM%}&quot; ]; then
+                wget -P /tmp/aes {%STORAGE_HOST%}/{%PROBLEM%}.zip
+                unzip /tmp/aes/{%PROBLEM%}.zip -d /tmp/aes/{%PROBLEM%}
+                fi
+                if [ -d &quot;/tmp/aes/{%PROBLEM%}/src/test&quot; ]; then
+                if [ -d &quot;${WORKSPACE}/src/test&quot; ]; then
+                rm -rf ${WORKSPACE}/src/test
+                fi
+                cp -r /tmp/aes/{%PROBLEM%}/src/test ${WORKSPACE}/src/test
+                fi
+                if [ -f &quot;/tmp/aes/{%PROBLEM%}/pom.xml&quot; ]; then
+                if [ -f &quot;${WORKSPACE}/pom.xml&quot; ]; then
+                rm -rf ${WORKSPACE}/pom.xml
+                fi
+                cp /tmp/aes/{%PROBLEM%}/pom.xml ${WORKSPACE}/pom.xml
+                fi
+            </command>
+        </hudson.tasks.Shell>
+    </prebuilders>
+    <postbuilders>
+        <hudson.tasks.Shell>
+            <command>curl -l -H &quot;Content-type: application/x-www-form-urlencoded&quot; -X POST -d &quot;buildNumber=${BUILD_NUMBER}&amp;secret={%SECRET%}&quot; {%LOCAL_HOST%}/callback/{%ID%}
+            </command>
+        </hudson.tasks.Shell>
+    </postbuilders>
+    <runPostStepsIfResult>
+        <name>FAILURE</name>
+        <ordinal>2</ordinal>
+        <color>RED</color>
+        <completeBuild>true</completeBuild>
+    </runPostStepsIfResult>
+</maven2-moduleset>
