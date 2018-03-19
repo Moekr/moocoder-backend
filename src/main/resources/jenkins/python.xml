@@ -66,9 +66,16 @@
             rm -rf ${WORKSPACE}/src/__init__.py
             fi
             cp /tmp/aes/{%PROBLEM%}/src/__init__.py ${WORKSPACE}/src/__init__.py
+            fi
+            if [ -f &quot;${WORKSPACE}/nosetests.xml&quot; ]; then
+            rm -rf ${WORKSPACE}/nosetests.xml
             fi&apos;&apos;&apos;
             sh &apos;chmod -x test/*&apos;
+            catchError {
+            timeout(3) {
             sh &apos;nosetests --with-xunit&apos;
+            }
+            }
             }
             }
             }

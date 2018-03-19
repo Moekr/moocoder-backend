@@ -67,7 +67,16 @@
     <globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider"/>
     <reporters/>
     <publishers/>
-    <buildWrappers/>
+    <buildWrappers>
+        <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.19">
+            <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+                <timeoutMinutes>3</timeoutMinutes>
+            </strategy>
+            <operationList>
+                <hudson.plugins.build__timeout.operations.FailOperation/>
+            </operationList>
+        </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    </buildWrappers>
     <prebuilders>
         <hudson.tasks.Shell>
             <command>
