@@ -67,7 +67,7 @@
             fi
             cp /tmp/aes/{%PROBLEM%}/src/__init__.py ${WORKSPACE}/src/__init__.py
             fi&apos;&apos;&apos;
-            sh &apos;cd test&apos;
+            sh &apos;chmod -x test/*&apos;
             sh &apos;nosetests --with-xunit&apos;
             }
             }
