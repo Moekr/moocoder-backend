@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.beans.BeanUtils;
 
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 
 @Data
 @EqualsAndHashCode
@@ -24,7 +24,7 @@ public class UserModel {
 	public UserModel(User user) {
 		BeanUtils.copyProperties(user, this);
 		this.role = user.getRole().toString();
-		this.createdAt = user.getCreatedAt().toEpochSecond(ZoneOffset.ofHours(8));
+		this.createdAt = user.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond();
 		this.problemCount = user.getProblemSet().size();
 		this.examinationCount = user.getRole() == Role.TEACHER ? user.getExaminationSet().size() : user.getResultSet().size();
 	}

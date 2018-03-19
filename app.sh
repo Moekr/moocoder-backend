@@ -18,6 +18,9 @@ log_name=%Y-%m-%d_%H-%M-%S.log
 # Time in second how long "stop" and "force-stop" wait for application totally stop. Default 60
 wait_count=60
 
+# JVM default time zone. Default GMT+8
+time_zone="GMT+8"
+
 function start {
     if [ -f ${pid_file} ]
     then
@@ -35,7 +38,7 @@ function start {
         then
             mkdir ${log_dir}
         fi
-        java -server -jar ${path}/${name}-${version}.jar --spring.config.additional-location=${config_file} 2>&1 >${log_dir}/$(date +${log_name}) &
+        java -server -jar ${path}/${name}-${version}.jar --spring.config.additional-location=${config_file} -Duser.timezone=${time_zone} 2>&1 >${log_dir}/$(date +${log_name}) &
         local pid=$(echo -e "$!\c")
         echo -e "${pid}\c" > ${pid_file}
         echo "Start application ${name} successfully! (Version:${version} PID:${pid})"

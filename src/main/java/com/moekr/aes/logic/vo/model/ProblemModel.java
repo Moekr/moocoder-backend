@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.beans.BeanUtils;
 
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 
 @Data
 @EqualsAndHashCode
@@ -22,7 +22,7 @@ public class ProblemModel {
 
 	public ProblemModel(Problem problem) {
 		BeanUtils.copyProperties(problem, this);
-		this.createdAt = problem.getCreatedAt().toEpochSecond(ZoneOffset.ofHours(8));
+		this.createdAt = problem.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond();
 		this.usedTime = problem.getExaminationSet().size();
 	}
 }

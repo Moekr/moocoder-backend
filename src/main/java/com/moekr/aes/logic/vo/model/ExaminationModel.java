@@ -9,7 +9,7 @@ import lombok.ToString;
 import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 
 @Data
 @EqualsAndHashCode
@@ -28,9 +28,9 @@ public class ExaminationModel {
 	public ExaminationModel(Examination examination) {
 		BeanUtils.copyProperties(examination, this);
 		this.status = status(examination.getStartAt(), examination.getEndAt());
-		this.startAt = examination.getStartAt().toEpochSecond(ZoneOffset.ofHours(8));
-		this.endAt = examination.getEndAt().toEpochSecond(ZoneOffset.ofHours(8));
-		this.createdAt = examination.getCreatedAt().toEpochSecond(ZoneOffset.ofHours(8));
+		this.startAt = examination.getStartAt().atZone(ZoneId.systemDefault()).toEpochSecond();
+		this.endAt = examination.getEndAt().atZone(ZoneId.systemDefault()).toEpochSecond();
+		this.createdAt = examination.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond();
 		this.language = examination.getProblem().getLanguage();
 		this.resultCount = examination.getResultSet().size();
 	}

@@ -8,7 +8,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.json.JSONArray;
 import org.springframework.beans.BeanUtils;
 
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -29,7 +29,7 @@ public class RecordModel {
 
 	public RecordModel(Record record) {
 		BeanUtils.copyProperties(record, this);
-		this.createdAt = record.getCreatedAt().toEpochSecond(ZoneOffset.ofHours(8));
+		this.createdAt = record.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond();
 		this.examinationId = record.getResult().getExamination().getId();
 		this.examinationName = record.getResult().getExamination().getName();
 		JSONArray pass = new JSONArray(record.getPass());
