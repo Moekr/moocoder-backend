@@ -74,7 +74,7 @@
             }
             post {
             always {
-            junit &apos;nosetests.xml&apos;
+            junit allowEmptyResults: true, testResults: &apos;nosetests.xml&apos;
             sh &apos;curl -l -H &quot;Content-type: application/x-www-form-urlencoded&quot; -X POST -d &quot;buildNumber=${BUILD_NUMBER}&amp;secret={%SECRET%}&quot; {%LOCAL_HOST%}/callback/{%ID%}&apos;
             }
             }

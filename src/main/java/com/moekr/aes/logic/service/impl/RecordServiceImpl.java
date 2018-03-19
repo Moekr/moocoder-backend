@@ -145,7 +145,7 @@ public class RecordServiceImpl implements RecordService {
 			}
 			Record record = new Record();
 			record.setCompiled(true);
-			record.setScore((int) (100.0 * pass.length() / (pass.length() + fail.length())));
+			record.setScore((int) (100.0 * pass.length() / Math.max(pass.length() + fail.length(), 1)));
 			record.setPass(pass.toString());
 			record.setFail(fail.toString());
 			record.setCreatedAt(LocalDateTime.now());
