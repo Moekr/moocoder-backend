@@ -1,86 +1,61 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<maven2-moduleset plugin="maven-plugin@3.1">
-    <actions/>
+<flow-definition plugin="workflow-job@2.17">
+    <actions>
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.2.7"/>
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.2.7">
+            <jobProperties/>
+            <triggers/>
+            <parameters/>
+        </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+    </actions>
     <description></description>
     <keepDependencies>false</keepDependencies>
     <properties>
-        <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.4.6">
+        <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+            <triggers>
+                <com.dabsquared.gitlabjenkins.GitLabPushTrigger plugin="gitlab-plugin@1.5.3">
+                    <spec></spec>
+                    <triggerOnPush>true</triggerOnPush>
+                    <triggerOnMergeRequest>false</triggerOnMergeRequest>
+                    <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+                    <triggerOnAcceptedMergeRequest>false</triggerOnAcceptedMergeRequest>
+                    <triggerOnClosedMergeRequest>false</triggerOnClosedMergeRequest>
+                    <triggerOnApprovedMergeRequest>false</triggerOnApprovedMergeRequest>
+                    <triggerOpenMergeRequestOnPush>never</triggerOpenMergeRequestOnPush>
+                    <triggerOnNoteRequest>false</triggerOnNoteRequest>
+                    <noteRegex>Jenkins please retry a build</noteRegex>
+                    <ciSkip>true</ciSkip>
+                    <skipWorkInProgressMergeRequest>true</skipWorkInProgressMergeRequest>
+                    <setBuildDescription>true</setBuildDescription>
+                    <branchFilterType>All</branchFilterType>
+                    <includeBranchesSpec></includeBranchesSpec>
+                    <excludeBranchesSpec></excludeBranchesSpec>
+                    <targetBranchRegex></targetBranchRegex>
+                    <secretToken></secretToken>
+                </com.dabsquared.gitlabjenkins.GitLabPushTrigger>
+            </triggers>
+        </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+        <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.5.3">
             <gitLabConnection></gitLabConnection>
         </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
     </properties>
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@3.8.0">
-        <configVersion>2</configVersion>
-        <userRemoteConfigs>
-            <hudson.plugins.git.UserRemoteConfig>
-                <url>{%GIT_HOST%}/{%NAMESPACE%}/{%PROJECT%}</url>
-                <credentialsId>{%CREDENTIAL%}</credentialsId>
-            </hudson.plugins.git.UserRemoteConfig>
-        </userRemoteConfigs>
-        <branches>
-            <hudson.plugins.git.BranchSpec>
-                <name>*/master</name>
-            </hudson.plugins.git.BranchSpec>
-        </branches>
-        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-        <submoduleCfg class="list"/>
-        <extensions/>
-    </scm>
-    <canRoam>true</canRoam>
-    <disabled>false</disabled>
-    <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
-    <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-    <triggers>
-        <com.dabsquared.gitlabjenkins.GitLabPushTrigger plugin="gitlab-plugin@1.4.6">
-            <spec></spec>
-            <triggerOnPush>true</triggerOnPush>
-            <triggerOnMergeRequest>false</triggerOnMergeRequest>
-            <triggerOnAcceptedMergeRequest>false</triggerOnAcceptedMergeRequest>
-            <triggerOnClosedMergeRequest>false</triggerOnClosedMergeRequest>
-            <triggerOpenMergeRequestOnPush>never</triggerOpenMergeRequestOnPush>
-            <triggerOnNoteRequest>false</triggerOnNoteRequest>
-            <noteRegex>Jenkins please retry a build</noteRegex>
-            <ciSkip>true</ciSkip>
-            <skipWorkInProgressMergeRequest>true</skipWorkInProgressMergeRequest>
-            <setBuildDescription>true</setBuildDescription>
-            <branchFilterType>All</branchFilterType>
-            <includeBranchesSpec></includeBranchesSpec>
-            <excludeBranchesSpec></excludeBranchesSpec>
-            <targetBranchRegex></targetBranchRegex>
-            <secretToken></secretToken>
-        </com.dabsquared.gitlabjenkins.GitLabPushTrigger>
-    </triggers>
-    <concurrentBuild>false</concurrentBuild>
-    <aggregatorStyleBuild>true</aggregatorStyleBuild>
-    <incrementalBuild>false</incrementalBuild>
-    <ignoreUpstremChanges>true</ignoreUpstremChanges>
-    <ignoreUnsuccessfulUpstreams>false</ignoreUnsuccessfulUpstreams>
-    <archivingDisabled>false</archivingDisabled>
-    <siteArchivingDisabled>false</siteArchivingDisabled>
-    <fingerprintingDisabled>false</fingerprintingDisabled>
-    <resolveDependencies>false</resolveDependencies>
-    <processPlugins>false</processPlugins>
-    <mavenValidationLevel>-1</mavenValidationLevel>
-    <runHeadless>false</runHeadless>
-    <disableTriggerDownstreamProjects>false</disableTriggerDownstreamProjects>
-    <blockTriggerWhenBuilding>true</blockTriggerWhenBuilding>
-    <settings class="jenkins.mvn.DefaultSettingsProvider"/>
-    <globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider"/>
-    <reporters/>
-    <publishers/>
-    <buildWrappers>
-        <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.19">
-            <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
-                <timeoutMinutes>3</timeoutMinutes>
-            </strategy>
-            <operationList>
-                <hudson.plugins.build__timeout.operations.FailOperation/>
-            </operationList>
-        </hudson.plugins.build__timeout.BuildTimeoutWrapper>
-    </buildWrappers>
-    <prebuilders>
-        <hudson.tasks.Shell>
-            <command>
-                if [ ! -d &quot;/tmp/aes/{%PROBLEM%}&quot; ]; then
+    <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.45">
+        <script>pipeline {
+    agent any
+    stages {
+        stage(&apos;Clean&apos;) {
+            steps {
+                sh &apos;rm -rf ${WORKSPACE}/*&apos;
+            }
+        }
+        stage(&apos;Pull&apos;) {
+            steps {
+                git credentialsId: &apos;{%CREDENTIAL%}&apos;, url: &apos;{%GIT_HOST%}/{%NAMESPACE%}/{%PROJECT%}&apos;
+            }
+        }
+        stage(&apos;Prepare&apos;) {
+            steps {
+                sh &apos;&apos;&apos;if [ ! -d &quot;/tmp/aes/{%PROBLEM%}&quot; ]; then
                 wget -P /tmp/aes {%STORAGE_HOST%}/{%PROBLEM%}.zip
                 unzip /tmp/aes/{%PROBLEM%}.zip -d /tmp/aes/{%PROBLEM%}
                 fi
@@ -95,20 +70,35 @@
                 rm -rf ${WORKSPACE}/pom.xml
                 fi
                 cp /tmp/aes/{%PROBLEM%}/pom.xml ${WORKSPACE}/pom.xml
-                fi
-            </command>
-        </hudson.tasks.Shell>
-    </prebuilders>
-    <postbuilders>
-        <hudson.tasks.Shell>
-            <command>curl -l -H &quot;Content-type: application/x-www-form-urlencoded&quot; -X POST -d &quot;buildNumber=${BUILD_NUMBER}&amp;secret={%SECRET%}&quot; {%LOCAL_HOST%}/callback/{%ID%}
-            </command>
-        </hudson.tasks.Shell>
-    </postbuilders>
-    <runPostStepsIfResult>
-        <name>FAILURE</name>
-        <ordinal>2</ordinal>
-        <color>RED</color>
-        <completeBuild>true</completeBuild>
-    </runPostStepsIfResult>
-</maven2-moduleset>
+                fi&apos;&apos;&apos;
+            }
+        }
+        stage(&apos;Test&apos;) {
+            {%TEACHER_MASK%}agent {
+            {%TEACHER_MASK%}    docker {
+            {%TEACHER_MASK%}        image &apos;moekr/java8-maven3:1.0.0&apos;
+            {%TEACHER_MASK%}        args &apos;--network none -v $HOME/.m2/:/root/.m2/:ro,z -u root&apos;
+            {%TEACHER_MASK%}        reuseNode true
+            {%TEACHER_MASK%}    }
+            {%TEACHER_MASK%}}
+            steps {
+                catchError {
+                    timeout(3) {
+                        sh &apos;mvn clean test&apos;
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            junit allowEmptyResults: true, testResults: &apos;target/surefire-reports/*.xml&apos;
+            sh &apos;curl -l -H &quot;Content-type: application/x-www-form-urlencoded&quot; -X POST -d &quot;buildNumber=${BUILD_NUMBER}&amp;secret={%SECRET%}&quot; {%LOCAL_HOST%}/callback/{%ID%}&apos;
+        }
+    }
+}   </script>
+        <sandbox>true</sandbox>
+    </definition>
+    <triggers/>
+    <disabled>false</disabled>
+</flow-definition>

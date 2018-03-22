@@ -8,8 +8,8 @@ import com.moekr.aes.util.AesProperties.Local;
 import com.moekr.aes.util.AesProperties.Storage;
 import com.moekr.aes.util.ServiceException;
 import com.moekr.aes.util.enums.Language;
+import com.moekr.aes.util.enums.Role;
 import com.offbytwo.jenkins.JenkinsServer;
-import com.offbytwo.jenkins.model.TestReport;
 import com.offbytwo.jenkins.model.TestResult;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +42,7 @@ public class JenkinsApiImpl implements JenkinsApi {
 	}
 
 	@Override
-	public String createJob(int id, String namespace, String project, String problem, Language language) {
+	public String createJob(int id, String namespace, String project, String problem, Language language, Role role) {
 		String config;
 		switch (language) {
 			case JAVA:
@@ -58,6 +58,8 @@ public class JenkinsApiImpl implements JenkinsApi {
 		config = config.replace("{%NAMESPACE%}", namespace);
 		config = config.replace("{%PROJECT%}", project);
 		config = config.replace("{%PROBLEM%}", problem);
+		// 教师自测在主机运行，同时兼有安装测试所需依赖的目的；学生测试在无网络的Docker内运行
+		config = config.replace("{%TEACHER_MASK%}", role == Role.TEACHER ? "//" : "");
 		try {
 			server.createJob(String.valueOf(id), config);
 		} catch (IOException e) {
@@ -74,14 +76,6 @@ public class JenkinsApiImpl implements JenkinsApi {
 			server.deleteJob(name);
 		} catch (IOException e) {
 			throw new ServiceException("删除Jenkins项目失败！");
-		}
-	}
-
-	public TestReport fetchTestReport(int id, int buildNumber) {
-		try {
-			return server.getJob(String.valueOf(id)).getBuildByNumber(buildNumber).getTestReport();
-		} catch (IOException e) {
-			throw new ServiceException("获取Maven测试报告失败！");
 		}
 	}
 

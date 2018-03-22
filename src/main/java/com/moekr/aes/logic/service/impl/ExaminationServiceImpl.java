@@ -147,7 +147,7 @@ public class ExaminationServiceImpl implements ExaminationService {
 		Asserts.isTrue(!examination.getClosed(), "考试已经结束！");
 		int projectId = gitlabApi.forkProject(userId, examinationId, user.getNamespace());
 		Problem problem = examination.getProblem();
-		String webHook = jenkinsApi.createJob(projectId, user.getUsername(), examination.getProject(), problem.getFile(), problem.getLanguage());
+		String webHook = jenkinsApi.createJob(projectId, user.getUsername(), examination.getProject(), problem.getFile(), problem.getLanguage(), user.getRole());
 		gitlabApi.createWebHook(projectId, webHook);
 		Result result = new Result();
 		result.setId(projectId);

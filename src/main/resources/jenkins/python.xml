@@ -40,53 +40,67 @@
         </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
     </properties>
     <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.45">
-        <script>
-            pipeline {
-            agent any
-            stages {
-            stage(&apos;build&apos;) {
+        <script>pipeline {
+    agent any
+    stages {
+        stage(&apos;Clean&apos;) {
             steps {
-            git credentialsId: &apos;{%CREDENTIAL%}&apos;, url: &apos;{%GIT_HOST%}/{%NAMESPACE%}/{%PROJECT%}&apos;
+                sh &apos;rm -rf ${WORKSPACE}/*&apos;
             }
-            }
-            stage(&apos;Test&apos;) {
+        }
+        stage(&apos;Pull&apos;) {
             steps {
-            sh &apos;&apos;&apos;if [ ! -d &quot;/tmp/aes/{%PROBLEM%}&quot; ]; then
-            wget -P /tmp/aes {%STORAGE_HOST%}/{%PROBLEM%}.zip
-            unzip /tmp/aes/{%PROBLEM%}.zip -d /tmp/aes/{%PROBLEM%}
-            fi
-            if [ -d &quot;/tmp/aes/{%PROBLEM%}/test&quot; ]; then
-            if [ -d &quot;${WORKSPACE}/test&quot; ]; then
-            rm -rf ${WORKSPACE}/test
-            fi
-            cp -r /tmp/aes/{%PROBLEM%}/test ${WORKSPACE}/test
-            fi
-            if [ -f &quot;/tmp/aes/{%PROBLEM%}/src/__init__.py&quot; ]; then
-            if [ -f &quot;${WORKSPACE}/src/__init__.py&quot; ]; then
-            rm -rf ${WORKSPACE}/src/__init__.py
-            fi
-            cp /tmp/aes/{%PROBLEM%}/src/__init__.py ${WORKSPACE}/src/__init__.py
-            fi
-            if [ -f &quot;${WORKSPACE}/nosetests.xml&quot; ]; then
-            rm -rf ${WORKSPACE}/nosetests.xml
-            fi&apos;&apos;&apos;
-            sh &apos;chmod -x test/*&apos;
-            catchError {
-            timeout(3) {
-            sh &apos;nosetests --with-xunit&apos;
+                git credentialsId: &apos;{%CREDENTIAL%}&apos;, url: &apos;{%GIT_HOST%}/{%NAMESPACE%}/{%PROJECT%}&apos;
             }
+        }
+        stage(&apos;Prepare&apos;) {
+            steps {
+                sh &apos;&apos;&apos;if [ ! -d &quot;/tmp/aes/{%PROBLEM%}&quot; ]; then
+                wget -P /tmp/aes {%STORAGE_HOST%}/{%PROBLEM%}.zip
+                unzip /tmp/aes/{%PROBLEM%}.zip -d /tmp/aes/{%PROBLEM%}
+                fi
+                if [ -d &quot;/tmp/aes/{%PROBLEM%}/test&quot; ]; then
+                if [ -d &quot;${WORKSPACE}/test&quot; ]; then
+                rm -rf ${WORKSPACE}/test
+                fi
+                cp -r /tmp/aes/{%PROBLEM%}/test ${WORKSPACE}/test
+                fi
+                if [ -f &quot;/tmp/aes/{%PROBLEM%}/src/__init__.py&quot; ]; then
+                if [ -f &quot;${WORKSPACE}/src/__init__.py&quot; ]; then
+                rm -rf ${WORKSPACE}/src/__init__.py
+                fi
+                cp /tmp/aes/{%PROBLEM%}/src/__init__.py ${WORKSPACE}/src/__init__.py
+                fi
+                if [ -f &quot;${WORKSPACE}/nosetests.xml&quot; ]; then
+                rm -rf ${WORKSPACE}/nosetests.xml
+                fi&apos;&apos;&apos;
+                sh &apos;chmod -x test/*&apos;
             }
+        }
+        stage(&apos;Test&apos;) {
+            {%TEACHER_MASK%}agent {
+            {%TEACHER_MASK%}    docker {
+            {%TEACHER_MASK%}        image &apos;moekr/python3-nose:1.0.0&apos;
+            {%TEACHER_MASK%}        args &apos;--network none -v /usr/local/lib/python3.5/dist-packages/:/usr/local/lib/python3.5/dist-packages/:ro,z&apos;
+            {%TEACHER_MASK%}        reuseNode true
+            {%TEACHER_MASK%}    }
+            {%TEACHER_MASK%}}
+            steps {
+                catchError {
+                    timeout(3) {
+                        sh &apos;nosetests3 --with-xunit&apos;
+                    }
+                }
             }
-            }
-            }
-            post {
-            always {
+        }
+    }
+    post {
+        always {
             junit allowEmptyResults: true, testResults: &apos;nosetests.xml&apos;
             sh &apos;curl -l -H &quot;Content-type: application/x-www-form-urlencoded&quot; -X POST -d &quot;buildNumber=${BUILD_NUMBER}&amp;secret={%SECRET%}&quot; {%LOCAL_HOST%}/callback/{%ID%}&apos;
-            }
-            }
-            }
-        </script>
+        }
+    }
+}   </script>
         <sandbox>true</sandbox>
     </definition>
     <triggers/>

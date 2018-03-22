@@ -13,9 +13,10 @@ import com.moekr.aes.logic.service.RecordService;
 import com.moekr.aes.logic.vo.model.RecordModel;
 import com.moekr.aes.util.Asserts;
 import com.moekr.aes.util.ServiceException;
-import com.moekr.aes.util.enums.Language;
 import com.moekr.aes.util.enums.Role;
-import com.offbytwo.jenkins.model.*;
+import com.offbytwo.jenkins.model.TestCase;
+import com.offbytwo.jenkins.model.TestResult;
+import com.offbytwo.jenkins.model.TestSuites;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -97,34 +98,16 @@ public class RecordServiceImpl implements RecordService {
 		}
 		if (result.getExamination().getClosed()) return;
 		List<TestSuites> testSuitesList = null;
-		if (result.getExamination().getProblem().getLanguage() == Language.JAVA) {
-			TestReport testReport;
-			try {
-				testReport = jenkinsApi.fetchTestReport(id, buildNumber);
-			} catch (ServiceException e) {
-				testReport = null;
-			}
-			if (testReport != null) {
-				testSuitesList = new ArrayList<>();
-				testReport.getChildReports().stream()
-						.map(TestChildReport::getResult)
-						.map(TestResult::getSuites)
-						.forEach(testSuitesList::addAll);
-			} else {
-				log.warn("对应于编号 " + id + " 的构建编号为 " + buildNumber + " 的Maven测试结果不存在！");
-			}
+		TestResult testResult;
+		try {
+			testResult = jenkinsApi.fetchTestResult(id, buildNumber);
+		} catch (ServiceException e) {
+			testResult = null;
+		}
+		if (testResult != null) {
+			testSuitesList = new ArrayList<>(testResult.getSuites());
 		} else {
-			TestResult testResult;
-			try {
-				testResult = jenkinsApi.fetchTestResult(id, buildNumber);
-			} catch (ServiceException e) {
-				testResult = null;
-			}
-			if (testResult != null) {
-				testSuitesList = new ArrayList<>(testResult.getSuites());
-			} else {
-				log.warn("对应于编号 " + id + " 的构建编号为 " + buildNumber + " 的项目测试结果不存在！");
-			}
+			log.warn("对应于编号 " + id + " 的构建编号为 " + buildNumber + " 的项目测试结果不存在！");
 		}
 		if (testSuitesList != null) {
 			JSONArray pass = new JSONArray();

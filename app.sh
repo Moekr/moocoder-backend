@@ -5,7 +5,7 @@ path=/srv/aes
 # Application username.
 name=automated-examination-system
 # Application version.
-version=0.1.0
+version=0.2.0
 
 # Application config file. Default config.yml
 config_file=${path}/config.yml
