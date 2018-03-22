@@ -23,6 +23,10 @@
 	white-space: pre-line;
 }
 
+pre code {
+	white-space: pre;
+}
+
 footer {
 	margin-top: 30px;
 	color: #777;

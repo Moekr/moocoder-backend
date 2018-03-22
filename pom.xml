@@ -4,7 +4,7 @@
 
     <groupId>com.moekr</groupId>
     <artifactId>automated-examination-system</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.2</version>
 
     <packaging>jar</packaging>
 

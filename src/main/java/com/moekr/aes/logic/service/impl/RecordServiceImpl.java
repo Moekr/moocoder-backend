@@ -1,5 +1,6 @@
 package com.moekr.aes.logic.service.impl;
 
+import com.google.common.base.Ascii;
 import com.moekr.aes.data.TransactionWrapper;
 import com.moekr.aes.data.TransactionWrapper.SafeMethod;
 import com.moekr.aes.data.dao.ExaminationDAO;
@@ -112,6 +113,7 @@ public class RecordServiceImpl implements RecordService {
 		if (testSuitesList != null) {
 			JSONArray pass = new JSONArray();
 			JSONArray fail = new JSONArray();
+			int truncateLength = 60000 / Math.max(testSuitesList.stream().map(ts -> ts.getCases().size()).reduce((a, b) -> a + b).orElse(0), 1);
 			for (TestSuites testSuites : testSuitesList) {
 				for (TestCase testCase : testSuites.getCases()) {
 					String caseName = testCase.getClassName() + "." + testCase.getName();
@@ -121,7 +123,7 @@ public class RecordServiceImpl implements RecordService {
 						JSONObject object = new JSONObject();
 						object.put("name", caseName);
 						object.put("details", StringUtils.defaultString(testCase.getErrorDetails()));
-						object.put("trace", StringUtils.defaultString(testCase.getErrorStackTrace()));
+						object.put("trace", Ascii.truncate(StringUtils.defaultString(testCase.getErrorStackTrace()), truncateLength, "[达到长度限制]"));
 						fail.put(object);
 					}
 				}
@@ -149,5 +151,4 @@ public class RecordServiceImpl implements RecordService {
 			recordDAO.save(record);
 		}
 	}
-
 }
