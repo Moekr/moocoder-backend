@@ -1,8 +1,28 @@
 #!/usr/bin/env bash
 
-# This script is ONLY for Ubuntu 16.04 LTS WITHOUT docker!
+# This script is ONLY for Ubuntu 16.04 LTS!
 
-check_result () {
+JENKINS_PORT=8081
+GITLAB_PORT=8082
+
+GITLAB_IMAGE="gitlab/gitlab-ce:10.5.4-ce.0"
+JAVA_ENV_IMAGE="moekr/java8-maven3:1.0.0"
+PYTHON_ENV_IMAGE="moekr/python3-nose:1.0.0"
+
+GITLAB_CONTAINER="gitlab-aes"
+GITLAB_VOLUME="/srv/aes/gitlab"
+
+check_privilege () {
+    sudo -A ls >/dev/null 2>&1
+    if [ "$?" -ne "0" ]; then
+        echo "Please run this script as root or use sudo!"
+        exit 1
+    fi
+}
+
+exec_command () {
+    echo "$1"
+    bash -c "$2"
     if [ "$?" -ne "0" ]; then
         echo -e "\033[31m$1fail, exit.\033[0m"
         exit 1
@@ -11,50 +31,61 @@ check_result () {
     fi
 }
 
+check_privilege
 echo -e "\033[36mAutomated Examination System components install script\033[0m"
-echo -e "\033[41;37mThis script is ONLY for Ubuntu 16.04 LTS WITHOUT docker! \033[0m"
+echo -e "\033[41;37mThis script is ONLY for Ubuntu 16.04 LTS! \033[0m"
 echo -e -n "\033[36mPress any key to start install or exit with CTRL+C... \033[0m"
 read -n1 -s
 echo
-echo "Update package repository... "
-sudo apt update
-check_result "Update package repository... "
-echo "Install essential dependency of script... "
-sudo apt install -y gnupg curl apt-transport-https ca-certificates software-properties-common
-check_result "Install essential dependency of script... "
-echo "Install Gitlab repository GPG Key... "
-curl https://packages.gitlab.com/gpg.key 2> /dev/null | sudo apt-key add -
-check_result "Install Gitlab repository GPG Key... "
-echo "Install Gitlab repository source... "
-sudo echo "deb https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/ubuntu xenial main" > /etc/apt/sources.list.d/gitlab.list
-check_result "Install Gitlab repository source... "
-echo "Install Jenkins repository GPG Key... "
-curl https://pkg.jenkins.io/debian/jenkins.io.key 2> /dev/null | sudo apt-key add -
-check_result "Install Jenkins repository GPG Key... "
-echo "Install Jenkins repository source... "
-sudo echo "deb https://pkg.jenkins.io/debian binary/" > /etc/apt/sources.list.d/jenkins.list
-check_result "Install Jenkins repository source... "
-echo "Install essential dependency of components... "
-sudo apt install -y git default-jdk default-jre maven python-nose
-check_result "Install essential dependency of components... "
-echo "Update package repository... "
-sudo apt update
-check_result "Update package repository... "
-echo "Install Jenkins... "
-sudo apt install -y jenkins
-check_result "Install Jenkins... "
-echo "Change Jenkins default setting... "
-sudo sed -i "s/HTTP_PORT=8080/HTTP_PORT=8081/g" /etc/default/jenkins
-check_result "Change Jenkins default setting... "
-echo "Restart Jenkins... "
-sudo service jenkins restart
-check_result "Restart Jenkins... "
-echo "Install Gitlab... "
-sudo apt install -y gitlab-ce
-check_result "Install Gitlab... "
-echo "Reconfigure Gitlab... "
-sudo gitlab-ctl reconfigure
-check_result "Reconfigure Gitlab... "
+
+# Prepare
+exec_command "Update package repository... " \
+    "apt update"
+exec_command "Install essential dependencies... " \
+    "apt install -y gnupg curl apt-transport-https ca-certificates software-properties-common unzip git default-jdk default-jre maven python3-nose"
+
+# Install Docker
+exec_command "Uninstall old version Docker... " \
+    "apt remove docker docker-engine docker.io"
+exec_command "Install Docker repository GPG key... " \
+    "curl https://download.docker.com/linux/ubuntu/gpg 2>/dev/null | apt-key add -"
+exec_command "Install Docker repository source... " \
+    "echo \"deb [arch=amd64] https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/ubuntu xenial stable\" >/etc/apt/sources.list.d/docker.list"
+exec_command "Update package repository... " \
+    "apt update"
+exec_command "Install Docker... " \
+    "apt install -y docker-ce"
+
+# Install Jenkins
+exec_command "Install Jenkins repository GPG key... " \
+    "curl https://pkg.jenkins.io/debian/jenkins.io.key 2>/dev/null | apt-key add -"
+exec_command "Install Jenkins repository source... " \
+    "echo \"deb https://pkg.jenkins.io/debian binary/\" >/etc/apt/sources.list.d/jenkins.list"
+exec_command "Update package repository... " \
+    "apt update"
+exec_command "Install Jenkins... " \
+    "apt install -y jenkins"
+exec_command "Change Jenkins default setting... " \
+    "sed -i \"s/HTTP_PORT=8080/HTTP_PORT=${JENKINS_PORT}/g\" /etc/default/jenkins"
+exec_command "Add jenkins user to docker group... " \
+    "usermod -a -G docker jenkins"
+exec_command "Restart Jenkins... " \
+    "service jenkins restart"
+
+# Pull image
+exec_command "Pull GitLab-CE... " \
+    "docker pull ${GITLAB_IMAGE}"
+exec_command "Pull Java environment... " \
+    "docker pull ${JAVA_ENV_IMAGE}"
+exec_command "Pull Python environment... " \
+    "docker pull ${PYTHON_ENV_IMAGE}"
+
+# Run GitLab
+exec_command "Run GitLab-CE... " \
+    "docker run -d --name ${GITLAB_CONTAINER} -p ${GITLAB_PORT}:80 --restart always \
+    -v ${GITLAB_VOLUME}/config:/etc/gitlab:Z -v ${GITLAB_VOLUME}/logs:/var/log/gitlab:Z -v ${GITLAB_VOLUME}/data:/var/opt/gitlab:Z \
+    ${GITLAB_IMAGE}"
+
 echo -e "\033[36mInstall all components successfully.\033[0m"
-echo -e "\033[36mGitlab is running on port 80.\033[0m"
-echo -e "\033[36mJenkins is running on port 8081.\033[0m"
+echo -e "\033[36mJenkins is running on port ${JENKINS_PORT}.\033[0m"
+echo -e "\033[36mGitlab is running on port ${GITLAB_PORT}.\033[0m"

@@ -65,7 +65,7 @@ public class StudentExaminationController {
 		if (!examinationId.isPresent()) return "redirect:/s/examination/";
 		UserModel user = userService.findByUsername(ToolKit.currentUserDetails().getUsername());
 		model.addAttribute("user", user);
-		model.addAttribute("host", properties.getGitlab().getHost());
+		model.addAttribute("host", properties.getGitlab().getProxy());
 		model.addAttribute("examination", examinationService.findById(user.getId(), examinationId.get()));
 		model.addAttribute("result", resultService.findByExamination(user.getId(), examinationId.get()));
 		return "student/examination/detail";

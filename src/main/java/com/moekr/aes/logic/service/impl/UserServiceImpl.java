@@ -92,7 +92,6 @@ public class UserServiceImpl implements UserService {
 		BeanUtils.copyProperties(form, user);
 		user.setId(userId);
 		user.setPassword(DigestUtils.sha256Hex(password));
-		System.out.println(password);
 		user.setNamespace(namespaceId);
 		user.setToken(token);
 		user.setRole(Role.TEACHER);

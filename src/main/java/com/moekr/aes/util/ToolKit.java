@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public abstract class ToolKit {
 	public static final String BANNER = "AES";
-	public static final String VERSION = "0.1.0";
+	public static final String VERSION = "0.2.1";
 
 	public static Map<String, Object> emptyResponseBody() {
 		Map<String, Object> responseBody = new HashMap<>();

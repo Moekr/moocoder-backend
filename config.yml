@@ -22,6 +22,7 @@ aes:
     secret: RandomSecret
   gitlab:
     host: http://repo.aes.example.com
+    proxy: http://aes.example.com
     username: username
     token: token
   jenkins:

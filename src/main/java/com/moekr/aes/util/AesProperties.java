@@ -3,6 +3,7 @@ package com.moekr.aes.util;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,8 +35,13 @@ public class AesProperties {
 	@ToString
 	public static class Gitlab {
 		private String host;
+		private String proxy;
 		private String username;
 		private String token;
+
+		public String getProxy() {
+			return StringUtils.defaultString(proxy, host);
+		}
 	}
 
 	@Data

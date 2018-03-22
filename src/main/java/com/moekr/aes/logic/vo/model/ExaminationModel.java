@@ -32,7 +32,8 @@ public class ExaminationModel {
 		this.endAt = examination.getEndAt().atZone(ZoneId.systemDefault()).toEpochSecond();
 		this.createdAt = examination.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond();
 		this.language = examination.getProblem().getLanguage();
-		this.resultCount = examination.getResultSet().size();
+		// 去掉属于教师自身的那一份成绩
+		this.resultCount = examination.getResultSet().size() - 1;
 	}
 
 	private Status status(LocalDateTime startAt, LocalDateTime endAt) {

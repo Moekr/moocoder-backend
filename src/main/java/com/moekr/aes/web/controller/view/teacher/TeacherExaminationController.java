@@ -57,7 +57,7 @@ public class TeacherExaminationController {
 		model.addAttribute("user", user);
 		model.addAttribute("examination", examinationService.findById(user.getId(), examinationId.get()));
 		model.addAttribute("result", resultService.findByExamination(user.getId(), examinationId.get()));
-		model.addAttribute("host", properties.getGitlab().getHost());
+		model.addAttribute("host", properties.getGitlab().getProxy());
 		model.addAttribute("scoreDistribution", resultService.scoreDistribution(examinationId.get()));
 		model.addAttribute("scoreData", resultService.scoreData(examinationId.get()));
 		model.addAttribute("failData", recordService.failData(examinationId.get()));
@@ -82,7 +82,7 @@ public class TeacherExaminationController {
 		model.addAttribute("user", user);
 		model.addAttribute("examination", examinationService.findById(user.getId(), examinationId.get()));
 		model.addAttribute("result", resultService.findByExamination(user.getId(), examinationId.get()));
-		model.addAttribute("host", properties.getGitlab().getHost());
+		model.addAttribute("host", properties.getGitlab().getProxy());
 		model.addAttribute("scoreDistribution", resultService.scoreDistribution(examinationId.get()));
 		model.addAttribute("scoreData", resultService.scoreData(examinationId.get()));
 		model.addAttribute("failData", recordService.failData(examinationId.get()));
