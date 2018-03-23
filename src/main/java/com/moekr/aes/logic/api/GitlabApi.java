@@ -16,4 +16,8 @@ public interface GitlabApi {
 	void createWebHook(int projectId, String webHookUrl);
 
 	void changePassword(int userId, String password);
+
+	void deleteUser(int userId);
+
+	void deleteProject(int projectId);
 }

@@ -2,10 +2,7 @@ package com.moekr.aes.logic.service.impl;
 
 import com.moekr.aes.data.TransactionWrapper;
 import com.moekr.aes.data.TransactionWrapper.SafeMethod;
-import com.moekr.aes.data.dao.ExaminationDAO;
-import com.moekr.aes.data.dao.ProblemDAO;
-import com.moekr.aes.data.dao.ResultDAO;
-import com.moekr.aes.data.dao.UserDAO;
+import com.moekr.aes.data.dao.*;
 import com.moekr.aes.data.entity.Examination;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.Result;
@@ -43,19 +40,21 @@ public class ExaminationServiceImpl implements ExaminationService {
 	private final ProblemDAO problemDAO;
 	private final ExaminationDAO examinationDAO;
 	private final ResultDAO resultDAO;
+	private final RecordDAO recordDAO;
 	private final GitlabApi gitlabApi;
 	private final JenkinsApi jenkinsApi;
 	private final TransactionWrapper wrapper;
 	private final StorageProvider storageProvider;
 
 	@Autowired
-	public ExaminationServiceImpl(AesProperties properties, UserDAO userDAO, ProblemDAO problemDAO, ExaminationDAO examinationDAO, ResultDAO resultDAO,
+	public ExaminationServiceImpl(AesProperties properties, UserDAO userDAO, ProblemDAO problemDAO, ExaminationDAO examinationDAO, ResultDAO resultDAO, RecordDAO recordDAO,
 								  GitlabApi gitlabApi, JenkinsApi jenkinsApi, TransactionWrapper wrapper, StorageProvider storageProvider) {
 		this.properties = properties;
 		this.userDAO = userDAO;
 		this.problemDAO = problemDAO;
 		this.examinationDAO = examinationDAO;
 		this.resultDAO = resultDAO;
+		this.recordDAO = recordDAO;
 		this.gitlabApi = gitlabApi;
 		this.jenkinsApi = jenkinsApi;
 		this.wrapper = wrapper;
@@ -181,6 +180,23 @@ public class ExaminationServiceImpl implements ExaminationService {
 		examinationDAO.save(examination);
 	}
 
+	@Override
+	@Transactional
+	public void delete(int examinationId) {
+		Examination examination = examinationDAO.findById(examinationId).orElse(null);
+		Assert.notNull(examination, "找不到考试");
+		for (Result result : examination.getResultSet()) {
+			gitlabApi.deleteProject(result.getId());
+			if (!result.getDeleted()) {
+				jenkinsApi.deleteJob(String.valueOf(result.getId()));
+			}
+			recordDAO.deleteAll(result.getRecordSet());
+			resultDAO.delete(result);
+		}
+		gitlabApi.deleteProject(examination.getId());
+		examinationDAO.delete(examination);
+	}
+
 	@Scheduled(cron = "5 * * * * *")
 	protected void scheduledCheckClosedExamination() {
 		wrapper.wrap((SafeMethod) this::checkClosedExamination);
@@ -203,10 +219,14 @@ public class ExaminationServiceImpl implements ExaminationService {
 				if (properties.getJenkins().getDeleteAfterClose()) {
 					try {
 						jenkinsApi.deleteJob(String.valueOf(result.getId()));
+						result.setDeleted(true);
 					} catch (ServiceException e) {
 						log.warn("删除Jenkins项目[ID=" + result.getId() + "]时发生异常：" + e.getMessage());
 					}
 				}
+			}
+			if (properties.getJenkins().getDeleteAfterClose()) {
+				resultDAO.saveAll(examination.getResultSet());
 			}
 		}
 	}

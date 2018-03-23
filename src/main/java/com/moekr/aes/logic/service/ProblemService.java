@@ -7,7 +7,11 @@ import java.util.List;
 public interface ProblemService {
 	List<ProblemModel> findAll();
 
+	List<ProblemModel> findAllUndeprecated();
+
 	ProblemModel findById(int problemId);
 
 	void upload(int userId, byte[] content);
+
+	void deprecate(int problemId);
 }

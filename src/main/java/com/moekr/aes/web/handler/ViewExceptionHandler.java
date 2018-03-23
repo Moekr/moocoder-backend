@@ -20,7 +20,6 @@ public class ViewExceptionHandler {
 		response.setStatus(error);
 		model.addAttribute("error", error);
 		model.addAttribute("message", StringUtils.abbreviate(exception.getMessage(), 80));
-		exception.printStackTrace();
 		return "error";
 	}
 }

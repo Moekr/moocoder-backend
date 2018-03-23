@@ -52,6 +52,15 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
+	public List<ProblemModel> findAllUndeprecated() {
+		return problemDAO.findAll().stream()
+				.filter(p -> !p.getDeprecated())
+				.map(ProblemModel::new)
+				.sorted((o1, o2) -> o2.getId() - o1.getId())
+				.collect(Collectors.toList());
+	}
+
+	@Override
 	public ProblemModel findById(int problemId) {
 		Problem problem = problemDAO.findById(problemId).orElse(null);
 		Asserts.isTrue(problem != null, HttpStatus.SC_NOT_FOUND);
@@ -87,6 +96,15 @@ public class ProblemServiceImpl implements ProblemService {
 		problem.setCreatedAt(LocalDateTime.now());
 		problem.setFile(file);
 		problem.setUser(user);
+		problemDAO.save(problem);
+	}
+
+	@Override
+	@Transactional
+	public void deprecate(int problemId) {
+		Problem problem = problemDAO.findById(problemId).orElse(null);
+		Assert.notNull(problem, "找不到题目");
+		problem.setDeprecated(true);
 		problemDAO.save(problem);
 	}
 

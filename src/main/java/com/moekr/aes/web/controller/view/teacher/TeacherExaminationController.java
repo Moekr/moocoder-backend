@@ -1,6 +1,7 @@
 package com.moekr.aes.web.controller.view.teacher;
 
 import com.moekr.aes.logic.service.*;
+import com.moekr.aes.logic.vo.model.ProblemModel;
 import com.moekr.aes.logic.vo.model.UserModel;
 import com.moekr.aes.util.AesProperties;
 import com.moekr.aes.util.ServiceException;
@@ -118,7 +119,11 @@ public class TeacherExaminationController {
 	public String create(@RequestParam("p") Optional<Integer> problemId, Model model) {
 		if (!problemId.isPresent()) return "redirect:/t/examination/";
 		model.addAttribute("user", userService.findByUsername(ToolKit.currentUserDetails().getUsername()));
-		model.addAttribute("problem", problemService.findById(problemId.get()));
+		ProblemModel problem = problemService.findById(problemId.get());
+		model.addAttribute("problem", problem);
+		if (problem.getDeprecated()) {
+			model.addAttribute("warning", "注意：当前选择的题目已被标记为弃用");
+		}
 		return "teacher/examination/create";
 	}
 

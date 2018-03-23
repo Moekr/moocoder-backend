@@ -18,4 +18,6 @@ public interface UserService {
 	void register(TeacherRegisterForm form);
 
 	void changePassword(String username, ChangePasswordForm form);
+
+	void delete(int userId);
 }

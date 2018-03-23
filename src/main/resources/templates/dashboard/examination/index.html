@@ -4,7 +4,7 @@
     <meta charset='utf-8'/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
     <meta name="theme-color" content="#C8C8C8"/>
-    <title>考试 | Automated Examination System</title>
+    <title>考试管理 | Dashboard</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
 </head>
@@ -17,22 +17,20 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" th:href="@{/t/}" th:text="${ToolKit.BANNER}"></a>
+            <a class="navbar-brand" th:href="@{/dashboard/}" th:text="${ToolKit.BANNER}"></a>
         </div>
         <div class="collapse navbar-collapse" id="header">
             <ul class="nav navbar-nav">
-                <li><a th:href="@{/t/}">首页</a></li>
-                <li class="active"><a th:href="@{/t/examination/}">考试与成绩</a></li>
-                <li><a th:href="@{/t/problem/}">题库</a></li>
-                <li><a th:href="@{/t/record/}">提交记录</a></li>
-                <li><a th:href="@{/t/help.html}">帮助</a></li>
+                <li><a th:href="@{/dashboard/}">首页</a></li>
+                <li><a th:href="@{/dashboard/teacher/}">教师管理</a></li>
+                <li><a th:href="@{/dashboard/student/}">学生管理</a></li>
+                <li><a th:href="@{/dashboard/problem/}">题库管理</a></li>
+                <li class="active"><a th:href="@{/dashboard/examination/}">考试管理</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span th:text="${user.username}"></span><span class="caret"></span></a>
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span>管理员</span><span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a th:href="@{/password.html}">修改密码</a></li>
-                        <li class="divider"></li>
                         <li><a th:href="@{/logout.html}">退出登录</a></li>
                     </ul>
                 </li>
@@ -40,9 +38,38 @@
         </div>
     </div>
 </nav>
+<div class="modal fade" tabindex="-1" id="delete-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title">删除考试</h4>
+            </div>
+            <div class="modal-body">
+                <p>确认删除所选的考试吗？</p>
+                <p>考试编号：<span id="delete-id"></span></p>
+                <p>考试名称：<span id="delete-name"></span></p>
+                <div class="alert alert-danger">
+                    <p><b>注意！</b>考试连带的所有数据都将被移除且不可恢复！</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <form method="post" style="display: inline-block">
+                    <input type="hidden" name="id" id="delete-id-input"/>
+                    <button type="submit" class="btn btn-danger">确认</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="container">
+    <div class="row col-md-12" th:if="${success!=null||error!=null}">
+        <div class="alert alert-success text-center" th:if="${success}" th:text="${success}"></div>
+        <div class="alert alert-danger text-center" th:if="${error}" th:text="${error}"></div>
+    </div>
     <div class="row col-md-12">
-        <h2>我创建的考试</h2>
+        <h2>考试列表</h2>
         <div class="table-container">
             <table class="table table-striped">
                 <thead>
@@ -54,7 +81,7 @@
                     <th>状态</th>
                     <th>开始时间</th>
                     <th>结束时间</th>
-                    <th>查看详情</th>
+                    <th>删除考试</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -70,7 +97,7 @@
                     </td>
                     <td th:text="${#dates.format(new java.util.Date(examination.startAt*1000))}"></td>
                     <td th:text="${#dates.format(new java.util.Date(examination.endAt*1000))}"></td>
-                    <td><a class="btn btn-xs btn-primary" th:href="'./detail.html?e='+${examination.id}">详情</a></td>
+                    <td><button class="btn btn-xs btn-danger" type="button" th:onclick="'deleteExamination('+${examination.id}+',\''+${examination.name}+'\');'">删除考试</button></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(examinationList)}">
                     <td class="text-center" colspan="8">没有记录！</td>
@@ -87,5 +114,6 @@
 </footer>
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script th:src="@{/js/bundle.js}"></script>
 </body>
 </html>

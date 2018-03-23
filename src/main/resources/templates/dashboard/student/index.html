@@ -4,7 +4,7 @@
     <meta charset='utf-8'/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
     <meta name="theme-color" content="#C8C8C8"/>
-    <title>教师管理 | Dashboard</title>
+    <title>学生管理 | Dashboard</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
 </head>
@@ -22,8 +22,8 @@
         <div class="collapse navbar-collapse" id="header">
             <ul class="nav navbar-nav">
                 <li><a th:href="@{/dashboard/}">首页</a></li>
-                <li class="active"><a th:href="@{/dashboard/teacher/}">教师管理</a></li>
-                <li><a th:href="@{/dashboard/student/}">学生管理</a></li>
+                <li><a th:href="@{/dashboard/teacher/}">教师管理</a></li>
+                <li class="active"><a th:href="@{/dashboard/student/}">学生管理</a></li>
                 <li><a th:href="@{/dashboard/problem/}">题库管理</a></li>
                 <li><a th:href="@{/dashboard/examination/}">考试管理</a></li>
             </ul>
@@ -38,10 +38,39 @@
         </div>
     </div>
 </nav>
+<div class="modal fade" tabindex="-1" id="delete-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title">删除用户</h4>
+            </div>
+            <div class="modal-body">
+                <p>确认删除所选用户吗？</p>
+                <p>用户ID：<span id="delete-id"></span></p>
+                <p>用户名：<span id="delete-username"></span></p>
+                <p>邮箱：<span id="delete-email"></span></p>
+                <div class="alert alert-danger">
+                    <p><b>注意！</b>用户连带的所有数据都将被移除且不可恢复！</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <form method="post" style="display: inline-block">
+                    <input type="hidden" name="id" id="delete-id-input"/>
+                    <button type="submit" class="btn btn-danger">确认</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="container">
+    <div class="row col-md-12" th:if="${success!=null||error!=null}">
+        <div class="alert alert-success text-center" th:if="${success}" th:text="${success}"></div>
+        <div class="alert alert-danger text-center" th:if="${error}" th:text="${error}"></div>
+    </div>
     <div class="row col-md-12">
-        <h2 style="display: inline-block;">教师列表</h2>
-        <button type="button" class="btn btn-md btn-primary" style="margin-left: 24px;margin-bottom: 12px;" onclick="window.location.href='./register.html'">注册教师</button>
+        <h2 style="display: inline-block;">学生列表</h2>
         <div class="table-container">
             <table class="table table-striped">
                 <thead>
@@ -50,8 +79,9 @@
                     <th>用户名</th>
                     <th>邮箱</th>
                     <th>注册时间</th>
-                    <th>上传题目数</th>
-                    <th>创建考试数</th>
+                    <th>参加考试数</th>
+                    <th>历史提交数</th>
+                    <th>删除用户</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -60,11 +90,12 @@
                     <td th:text="${user.username}"></td>
                     <td th:text="${user.email}"></td>
                     <td th:text="${#dates.format(new java.util.Date(user.createdAt*1000))}"></td>
-                    <td th:text="${user.problemCount}"></td>
                     <td th:text="${user.examinationCount}"></td>
+                    <td th:text="${user.submitCount}"></td>
+                    <td><button class="btn btn-xs btn-danger" type="button" th:onclick="'deleteStudent('+${user.id}+',\''+${user.username}+'\',\''+${user.email}+'\');'">删除用户</button></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(userList)}">
-                    <td class="text-center" colspan="6">没有记录！</td>
+                    <td class="text-center" colspan="7">没有记录！</td>
                 </tr>
                 </tbody>
             </table>
@@ -78,5 +109,6 @@
 </footer>
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script th:src="@{/js/bundle.js}"></script>
 </body>
 </html>

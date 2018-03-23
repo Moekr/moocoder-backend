@@ -43,6 +43,10 @@ public class Problem {
 	@Column(name = "created_at")
 	private LocalDateTime createdAt;
 
+	@Basic
+	@Column(name = "deprecated")
+	private Boolean deprecated;
+
 	@ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
 	@JoinColumn(name = "user", referencedColumnName = "id")
 	private User user;

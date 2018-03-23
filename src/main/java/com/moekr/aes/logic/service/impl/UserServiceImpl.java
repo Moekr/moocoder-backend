@@ -1,8 +1,12 @@
 package com.moekr.aes.logic.service.impl;
 
+import com.moekr.aes.data.dao.RecordDAO;
+import com.moekr.aes.data.dao.ResultDAO;
 import com.moekr.aes.data.dao.UserDAO;
+import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.data.entity.User;
 import com.moekr.aes.logic.api.GitlabApi;
+import com.moekr.aes.logic.api.JenkinsApi;
 import com.moekr.aes.logic.service.MailService;
 import com.moekr.aes.logic.service.UserService;
 import com.moekr.aes.logic.vo.model.UserModel;
@@ -29,14 +33,20 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
 	private final UserDAO userDAO;
+	private final ResultDAO resultDAO;
+	private final RecordDAO recordDAO;
 	private final MailService mailService;
 	private final GitlabApi gitlabApi;
+	private final JenkinsApi jenkinsApi;
 
 	@Autowired
-	public UserServiceImpl(UserDAO userDAO, MailService mailService, GitlabApi gitlabApi) {
+	public UserServiceImpl(UserDAO userDAO, ResultDAO resultDAO, RecordDAO recordDAO, MailService mailService, GitlabApi gitlabApi, JenkinsApi jenkinsApi) {
 		this.userDAO = userDAO;
+		this.resultDAO = resultDAO;
+		this.recordDAO = recordDAO;
 		this.mailService = mailService;
 		this.gitlabApi = gitlabApi;
+		this.jenkinsApi = jenkinsApi;
 	}
 
 	@Override
@@ -113,5 +123,22 @@ public class UserServiceImpl implements UserService {
 		gitlabApi.changePassword(user.getId(), form.getPassword());
 		user.setPassword(DigestUtils.sha256Hex(form.getPassword()));
 		userDAO.save(user);
+	}
+
+	@Override
+	@Transactional
+	public void delete(int userId) {
+		User user = userDAO.findById(userId).orElse(null);
+		Assert.notNull(user, "找不到要删除的用户");
+		Assert.isTrue(user.getRole() == Role.STUDENT, "目标用户只能是学生");
+		for (Result result : user.getResultSet()) {
+			recordDAO.deleteAll(result.getRecordSet());
+			gitlabApi.deleteUser(userId);
+			if (!result.getDeleted()) {
+				jenkinsApi.deleteJob(String.valueOf(result.getId()));
+			}
+			resultDAO.delete(result);
+		}
+		userDAO.delete(user);
 	}
 }

@@ -24,3 +24,26 @@ function participate(id, name) {
     $('#participate-name').text(name);
     $('#participate-modal').modal();
 }
+
+function deleteStudent(id, username, email) {
+    $('#delete-id-input').val(id);
+    $('#delete-id').text(id);
+    $('#delete-username').text(username);
+    $('#delete-email').text(email);
+    $('#delete-modal').modal();
+}
+
+function deprecate(id, name, language) {
+    $('#deprecate-id-input').val(id);
+    $('#deprecate-id').text(id);
+    $('#deprecate-name').text(name);
+    $('#deprecate-language').text(language);
+    $('#deprecate-modal').modal();
+}
+
+function deleteExamination(id, name) {
+    $('#delete-id-input').val(id);
+    $('#delete-id').text(id);
+    $('#delete-name').text(name);
+    $('#delete-modal').modal();
+}

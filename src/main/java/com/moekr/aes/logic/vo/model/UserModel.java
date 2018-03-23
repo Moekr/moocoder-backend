@@ -20,12 +20,14 @@ public class UserModel {
 	private Long createdAt;
 	private Integer problemCount;
 	private Integer examinationCount;
+	private Integer submitCount;
 
 	public UserModel(User user) {
 		BeanUtils.copyProperties(user, this);
 		this.role = user.getRole().toString();
 		this.createdAt = user.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond();
-		this.problemCount = user.getProblemSet().size();
+		this.problemCount = user.getRole() == Role.TEACHER ? user.getProblemSet().size() : 0;
 		this.examinationCount = user.getRole() == Role.TEACHER ? user.getExaminationSet().size() : user.getResultSet().size();
+		this.submitCount = user.getResultSet().stream().map(r -> r.getRecordSet().size()).reduce((a, b) -> a + b).orElse(0);
 	}
 }

@@ -18,6 +18,7 @@ public class ProblemModel {
 	private Language language;
 	private String file;
 	private Long createdAt;
+	private Boolean deprecated;
 	private Integer usedTime;
 
 	public ProblemModel(Problem problem) {

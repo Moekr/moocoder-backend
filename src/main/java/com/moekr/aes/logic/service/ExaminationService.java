@@ -26,4 +26,6 @@ public interface ExaminationService {
 	void participate(int userId, int examinationId);
 
 	void change(int userId, int examinationId, ChangeExaminationForm form);
+
+	void delete(int examinationId);
 }

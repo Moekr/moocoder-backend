@@ -33,7 +33,7 @@ public class TeacherProblemController {
 	public String problem(Model model) {
 		model.addAttribute("user", userService.findByUsername(ToolKit.currentUserDetails().getUsername()));
 		model.addAttribute("host", properties.getStorage().getHost());
-		model.addAttribute("problemList", problemService.findAll());
+		model.addAttribute("problemList", problemService.findAllUndeprecated());
 		return "teacher/problem/index";
 	}
 
@@ -48,7 +48,7 @@ public class TeacherProblemController {
 			model.addAttribute("error", e.getMessage());
 		}
 		model.addAttribute("host", properties.getStorage().getHost());
-		model.addAttribute("problemList", problemService.findAll());
+		model.addAttribute("problemList", problemService.findAllUndeprecated());
 		return "teacher/problem/index";
 	}
 }

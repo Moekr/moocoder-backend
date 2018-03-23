@@ -49,6 +49,7 @@
         <form class="form-horizontal" method="post" onsubmit="return checkInput();">
             <span class="heading">创建考试</span>
             <div class="alert alert-success text-center" th:if="${success}" th:text="${success}"></div>
+            <div class="alert alert-warning text-center" th:if="${warning}" th:text="${warning}"></div>
             <div class="alert alert-danger text-center" th:if="${error}" th:text="${error}"></div>
             <th:block th:if="!${success}">
                 <label class="control-label" for="problem">题目名称</label>

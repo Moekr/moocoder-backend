@@ -24,6 +24,10 @@ public class Result {
 	@Column(name = "score")
 	private Integer score;
 
+	@Basic
+	@Column(name = "deleted")
+	private Boolean deleted;
+
 	@ManyToOne(targetEntity = Examination.class, fetch = FetchType.LAZY)
 	@JoinColumn(name = "examination", referencedColumnName = "id")
 	private Examination examination;

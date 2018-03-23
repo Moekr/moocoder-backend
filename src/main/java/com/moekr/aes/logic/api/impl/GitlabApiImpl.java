@@ -125,4 +125,22 @@ public class GitlabApiImpl implements GitlabApi {
 			throw new ServiceException("修改GitLab密码失败！");
 		}
 	}
+
+	@Override
+	public synchronized void deleteUser(int userId) {
+		try {
+			server.getUserApi().deleteUser(userId, true);
+		} catch (GitLabApiException e) {
+			throw new ServiceException("删除GitLab用户失败！");
+		}
+	}
+
+	@Override
+	public void deleteProject(int projectId) {
+		try {
+			server.getProjectApi().deleteProject(projectId);
+		} catch (GitLabApiException e) {
+			throw new ServiceException("删除GitLab项目失败！");
+		}
+	}
 }
