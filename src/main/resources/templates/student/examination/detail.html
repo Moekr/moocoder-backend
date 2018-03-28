@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
     <meta name="theme-color" content="#C8C8C8"/>
     <title>考试详情 | Automated Examination System</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
 </head>
 <body>
@@ -63,11 +63,11 @@
                 </tr>
                 <tr>
                     <th>开始时间</th>
-                    <td th:text="${#dates.format(new java.util.Date(examination.startAt*1000))}"></td>
+                    <td th:text="${#dates.format(ToolKit.convert(examination.startAt))}"></td>
                 </tr>
                 <tr>
                     <th>结束时间</th>
-                    <td th:text="${#dates.format(new java.util.Date(examination.endAt*1000))}"></td>
+                    <td th:text="${#dates.format(ToolKit.convert(examination.endAt))}"></td>
                 </tr>
                 <tr>
                     <th>试卷地址</th>
@@ -102,7 +102,7 @@
                 <tbody>
                 <tr th:each="record,rstate:${result.recordList}">
                     <td th:text="'#'+${record.id}"></td>
-                    <td th:text="${#dates.format(new java.util.Date(record.createdAt*1000))}"></td>
+                    <td th:text="${#dates.format(ToolKit.convert(record.createdAt))}"></td>
                     <td th:text="${record.compiled}?${record.passSet.size()}:'编译失败'"></td>
                     <td th:text="${record.compiled}?${record.failSet.size()}:'编译失败'"></td>
                     <td th:text="${record.score}"></td>
@@ -121,7 +121,7 @@
         <p class="text-center">©2018 Powered by <span th:text="${ToolKit.BANNER}"></span> ver <span th:text="${ToolKit.VERSION}"></span></p>
     </div>
 </footer>
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/bootstrap.min.js}"></script>
 </body>
 </html>

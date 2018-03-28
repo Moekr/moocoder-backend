@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#C8C8C8"/>
     <meta th:if="${success}" http-equiv="refresh" content="5;url=./">
     <title>创建考试 | Automated Examination System</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" />
-    <link  rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/font-awesome.min.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap-datetimepicker.min.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/input.css}" />
 </head>
@@ -84,11 +84,11 @@
         <p class="text-center">©2018 Powered by <span th:text="${ToolKit.BANNER}"></span> ver <span th:text="${ToolKit.VERSION}"></span></p>
     </div>
 </footer>
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<script src="https://cdn.bootcss.com/moment.js/2.21.0/moment.min.js"></script>
-<script src="https://cdn.bootcss.com/moment.js/2.21.0/locale/zh-cn.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/bootstrap.min.js}"></script>
+<script th:src="@{/js/moment.min.js}"></script>
+<script th:src="@{/js/moment-zh-cn.js}"></script>
+<script th:src="@{/js/bootstrap-datetimepicker.min.js}"></script>
 <script th:src="@{/js/bundle.js}"></script>
 <script>$('#start-at-input').datetimepicker({locale:'zh-cn'});$('#end-at-input').datetimepicker({locale:'zh-cn'});</script>
 </body>

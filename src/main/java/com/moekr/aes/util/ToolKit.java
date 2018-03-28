@@ -1,6 +1,7 @@
 package com.moekr.aes.util;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -10,13 +11,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public abstract class ToolKit {
 	public static final String BANNER = "AES";
-	public static final String VERSION = "0.2.3";
+	public static final String VERSION = "0.2.4";
 
 	public static Map<String, Object> emptyResponseBody() {
 		Map<String, Object> responseBody = new HashMap<>();
@@ -77,5 +79,9 @@ public abstract class ToolKit {
 
 	public static LocalDateTime parse(String str) {
 		return LocalDateTime.parse(str, FORMATTER);
+	}
+
+	public static Date convert(long timestamp) {
+		return new Date(timestamp * DateUtils.MILLIS_PER_SECOND);
 	}
 }

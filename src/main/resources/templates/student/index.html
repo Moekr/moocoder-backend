@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
     <meta name="theme-color" content="#C8C8C8"/>
     <title>首页 | Automated Examination System</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/font-awesome.min.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/tile.css}" />
 </head>
@@ -84,8 +84,8 @@
                 <tr th:each="examination,estate:${examinationList}">
                     <td th:text="${examination.name}"></td>
                     <td th:text="${examination.language}"></td>
-                    <td th:text="${#dates.format(new java.util.Date(examination.startAt*1000))}"></td>
-                    <td th:text="${#dates.format(new java.util.Date(examination.endAt*1000))}"></td>
+                    <td th:text="${#dates.format(ToolKit.convert(examination.startAt))}"></td>
+                    <td th:text="${#dates.format(ToolKit.convert(examination.endAt))}"></td>
                     <td><a class="btn btn-xs btn-primary" th:href="'./examination/detail.html?e='+${examination.id}">详情</a></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(examinationList)}">
@@ -127,7 +127,7 @@
         <p class="text-center">©2018 Powered by <span th:text="${ToolKit.BANNER}"></span> ver <span th:text="${ToolKit.VERSION}"></span></p>
     </div>
 </footer>
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/bootstrap.min.js}"></script>
 </body>
 </html>

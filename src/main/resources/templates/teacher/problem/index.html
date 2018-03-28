@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
     <meta name="theme-color" content="#C8C8C8"/>
     <title>题库 | Automated Examination System</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap-fileinput/4.4.7/css/fileinput.min.css" >
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/fileinput.min.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
 </head>
 <body>
@@ -72,7 +72,7 @@
                 <td th:text="'#'+${problem.id}"></td>
                 <td th:text="${problem.name}"></td>
                 <td th:text="${problem.language}"></td>
-                <td th:text="${#dates.format(new java.util.Date(problem.createdAt*1000))}"></td>
+                <td th:text="${#dates.format(ToolKit.convert(problem.createdAt))}"></td>
                 <td th:text="${problem.usedTime}"></td>
                 <td><a class="btn btn-xs btn-default" target="_blank" th:href="${host}+'/'+${problem.file}+'.zip'">下载</a></td>
                 <td><a class="btn btn-xs btn-primary" th:href="'../examination/create.html?p='+${problem.id}">创建考试</a></td>
@@ -89,10 +89,10 @@
         <p class="text-center">©2018 Powered by <span th:text="${ToolKit.BANNER}"></span> ver <span th:text="${ToolKit.VERSION}"></span></p>
     </div>
 </footer>
-<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap-fileinput/4.4.7/js/fileinput.min.js"></script>
-<script src="https://cdn.bootcss.com/bootstrap-fileinput/4.4.7/js/locales/zh.js"></script>
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/bootstrap.min.js}"></script>
+<script th:src="@{/js/fileinput.min.js}"></script>
+<script th:src="@{/js/bootstrap-fileinput-zh.js}"></script>
 <script>$('#file').fileinput({language:'zh'})</script>
 </body>
 </html>

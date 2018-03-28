@@ -94,6 +94,7 @@ public class ProblemServiceImpl implements ProblemService {
 		problem.setLanguage(language);
 		problem.setDescription(description);
 		problem.setCreatedAt(LocalDateTime.now());
+		problem.setDeprecated(false);
 		problem.setFile(file);
 		problem.setUser(user);
 		problemDAO.save(problem);

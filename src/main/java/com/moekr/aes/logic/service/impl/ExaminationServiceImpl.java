@@ -151,6 +151,7 @@ public class ExaminationServiceImpl implements ExaminationService {
 		Result result = new Result();
 		result.setId(projectId);
 		result.setScore(0);
+		result.setDeleted(false);
 		result.setUser(user);
 		result.setExamination(examination);
 		resultDAO.save(result);
