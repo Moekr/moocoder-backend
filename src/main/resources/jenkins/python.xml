@@ -13,7 +13,7 @@
     <properties>
         <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
             <triggers>
-                <com.dabsquared.gitlabjenkins.GitLabPushTrigger plugin="gitlab-plugin@1.5.3">
+                <com.dabsquared.gitlabjenkins.GitLabPushTrigger plugin="gitlab-plugin@1.5.4">
                     <spec></spec>
                     <triggerOnPush>true</triggerOnPush>
                     <triggerOnMergeRequest>false</triggerOnMergeRequest>
@@ -35,7 +35,7 @@
                 </com.dabsquared.gitlabjenkins.GitLabPushTrigger>
             </triggers>
         </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-        <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.5.3">
+        <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.5.4">
             <gitLabConnection></gitLabConnection>
         </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
     </properties>

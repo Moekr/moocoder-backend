@@ -4,7 +4,7 @@
 
     <groupId>com.moekr</groupId>
     <artifactId>automated-examination-system</artifactId>
-    <version>0.2.4</version>
+    <version>0.2.5</version>
 
     <packaging>jar</packaging>
 
@@ -96,7 +96,7 @@
         <dependency>
             <groupId>org.gitlab4j</groupId>
             <artifactId>gitlab4j-api</artifactId>
-            <version>4.8.6</version>
+            <version>4.8.7</version>
         </dependency>
         <dependency>
             <groupId>com.offbytwo.jenkins</groupId>

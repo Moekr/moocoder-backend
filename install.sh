@@ -5,7 +5,7 @@
 JENKINS_PORT=8081
 GITLAB_PORT=8082
 
-GITLAB_IMAGE="gitlab/gitlab-ce:10.5.4-ce.0"
+GITLAB_IMAGE="gitlab/gitlab-ce:10.6.1-ce.0"
 JAVA_ENV_IMAGE="moekr/java8-maven3:1.0.0"
 PYTHON_ENV_IMAGE="moekr/python3-nose:1.0.0"
 
