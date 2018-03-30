@@ -81,7 +81,7 @@
             {%TEACHER_MASK%}agent {
             {%TEACHER_MASK%}    docker {
             {%TEACHER_MASK%}        image &apos;moekr/python3-nose:1.0.0&apos;
-            {%TEACHER_MASK%}        args &apos;--network none -v /usr/local/lib/python3.5/dist-packages/:/usr/local/lib/python3.5/dist-packages/:ro,z&apos;
+            {%TEACHER_MASK%}        args &apos;--network none -v /usr/local/lib/python3.5/dist-packages/:/usr/local/lib/python3.5/dist-packages/:ro,z -v /usr/lib/python3/dist-packages/:/usr/lib/python3/dist-packages/:ro,z&apos;
             {%TEACHER_MASK%}        reuseNode true
             {%TEACHER_MASK%}    }
             {%TEACHER_MASK%}}
