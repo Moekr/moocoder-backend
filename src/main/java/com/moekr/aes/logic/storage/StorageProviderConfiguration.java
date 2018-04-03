@@ -1,6 +1,9 @@
 package com.moekr.aes.logic.storage;
 
+import com.moekr.aes.logic.storage.impl.CosStorageProvider;
 import com.moekr.aes.logic.storage.impl.LocalStorageProvider;
+import com.moekr.aes.logic.storage.impl.OssStorageProvider;
+import com.moekr.aes.logic.storage.impl.QiniuStorageProvider;
 import com.moekr.aes.util.AesProperties;
 import com.moekr.aes.util.AesProperties.Storage;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +26,15 @@ public class StorageProviderConfiguration {
 		switch (storage.getType()) {
 			case "local":
 				storageProvider = new LocalStorageProvider();
+				break;
+			case "oss":
+				storageProvider = new OssStorageProvider();
+				break;
+			case "cos":
+				storageProvider = new CosStorageProvider();
+				break;
+			case "qiniu":
+				storageProvider = new QiniuStorageProvider();
 				break;
 			default:
 				throw new IllegalArgumentException("没有类型为[" + storage.getType() + "]的文件存储实现！");
