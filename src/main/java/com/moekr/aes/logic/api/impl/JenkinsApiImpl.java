@@ -1,6 +1,7 @@
 package com.moekr.aes.logic.api.impl;
 
 import com.moekr.aes.logic.api.JenkinsApi;
+import com.moekr.aes.logic.api.impl.cobertura.CoberturaResult;
 import com.moekr.aes.util.AesProperties;
 import com.moekr.aes.util.AesProperties.Gitlab;
 import com.moekr.aes.util.AesProperties.Jenkins;
@@ -10,6 +11,7 @@ import com.moekr.aes.util.ServiceException;
 import com.moekr.aes.util.enums.Language;
 import com.moekr.aes.util.enums.Role;
 import com.offbytwo.jenkins.JenkinsServer;
+import com.offbytwo.jenkins.model.Build;
 import com.offbytwo.jenkins.model.TestResult;
 import org.springframework.stereotype.Component;
 
@@ -79,11 +81,22 @@ public class JenkinsApiImpl implements JenkinsApi {
 		}
 	}
 
+	@Override
 	public TestResult fetchTestResult(int id, int buildNumber) {
 		try {
 			return server.getJob(String.valueOf(id)).getBuildByNumber(buildNumber).getTestResult();
 		} catch (IOException e) {
 			throw new ServiceException("获取项目测试结果失败！");
+		}
+	}
+
+	@Override
+	public CoberturaResult fetchCoberturaResult(int id, int buildNumber) {
+		try {
+			Build build = server.getJob(String.valueOf(id)).getBuildByNumber(buildNumber);
+			return build.getClient().get(build.getUrl() + "/cobertura/?depth=2", CoberturaResult.class);
+		} catch (IOException e) {
+			throw new ServiceException("获取测试覆盖结果失败！");
 		}
 	}
 

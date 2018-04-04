@@ -1,5 +1,6 @@
 package com.moekr.aes.logic.api;
 
+import com.moekr.aes.logic.api.impl.cobertura.CoberturaResult;
 import com.moekr.aes.util.enums.Language;
 import com.moekr.aes.util.enums.Role;
 import com.offbytwo.jenkins.model.TestResult;
@@ -10,4 +11,6 @@ public interface JenkinsApi {
 	void deleteJob(String name);
 
 	TestResult fetchTestResult(int id, int buildNumber);
+
+	CoberturaResult fetchCoberturaResult(int id, int buildNumber);
 }
