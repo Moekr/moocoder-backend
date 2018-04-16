@@ -25,7 +25,7 @@ public class WebSecurityConfiguration {
 		protected void configure(HttpSecurity http) throws Exception {
 			http.antMatcher("/api/**")
 					.authorizeRequests()
-					.anyRequest().hasAnyAuthority(ADMIN_AUTHORITY.getAuthority())
+					.anyRequest().authenticated()
 					.and()
 					.httpBasic()
 					.and()
@@ -46,7 +46,7 @@ public class WebSecurityConfiguration {
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			http.authorizeRequests()
-					.antMatchers("/register.html", "/callback/**", "/upload/**", "/js/**", "/css/**", "/fonts/**", "/img/**", "/favicon.ico").permitAll()
+					.antMatchers("/register.html", "/env/**", "/callback/**", "/upload/**", "/js/**", "/css/**", "/fonts/**", "/img/**", "/favicon.ico").permitAll()
 					.antMatchers("/password.html").hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), STUDENT_AUTHORITY.getAuthority())
 					.antMatchers("/dashboard/**").hasAuthority(ADMIN_AUTHORITY.getAuthority())
 					.antMatchers("/t/**").hasAuthority(TEACHER_AUTHORITY.getAuthority())

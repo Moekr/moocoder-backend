@@ -1,6 +1,6 @@
 package com.moekr.aes.web.handler;
 
-import com.moekr.aes.util.ServiceException;
+import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.util.ToolKit;
 import org.apache.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;

@@ -23,7 +23,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) {
 		if (username.equals(securityProperties.getUser().getName())) {
-			return new UserDetailsImpl(username, securityProperties.getUser().getPassword());
+			return new CustomUserDetails(username, securityProperties.getUser().getPassword());
 		} else {
 			return loadNormalUserByUsername(username);
 		}
@@ -34,6 +34,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		if (user == null) {
 			throw new UsernameNotFoundException(username);
 		}
-		return new UserDetailsImpl(user);
+		return new CustomUserDetails(user);
 	}
 }

@@ -1,17 +1,23 @@
 package com.moekr.aes.logic.service;
 
-import com.moekr.aes.logic.vo.model.ProblemModel;
-
-import java.util.List;
+import com.moekr.aes.logic.vo.ProblemVO;
+import com.moekr.aes.util.exceptions.ServiceException;
+import com.moekr.aes.web.dto.ProblemDTO;
 
 public interface ProblemService {
-	List<ProblemModel> findAll();
+	ProblemVO create(int userId, byte[] content) throws ServiceException;
 
-	List<ProblemModel> findAllUndeprecated();
+	ProblemVO update(int userId, int problemId, ProblemDTO problemDTO) throws ServiceException;
 
-	ProblemModel findById(int problemId);
+	void delete(int userId, int problemId) throws ServiceException;
 
-	void upload(int userId, byte[] content);
+	ProblemVO deprecate(int userId, int problemId) throws ServiceException;
 
-	void deprecate(int problemId);
+	ProblemVO create(byte[] content) throws ServiceException;
+
+	ProblemVO update(int problemId, ProblemDTO problemDTO) throws ServiceException;
+
+	void delete(int problemId) throws ServiceException;
+
+	ProblemVO deprecate(int problemId) throws ServiceException;
 }

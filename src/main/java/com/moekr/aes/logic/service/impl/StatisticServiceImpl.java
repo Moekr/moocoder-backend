@@ -3,8 +3,8 @@ package com.moekr.aes.logic.service.impl;
 import com.moekr.aes.data.dao.*;
 import com.moekr.aes.logic.service.StatisticService;
 import com.moekr.aes.logic.vo.model.StatisticModel;
-import com.moekr.aes.util.enums.Language;
-import com.moekr.aes.util.enums.Role;
+import com.moekr.aes.util.enums.ProblemType;
+import com.moekr.aes.util.enums.UserRole;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,13 +26,13 @@ public class StatisticServiceImpl implements StatisticService {
 	@Override
 	public StatisticModel statistic() {
 		StatisticModel statistic = new StatisticModel();
-		statistic.setStudentCount(userDAO.countByRole(Role.STUDENT));
-		statistic.setTeacherCount(userDAO.countByRole(Role.TEACHER));
+		statistic.setStudentCount(userDAO.countByRole(UserRole.STUDENT));
+		statistic.setTeacherCount(userDAO.countByRole(UserRole.TEACHER));
 		statistic.setExaminationCount((int) examinationDAO.count());
 		statistic.setResultCount((int) resultDAO.count());
 		statistic.setRecordCount((int) recordDAO.count());
-		statistic.setJavaProblemCount(problemDAO.countByLanguage(Language.JAVA));
-		statistic.setPythonProblemCount(problemDAO.countByLanguage(Language.PYTHON));
+		statistic.setJavaProblemCount(problemDAO.countByType(ProblemType.JAVA));
+		statistic.setPythonProblemCount(problemDAO.countByType(ProblemType.PYTHON));
 		return statistic;
 	}
 }

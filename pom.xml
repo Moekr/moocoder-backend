@@ -98,6 +98,11 @@
             <artifactId>jenkins-client</artifactId>
             <version>0.3.7</version>
         </dependency>
+        <dependency>
+            <groupId>com.spotify</groupId>
+            <artifactId>docker-client</artifactId>
+            <version>8.11.2</version>
+        </dependency>
 
         <!-- Utility Dependencies -->
         <dependency>
@@ -131,6 +136,12 @@
             <groupId>com.qcloud</groupId>
             <artifactId>cos_api</artifactId>
             <version>5.4.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Database Driver Dependencies -->

@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"examination", "user", "recordSet"})
+@EqualsAndHashCode(exclude = {"examination", "owner", "recordSet"})
 @ToString
 @Entity
 @Table(name = "ENTITY_RESULT")
@@ -21,22 +21,26 @@ public class Result {
 	private Integer id;
 
 	@Basic
-	@Column(name = "score")
-	private Integer score;
+	@Column(name = "score", columnDefinition = "INT(11) NOT NULL DEFAULT 0")
+	private Integer score = 0;
 
 	@Basic
-	@Column(name = "deleted")
-	private Boolean deleted;
+	@Column(name = "deleted", columnDefinition = "BIT(1) NOT NULL DEFAULT 0")
+	private Boolean deleted = false;
 
 	@ManyToOne(targetEntity = Examination.class, fetch = FetchType.LAZY)
 	@JoinColumn(name = "examination", referencedColumnName = "id")
 	private Examination examination;
 
 	@ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
-	@JoinColumn(name = "user", referencedColumnName = "id")
-	private User user;
+	@JoinColumn(name = "owner", referencedColumnName = "id")
+	private User owner;
 
 	@OneToMany(targetEntity = Record.class, mappedBy = "result")
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Record> recordSet = new HashSet<>();
+
+	public boolean isDeleted() {
+		return deleted != null && deleted;
+	}
 }

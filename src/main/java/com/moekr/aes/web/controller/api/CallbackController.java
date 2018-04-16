@@ -1,40 +1,38 @@
 package com.moekr.aes.web.controller.api;
 
-import com.moekr.aes.logic.service.RecordService;
+import com.moekr.aes.logic.service.NotifyService;
 import com.moekr.aes.util.AesProperties;
-import com.moekr.aes.util.Asserts;
-import com.moekr.aes.util.ServiceException;
 import com.moekr.aes.util.ToolKit;
-import com.moekr.aes.web.dto.form.CallbackForm;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
+import com.moekr.aes.util.exceptions.AccessDeniedException;
+import com.moekr.aes.util.exceptions.InvalidRequestException;
+import com.moekr.aes.util.exceptions.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/callback")
+@RequestMapping("/notify")
 public class CallbackController {
-	private final RecordService recordService;
+	private final NotifyService notifyService;
 	private final String secret;
 
 	@Autowired
-	public CallbackController(RecordService recordService, AesProperties properties) {
-		this.recordService = recordService;
+	public CallbackController(AesProperties properties, NotifyService notifyService) {
 		this.secret = properties.getLocal().getSecret();
+		this.notifyService = notifyService;
 	}
 
-	@PostMapping("/{id}")
-	public Map<String, Object> callback(@ModelAttribute @Valid CallbackForm form, Errors errors, @PathVariable String id) {
-		if (errors.hasFieldErrors()) {
-			throw new ServiceException(HttpStatus.SC_BAD_REQUEST, errors.getFieldError().getDefaultMessage());
+	@PostMapping("/callback/{id}/{buildNumber}")
+	public Map<String, Object> callback(@PathVariable int id, @PathVariable int buildNumber, @RequestParam String secret, Errors errors) throws ServiceException {
+		if (errors.hasErrors()) {
+			throw new InvalidRequestException(errors.getGlobalError().getDefaultMessage());
 		}
-		Asserts.isTrue(StringUtils.equals(this.secret, form.getSecret()), HttpStatus.SC_FORBIDDEN, "认证失败！");
-		Asserts.isTrue(StringUtils.isNumeric(id), HttpStatus.SC_BAD_REQUEST, "ID格式不正确！");
-		recordService.asyncRecord(Integer.valueOf(id), form.getBuildNumber());
+		if (!this.secret.equals(secret)) {
+			throw new AccessDeniedException();
+		}
+		notifyService.callback(id, buildNumber);
 		return ToolKit.emptyResponseBody();
 	}
 }

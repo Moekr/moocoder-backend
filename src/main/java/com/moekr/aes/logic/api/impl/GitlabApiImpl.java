@@ -3,7 +3,6 @@ package com.moekr.aes.logic.api.impl;
 import com.moekr.aes.logic.api.GitlabApi;
 import com.moekr.aes.util.AesProperties;
 import com.moekr.aes.util.AesProperties.Gitlab;
-import com.moekr.aes.util.ServiceException;
 import com.moekr.aes.util.ToolKit;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
@@ -14,79 +13,63 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GitlabApiImpl implements GitlabApi {
+	private final AesProperties properties;
 	private final GitLabApi server;
 
 	@Autowired
 	public GitlabApiImpl(AesProperties properties) {
+		this.properties = properties;
 		Gitlab gitlab = properties.getGitlab();
 		this.server = new GitLabApi(gitlab.getHost(), gitlab.getToken());
 	}
 
 	@Override
-	public synchronized Integer createUser(String username, String email, String password) {
+	public synchronized Integer createUser(String username, String email, String password) throws GitLabApiException {
 		User user = new User();
 		user.setUsername(username);
 		user.setEmail(email);
 		user.setName(username);
 		user.setSkipConfirmation(true);
-		try {
-			user = server.getUserApi().createUser(user, password, 1000);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("创建GitLab用户失败！");
-		}
+		user = server.getUserApi().createUser(user, password, 1000);
 		return user.getId();
 	}
 
 	@Override
-	public synchronized Integer fetchNamespace(String username) {
+	public synchronized Integer fetchNamespace(String username) throws GitLabApiException {
 		Namespace namespace;
-		try {
-			namespace = server.getNamespaceApi().findNamespaces(username)
-					.stream()
-					.filter(ns -> "user".equals(ns.getKind()))
-					.reduce((ns1, ns2) -> ns1.getId() > ns2.getId() ? ns1 : ns2)
-					.orElse(null);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("获取用户命名空间失败！");
-		}
+		namespace = server.getNamespaceApi().findNamespaces(username)
+				.stream()
+				.filter(ns -> "user".equals(ns.getKind()))
+				.reduce((ns1, ns2) -> ns1.getId() > ns2.getId() ? ns1 : ns2)
+				.orElse(null);
 		return namespace != null ? namespace.getId() : null;
 	}
 
 	@Override
-	public synchronized String createToken(int userId) {
+	public synchronized String createToken(int userId) throws GitLabApiException {
 		Scope[] scopes = new Scope[]{Scope.API};
 		ImpersonationToken token;
-		try {
-			token = server.getUserApi().createImpersonationToken(userId, "AES-" + ToolKit.randomUUID(), null, scopes);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("创建用户API Token失败！");
-		}
+		token = server.getUserApi().createImpersonationToken(userId, "AES-" + ToolKit.randomUUID(), null, scopes);
 		return token.getToken();
 	}
 
 	@Override
-	public synchronized Integer createProject(String name) {
+	public synchronized Integer createProject(String name) throws GitLabApiException {
 		Project project = new Project();
 		project.setName(name);
 		project.setVisibility(Visibility.INTERNAL);
-		try {
-			project = server.getProjectApi().createProject(project);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("创建GitLab项目失败！");
-		}
+		project = server.getProjectApi().createProject(project);
 		return project != null ? project.getId() : null;
 	}
 
 	@Override
-	public synchronized Integer forkProject(int userId, int projectId, int namespaceId) {
+	public synchronized Integer forkProject(int userId, int projectId, int namespaceId) throws GitLabApiException {
 		Project project;
 		try {
 			server.setSudoAsId(userId);
 			project = server.getProjectApi().forkProject(projectId, namespaceId);
 			project.setVisibility(Visibility.PRIVATE);
 			project = server.getProjectApi().updateProject(project);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("Fork项目失败！");
 		} finally {
 			server.unsudo();
 		}
@@ -94,53 +77,30 @@ public class GitlabApiImpl implements GitlabApi {
 	}
 
 	@Override
-	public synchronized void archiveProject(int projectId) {
-		try {
-			server.getProjectApi().archiveProject(projectId);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("设置项目归档失败！");
-		}
+	public synchronized void archiveProject(int projectId) throws GitLabApiException {
+		server.getProjectApi().archiveProject(projectId);
 	}
 
 	@Override
-	public synchronized void createWebHook(int projectId, String webHookUrl) {
-		try {
-			server.getProjectApi().addHook(projectId, webHookUrl, true, false, false);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("创建WebHook失败！");
-		}
+	public void createWebHook(int id) throws GitLabApiException {
+		String url = "http://localhost:3000/webhook/" + id + "?secret=" + properties.getLocal().getSecret();
+		server.getProjectApi().addHook(id, url, true, false, false);
 	}
 
 	@Override
-	public synchronized void changePassword(int userId, String password) {
+	public synchronized void changePassword(int userId, String password) throws GitLabApiException {
 		User user;
-		try {
-			user = server.getUserApi().getUser(userId);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("拉取GitLab用户信息失败！");
-		}
-		try {
-			server.getUserApi().modifyUser(user, password, 1000);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("修改GitLab密码失败！");
-		}
+		user = server.getUserApi().getUser(userId);
+		server.getUserApi().modifyUser(user, password, 1000);
 	}
 
 	@Override
-	public synchronized void deleteUser(int userId) {
-		try {
-			server.getUserApi().deleteUser(userId, true);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("删除GitLab用户失败！");
-		}
+	public synchronized void deleteUser(int userId) throws GitLabApiException {
+		server.getUserApi().deleteUser(userId, true);
 	}
 
 	@Override
-	public void deleteProject(int projectId) {
-		try {
-			server.getProjectApi().deleteProject(projectId);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("删除GitLab项目失败！");
-		}
+	public void deleteProject(int projectId) throws GitLabApiException {
+		server.getProjectApi().deleteProject(projectId);
 	}
 }

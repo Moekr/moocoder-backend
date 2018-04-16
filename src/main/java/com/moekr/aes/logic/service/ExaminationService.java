@@ -1,31 +1,17 @@
 package com.moekr.aes.logic.service;
 
-import com.moekr.aes.logic.vo.model.ExaminationModel;
-import com.moekr.aes.web.dto.form.ChangeExaminationForm;
-import com.moekr.aes.web.dto.form.CreateExaminationForm;
-
-import java.util.List;
+import com.moekr.aes.logic.vo.ExaminationVO;
+import com.moekr.aes.util.exceptions.ServiceException;
+import com.moekr.aes.web.dto.ExaminationDTO;
 
 public interface ExaminationService {
-	default boolean canAccess(int userId, int examinationId) {
-		try {
-			return findById(userId, examinationId) != null;
-		} catch (Exception e) {
-			return false;
-		}
-	}
+	ExaminationVO create(int userId, ExaminationDTO examinationDTO) throws ServiceException;
 
-	ExaminationModel findById(int userId, int examinationId);
+	ExaminationVO update(int userId, int examinationId, ExaminationDTO examinationDTO) throws ServiceException;
 
-	List<ExaminationModel> findAll(int userId);
+	void delete(int userId, int examinationId) throws ServiceException;
 
-	List<ExaminationModel> findAll();
+	void delete(int examinationId) throws ServiceException;
 
-	void create(int userId, int problemId, CreateExaminationForm form);
-
-	void participate(int userId, int examinationId);
-
-	void change(int userId, int examinationId, ChangeExaminationForm form);
-
-	void delete(int examinationId);
+	void participate(int userId, int examinationId) throws ServiceException;
 }

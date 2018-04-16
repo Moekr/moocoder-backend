@@ -3,12 +3,10 @@ package com.moekr.aes.logic.service.impl;
 import com.moekr.aes.data.dao.ResultDAO;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.logic.service.ResultService;
-import com.moekr.aes.logic.vo.model.ResultModel;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,13 +20,6 @@ public class ResultServiceImpl implements ResultService {
 	@Autowired
 	public ResultServiceImpl(ResultDAO resultDAO) {
 		this.resultDAO = resultDAO;
-	}
-
-	@Override
-	public ResultModel findByExamination(int userId, int examinationId) {
-		Result result = resultDAO.findOne(userId, examinationId);
-		Assert.notNull(result, "找不到成绩");
-		return new ResultModel(result);
 	}
 
 	@Override
@@ -54,7 +45,7 @@ public class ResultServiceImpl implements ResultService {
 	public Map<String, Integer> scoreData(int examinationId) {
 		List<Result> resultList = resultDAO.findAllByExamination(examinationId);
 		Map<String, Integer> scoreData = new HashMap<>();
-		resultList.forEach(r -> scoreData.put(r.getUser().getUsername(), r.getScore()));
+		resultList.forEach(r -> scoreData.put(r.getOwner().getUsername(), r.getScore()));
 		return scoreData;
 	}
 }

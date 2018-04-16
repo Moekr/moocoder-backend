@@ -19,6 +19,7 @@ public class AesProperties {
 	private Local local = new Local();
 	private Gitlab gitlab = new Gitlab();
 	private Jenkins jenkins = new Jenkins();
+	private Docker docker = new Docker();
 	private Mail mail = new Mail();
 	private Storage storage = new Storage();
 
@@ -53,6 +54,14 @@ public class AesProperties {
 		private String token;
 		private String credential;
 		private Boolean deleteAfterClose = true;
+	}
+
+	@Data
+	@EqualsAndHashCode
+	@ToString
+	public static class Docker {
+		private String host = "unix:///var/run/docker.sock";
+		private String registry;
 	}
 
 	@Data

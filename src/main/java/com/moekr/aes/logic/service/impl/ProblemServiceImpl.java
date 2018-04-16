@@ -6,28 +6,21 @@ import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.User;
 import com.moekr.aes.logic.service.ProblemService;
 import com.moekr.aes.logic.storage.StorageProvider;
-import com.moekr.aes.logic.vo.model.ProblemModel;
-import com.moekr.aes.util.Asserts;
-import com.moekr.aes.util.ServiceException;
-import com.moekr.aes.util.ToolKit;
-import com.moekr.aes.util.enums.Language;
-import com.moekr.aes.util.enums.Role;
+import com.moekr.aes.logic.vo.ProblemVO;
+import com.moekr.aes.util.exceptions.*;
+import com.moekr.aes.web.dto.ProblemDTO;
 import lombok.extern.apachecommons.CommonsLog;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
+import org.json.JSONArray;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
-import java.io.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Service
 @CommonsLog
@@ -35,6 +28,8 @@ public class ProblemServiceImpl implements ProblemService {
 	private final UserDAO userDAO;
 	private final ProblemDAO problemDAO;
 	private final StorageProvider storageProvider;
+
+	private final ProblemFormatter formatter = new ProblemFormatter();
 
 	@Autowired
 	public ProblemServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, StorageProvider storageProvider) {
@@ -44,103 +39,132 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
-	public List<ProblemModel> findAll() {
-		return problemDAO.findAll().stream()
-				.map(ProblemModel::new)
-				.sorted((o1, o2) -> o2.getId() - o1.getId())
-				.collect(Collectors.toList());
+	@Transactional
+	public ProblemVO create(int userId, byte[] content) throws ServiceException {
+		User user = userDAO.findById(userId);
+		return create(user, content);
 	}
 
 	@Override
-	public List<ProblemModel> findAllUndeprecated() {
-		return problemDAO.findAll().stream()
-				.filter(p -> !p.getDeprecated())
-				.map(ProblemModel::new)
-				.sorted((o1, o2) -> o2.getId() - o1.getId())
-				.collect(Collectors.toList());
-	}
-
-	@Override
-	public ProblemModel findById(int problemId) {
-		Problem problem = problemDAO.findById(problemId).orElse(null);
-		Asserts.isTrue(problem != null, HttpStatus.SC_NOT_FOUND);
-		return new ProblemModel(problem);
+	public ProblemVO update(int userId, int problemId, ProblemDTO problemDTO) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		if (problem.getOwner().getId() != userId) {
+			throw new AccessDeniedException();
+		}
+		return update(problem, problemDTO);
 	}
 
 	@Override
 	@Transactional
-	public void upload(int userId, byte[] content) {
-		User user = userDAO.findById(userId).orElse(null);
-		Assert.notNull(user, "找不到用户");
-		Assert.isTrue(user.getRole() == Role.TEACHER, "没有权限");
-		List<String> descriptionFile = decompressDescriptionFile(content);
-		Asserts.isTrue(descriptionFile.size() >= 4, "描述文件不完整！");
-		Language language = Arrays.stream(Language.values())
-				.filter(l -> StringUtils.equalsIgnoreCase(l.toString(), descriptionFile.get(0)))
-				.findFirst().orElse(null);
-		Asserts.isTrue(language != null, "不能处理的编程语言类型！");
-		String name = descriptionFile.get(1);
-		StringBuilder stringBuilder = new StringBuilder();
-		descriptionFile.stream().skip(3).forEach(line -> stringBuilder.append(line).append('\n'));
-		String description = stringBuilder.toString();
-		String file = ToolKit.randomUUID();
+	public void delete(int userId, int problemId) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		if (problem.getOwner().getId() != userId) {
+			throw new AccessDeniedException();
+		}
+		if (!problem.getExaminationSet().isEmpty()) {
+			throw new EntityNotAvailableException("题目已被使用至少一次，无法删除");
+		}
+		problemDAO.delete(problem);
+	}
+
+	@Override
+	public ProblemVO deprecate(int userId, int problemId) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		if (problem.getOwner().getId() != userId) {
+			throw new AccessDeniedException();
+		}
+		problem.setDeprecated(true);
+		return new ProblemVO(problemDAO.save(problem));
+	}
+
+	@Override
+	@Transactional
+	public ProblemVO create(byte[] content) throws ServiceException {
+		return create(null, content);
+	}
+
+	@Override
+	@Transactional
+	public ProblemVO update(int problemId, ProblemDTO problemDTO) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		return update(problem, problemDTO);
+	}
+
+	@Override
+	@Transactional
+	public void delete(int problemId) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		if (!problem.getExaminationSet().isEmpty()) {
+			throw new EntityNotAvailableException("题目已被使用至少一次，无法删除");
+		}
+		problemDAO.delete(problem);
+	}
+
+	@Override
+	@Transactional
+	public ProblemVO deprecate(int problemId) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		problem.setDeprecated(true);
+		return new ProblemVO(problemDAO.save(problem));
+	}
+
+	private ProblemVO create(User user, byte[] content) throws ServiceException {
+		FormattedProblemInfo info;
 		try {
-			storageProvider.save(content, file + ".zip");
+			info = formatter.format(content);
 		} catch (IOException e) {
-			throw new ServiceException("保存题目文件失败！");
+			throw new ServiceException("格式化题目文件时发生异常[" + e.getMessage() + "]");
 		}
 		Problem problem = new Problem();
-		problem.setName(name);
-		problem.setLanguage(language);
-		problem.setDescription(description);
-		problem.setCreatedAt(LocalDateTime.now());
-		problem.setDeprecated(false);
-		problem.setFile(file);
-		problem.setUser(user);
-		problemDAO.save(problem);
-	}
-
-	@Override
-	@Transactional
-	public void deprecate(int problemId) {
-		Problem problem = problemDAO.findById(problemId).orElse(null);
-		Assert.notNull(problem, "找不到题目");
-		problem.setDeprecated(true);
-		problemDAO.save(problem);
-	}
-
-	private List<String> decompressDescriptionFile(byte[] content) {
-		File file;
+		BeanUtils.copyProperties(info, problem);
+		problem.setPublicFiles(new JSONArray(info.getPublicFiles()).toString());
+		problem.setProtectedFiles(new JSONArray(info.getProtectedFiles()).toString());
+		problem.setPrivateFiles(new JSONArray(info.getPrivateFiles()).toString());
+		problem.setOwner(user);
+		problem = problemDAO.save(problem);
 		try {
-			file = File.createTempFile("upload", "zip");
+			storageProvider.save(content, problem.getId() + ".zip");
 		} catch (IOException e) {
-			throw new ServiceException("创建临时文件失败！");
+			throw new ServiceException("保存题目文件时发生异常[" + e.getMessage() + "]");
 		}
-		try (FileOutputStream outputStream = new FileOutputStream(file)) {
-			outputStream.write(content);
-		} catch (IOException e) {
-			throw new ServiceException("写入临时文件失败！");
-		}
-		try (ZipFile zipFile = new ZipFile(file)) {
-			ZipArchiveEntry entry = zipFile.getEntry("README.md");
-			Asserts.isTrue(entry != null, "题目描述文件不存在！");
-			try (BufferedReader reader = new BufferedReader(new InputStreamReader(zipFile.getInputStream(entry)))) {
-				List<String> lineList = new ArrayList<>();
-				String line;
-				while ((line = reader.readLine()) != null) {
-					lineList.add(line);
-				}
-				return lineList;
-			} catch (IOException e) {
-				throw new ServiceException("读取题目描述文件失败！");
-			}
-		} catch (IOException e) {
-			throw new ServiceException("读取题目压缩文件失败！");
-		} finally {
-			if (!file.delete()) {
-				log.warn("删除临时文件[" + file.getAbsolutePath() + "]失败！");
-			}
-		}
+		return new ProblemVO(problem);
 	}
 
+	private ProblemVO update(Problem problem, ProblemDTO problemDTO) throws ServiceException {
+		List<JSONArray> originFileArrayList = Arrays.asList(
+				new JSONArray(problem.getPublicFiles()),
+				new JSONArray(problem.getProtectedFiles()),
+				new JSONArray(problem.getPublicFiles())
+		);
+		Set<String> originFiles = new HashSet<>();
+		for (JSONArray originFileArray : originFileArrayList) {
+			for (Object object : originFileArray) {
+				if (object instanceof String) {
+					originFiles.add((String) object);
+				}
+			}
+		}
+		List<Set<String>> newFileSetList = Arrays.asList(
+				problemDTO.getPublicFiles(),
+				problemDTO.getProtectedFiles(),
+				problemDTO.getPrivateFiles()
+		);
+		Set<String> newFiles = new HashSet<>();
+		for (Set<String> newFileSet : newFileSetList) {
+			newFiles.addAll(newFileSet);
+		}
+		if (!originFiles.equals(newFiles)) {
+			throw new InvalidRequestException("文件列表不匹配！");
+		}
+		problem.setPublicFiles(new JSONArray(problemDTO.getPublicFiles()).toString());
+		problem.setProtectedFiles(new JSONArray(problemDTO.getProtectedFiles()).toString());
+		problem.setPrivateFiles(new JSONArray(problemDTO.getPrivateFiles()).toString());
+		return new ProblemVO(problemDAO.save(problem));
+	}
 }

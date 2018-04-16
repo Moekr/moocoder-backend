@@ -1,16 +1,16 @@
 package com.moekr.aes.logic.api;
 
-import com.moekr.aes.logic.api.impl.cobertura.CoberturaResult;
-import com.moekr.aes.util.enums.Language;
-import com.moekr.aes.util.enums.Role;
-import com.offbytwo.jenkins.model.TestResult;
+import com.moekr.aes.logic.api.vo.BuildDetails;
+import com.offbytwo.jenkins.model.QueueItem;
+
+import java.io.IOException;
 
 public interface JenkinsApi {
-	String createJob(int id, String namespace, String project, String problem, Language language, Role role);
+	void createJob(int id) throws IOException;
 
-	void deleteJob(String name);
+	QueueItem invokeBuild(int id) throws IOException;
 
-	TestResult fetchTestResult(int id, int buildNumber);
+	void deleteJob(int id) throws IOException;
 
-	CoberturaResult fetchCoberturaResult(int id, int buildNumber);
+	BuildDetails fetchBuildDetails(int id, int buildNumber) throws IOException;
 }

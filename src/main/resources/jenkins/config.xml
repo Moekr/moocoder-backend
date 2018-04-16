@@ -1,0 +1,89 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.17">
+    <actions>
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.2.7"/>
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.2.7">
+            <jobProperties/>
+            <triggers/>
+            <parameters/>
+        </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+    </actions>
+    <description></description>
+    <keepDependencies>false</keepDependencies>
+    <properties>
+        <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+            <triggers>
+                <com.dabsquared.gitlabjenkins.GitLabPushTrigger plugin="gitlab-plugin@1.5.4">
+                    <spec></spec>
+                    <triggerOnPush>true</triggerOnPush>
+                    <triggerOnMergeRequest>false</triggerOnMergeRequest>
+                    <triggerOnPipelineEvent>false</triggerOnPipelineEvent>
+                    <triggerOnAcceptedMergeRequest>false</triggerOnAcceptedMergeRequest>
+                    <triggerOnClosedMergeRequest>false</triggerOnClosedMergeRequest>
+                    <triggerOnApprovedMergeRequest>false</triggerOnApprovedMergeRequest>
+                    <triggerOpenMergeRequestOnPush>never</triggerOpenMergeRequestOnPush>
+                    <triggerOnNoteRequest>false</triggerOnNoteRequest>
+                    <noteRegex>Jenkins please retry a build</noteRegex>
+                    <ciSkip>true</ciSkip>
+                    <skipWorkInProgressMergeRequest>true</skipWorkInProgressMergeRequest>
+                    <setBuildDescription>true</setBuildDescription>
+                    <branchFilterType>All</branchFilterType>
+                    <includeBranchesSpec></includeBranchesSpec>
+                    <excludeBranchesSpec></excludeBranchesSpec>
+                    <targetBranchRegex></targetBranchRegex>
+                    <secretToken></secretToken>
+                </com.dabsquared.gitlabjenkins.GitLabPushTrigger>
+            </triggers>
+        </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+    </properties>
+    <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.45">
+        <script>
+node {
+    sh &quot;curl ${AES_HOST}/env/${JOB_NAME}?secret=${AES_SECRET} &gt; env&quot;
+    load &apos;env&apos;
+    sh &apos;rm -rf env&apos;
+}
+
+pipeline {
+    agent any
+    stages {
+        stage(&apos;Clean&apos;) {
+            steps {
+                sh &apos;rm -rf ${WORKSPACE}/*&apos;
+            }
+        }
+        stage(&apos;Pull&apos;) {
+            steps {
+                git credentialsId: &quot;AES&quot;, url: &quot;${GIT_URL}&quot;
+            }
+        }
+        stage(&apos;Run&apos;) {
+            agent {
+                docker {
+                    image &quot;${DOCKER_IMAGE}&quot;
+                    args &apos;--network none -h localhost&apos;
+                    reuseNode true
+                }
+            }
+            steps {
+                catchError {
+                    timeout(3) {
+                        sh &quot;${EXECUTE_SHELL}&quot;
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            junit allowEmptyResults: true, testResults: &apos;test-reports/*/*.xml&apos;
+            cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: &apos;coverage-reports/*/*.xml&apos;, conditionalCoverageTargets: &apos;70, 0, 0&apos;, failNoReports: false, failUnhealthy: false, failUnstable: false, lineCoverageTargets: &apos;80, 0, 0&apos;, maxNumberOfBuilds: 0, methodCoverageTargets: &apos;80, 0, 0&apos;, onlyStable: false, sourceEncoding: &apos;ASCII&apos;, zoomCoverageChart: false
+            sh &apos;curl &quot;${AES_HOST}/callback/${JOB_NAME}/${BUILD_NUMBER}?secret=${AES_SECRET}&quot;&apos;
+        }
+    }
+}   </script>
+        <sandbox>true</sandbox>
+    </definition>
+    <triggers/>
+    <disabled>false</disabled>
+</flow-definition>

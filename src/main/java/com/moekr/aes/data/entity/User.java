@@ -1,11 +1,13 @@
 package com.moekr.aes.data.entity;
 
-import com.moekr.aes.util.enums.Role;
+import com.moekr.aes.util.enums.UserRole;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -13,52 +15,54 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = "resultSet")
+@EqualsAndHashCode(exclude = {"problemSet", "examinationSet", "resultSet"})
 @ToString
 @Entity
 @Table(name = "ENTITY_USER", indexes = {@Index(columnList = "username"), @Index(columnList = "email")})
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 	@Id
 	@Column(name = "id")
 	private Integer id;
 
 	@Basic
-	@Column(name = "username")
+	@Column(name = "username", nullable = false)
 	private String username;
 
 	@Basic
-	@Column(name = "password")
+	@Column(name = "password", nullable = false)
 	private String password;
 
 	@Basic
-	@Column(name = "email")
+	@Column(name = "email", nullable = false)
 	private String email;
 
 	@Basic
-	@Column(name = "namespace")
+	@Column(name = "namespace", nullable = false)
 	private Integer namespace;
 
 	@Basic
-	@Column(name = "token")
+	@Column(name = "token", nullable = false)
 	private String token;
 
-	@Enumerated
-	@Column(name = "role")
-	private Role role;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "role", nullable = false)
+	private UserRole role;
 
 	@Basic
-	@Column(name = "created_at")
+	@Column(name = "created_at", nullable = false)
+	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@OneToMany(targetEntity = Problem.class, mappedBy = "user")
+	@OneToMany(targetEntity = Problem.class, mappedBy = "owner")
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Problem> problemSet = new HashSet<>();
 
-	@OneToMany(targetEntity = Examination.class, mappedBy = "user")
+	@OneToMany(targetEntity = Examination.class, mappedBy = "owner")
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Examination> examinationSet = new HashSet<>();
 
-	@OneToMany(targetEntity = Result.class, mappedBy = "user")
+	@OneToMany(targetEntity = Result.class, mappedBy = "owner")
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Result> resultSet = new HashSet<>();
 }
