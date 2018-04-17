@@ -32,16 +32,20 @@ public class Record {
 	private LocalDateTime createdAt;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "status", columnDefinition = "VARCHAR(1) NOT NULL DEFAULT 'WAITING'")
+	@Column(name = "status", columnDefinition = "VARCHAR(255) NOT NULL DEFAULT 'WAITING'")
 	private BuildStatus status = BuildStatus.WAITING;
+
+	@Basic
+	@Column(name = "console_output", columnDefinition = "TEXT NOT NULL DEFAULT ''")
+	private String consoleOutput = "";
 
 	@Basic
 	@Column(name = "score", columnDefinition = "INT(11) NOT NULL DEFAULT 0")
 	private Integer score = 0;
 
 	@Basic
-	@Column(name = "failure", columnDefinition = "TEXT NOT NULL")
-	private String failure;
+	@Column(name = "failure", columnDefinition = "TEXT NOT NULL DEFAULT '[]'")
+	private String failure = "[]";
 
 	@ManyToOne(targetEntity = Result.class, fetch = FetchType.LAZY)
 	@JoinColumn(name = "result", referencedColumnName = "id")

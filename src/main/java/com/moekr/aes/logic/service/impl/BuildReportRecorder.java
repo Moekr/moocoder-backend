@@ -67,10 +67,11 @@ public class BuildReportRecorder {
 			int coverageCount = (int) problemSet.stream().map(Problem::getType).filter(ProblemType::isCoverage).count();
 			int testCount = problemSet.size() - coverageCount;
 			record.setStatus(status);
+			record.setConsoleOutput(buildDetails.getConsoleOutput());
 			record.setScore((testScore * testCount + coverageScore * coverageCount) / problemSet.size());
 			record.setFailure(formatFailure(failureArray));
 		} else {
-			log.error("编号#" + id + "的提交记录不存在！");
+			log.error("编号#" + id + "/" + buildDetails.getNumber() + "的提交记录不存在！");
 		}
 	}
 
@@ -94,6 +95,9 @@ public class BuildReportRecorder {
 	}
 
 	private int evaluateTest(TestResult testResult, JSONArray failureArray) {
+		if (testResult == null) {
+			return 0;
+		}
 		int passCount = 0;
 		int totalCount = 0;
 		for (TestSuites testSuites : testResult.getSuites()) {
@@ -115,6 +119,9 @@ public class BuildReportRecorder {
 	}
 
 	private int evaluateCoverage(CoberturaResult coberturaResult, JSONArray failureArray) {
+		if (coberturaResult == null) {
+			return 0;
+		}
 		int totalRatio = 0;
 		StringBuilder builder = new StringBuilder();
 		for (CoberturaElement element : coberturaResult.getElements()) {

@@ -37,12 +37,10 @@ public class ExaminationController {
 		throw new AccessDeniedException();
 	}
 
-	@PostMapping("/examination/{examinationId}/participate")
-	public Map<String, Object> participate(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable int examinationId, Errors errors) throws ServiceException {
+	@PostMapping("/examination/{examinationId:\\d+}/participate")
+	public Map<String, Object> participate(@AuthenticationPrincipal CustomUserDetails userDetails,
+										   @PathVariable int examinationId) throws ServiceException {
 		if (userDetails.isStudent()) {
-			if (errors.hasErrors()) {
-				throw new InvalidRequestException(errors.getGlobalError().getDefaultMessage());
-			}
 			examinationService.participate(userDetails.getId(), examinationId);
 			return ToolKit.emptyResponseBody();
 		}

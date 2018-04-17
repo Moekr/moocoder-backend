@@ -9,11 +9,13 @@ import com.moekr.aes.logic.api.GitlabApi;
 import com.moekr.aes.logic.api.JenkinsApi;
 import com.moekr.aes.logic.service.MailService;
 import com.moekr.aes.logic.service.UserService;
+import com.moekr.aes.logic.vo.UserVO;
 import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.Asserts;
 import com.moekr.aes.util.ToolKit;
 import com.moekr.aes.util.enums.UserRole;
 import com.moekr.aes.util.exceptions.ServiceException;
+import com.moekr.aes.web.dto.UserDTO;
 import com.moekr.aes.web.dto.form.ChangePasswordForm;
 import com.moekr.aes.web.dto.form.StudentRegisterForm;
 import com.moekr.aes.web.dto.form.TeacherRegisterForm;
@@ -48,6 +50,46 @@ public class UserServiceImpl implements UserService {
 		this.mailService = mailService;
 		this.gitlabApi = gitlabApi;
 		this.jenkinsApi = jenkinsApi;
+	}
+
+	@Override
+	public UserVO create(UserDTO userDTO) throws ServiceException {
+		User user = userDAO.findByUsername(userDTO.getUsername());
+		Asserts.isNull(user, "用户名已被使用！");
+		user = userDAO.findByEmail(userDTO.getEmail());
+		Asserts.isNull(user, "邮箱已被使用！");
+		String password = ToolKit.randomPassword();
+		int userId;
+		try {
+			userId = gitlabApi.createUser(userDTO.getUsername(), userDTO.getEmail(), password);
+		} catch (GitLabApiException e) {
+			throw new ServiceException("创建GitLab用户时发生异常[" + e.getMessage() + "]");
+		}
+		int namespaceId;
+		try {
+			namespaceId = gitlabApi.fetchNamespace(userDTO.getUsername());
+		} catch (GitLabApiException e) {
+			throw new ServiceException("获取GitLab用户名称空间时发生异常[" + e.getMessage() + "]");
+		}
+		String token;
+		try {
+			token = gitlabApi.createToken(userId);
+		} catch (GitLabApiException e) {
+			throw new ServiceException("创建GitLab用户Token时发生异常[" + e.getMessage() + "]");
+		}
+		user = new User();
+		BeanUtils.copyProperties(userDTO, user);
+		user.setId(userId);
+		user.setPassword(DigestUtils.sha256Hex(password));
+		user.setNamespace(namespaceId);
+		user.setToken(token);
+		user.setCreatedAt(LocalDateTime.now());
+		ModelMap model = new ModelMap();
+		model.addAttribute("username", userDTO.getUsername());
+		model.addAttribute("password", password);
+		model.addAttribute("role", userDTO.getRole());
+		mailService.send(userDTO.getEmail(), userDTO.getUsername(), "注册成功", new ModelAndView("mail/register", model));
+		return new UserVO(userDAO.save(user));
 	}
 
 	@Override

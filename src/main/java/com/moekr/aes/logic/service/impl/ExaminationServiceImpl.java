@@ -14,6 +14,7 @@ import com.moekr.aes.util.enums.ExaminationStatus;
 import com.moekr.aes.util.exceptions.*;
 import com.moekr.aes.web.dto.ExaminationDTO;
 import lombok.extern.apachecommons.CommonsLog;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.gitlab4j.api.GitLabApiException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +36,12 @@ public class ExaminationServiceImpl implements ExaminationService {
 	private final RecordDAO recordDAO;
 	private final GitlabApi gitlabApi;
 	private final JenkinsApi jenkinsApi;
-	private final DockerImageBuilder builder;
+	private final PaperBuilder paperBuilder;
+	private final DockerImageBuilder imageBuilder;
 
 	@Autowired
 	public ExaminationServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, ExaminationDAO examinationDAO, ResultDAO resultDAO, RecordDAO recordDAO,
-								  GitlabApi gitlabApi, JenkinsApi jenkinsApi, DockerImageBuilder builder) {
+								  GitlabApi gitlabApi, JenkinsApi jenkinsApi, PaperBuilder paperBuilder, DockerImageBuilder imageBuilder) {
 		this.userDAO = userDAO;
 		this.problemDAO = problemDAO;
 		this.examinationDAO = examinationDAO;
@@ -47,7 +49,8 @@ public class ExaminationServiceImpl implements ExaminationService {
 		this.recordDAO = recordDAO;
 		this.gitlabApi = gitlabApi;
 		this.jenkinsApi = jenkinsApi;
-		this.builder = builder;
+		this.paperBuilder = paperBuilder;
+		this.imageBuilder = imageBuilder;
 	}
 
 	@Override
@@ -75,7 +78,12 @@ public class ExaminationServiceImpl implements ExaminationService {
 		examination.setOwner(user);
 		examination.setProblemSet(problemSet);
 		examination = examinationDAO.save(examination);
-		builder.asyncBuildDockerImage(id);
+		try {
+			paperBuilder.buildPaper(examination);
+		} catch (IOException | GitAPIException e) {
+			throw new ServiceException("构建试题时发生异常[" + e.getMessage() + "]");
+		}
+		imageBuilder.asyncBuildDockerImage(examination);
 		return new ExaminationVO(examination);
 	}
 

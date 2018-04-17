@@ -3,15 +3,15 @@ package com.moekr.aes.logic.api.impl;
 import com.moekr.aes.logic.api.JenkinsApi;
 import com.moekr.aes.logic.api.vo.BuildDetails;
 import com.moekr.aes.logic.api.vo.CoberturaResult;
+import com.moekr.aes.logic.api.vo.ExecutableDetails;
 import com.moekr.aes.util.AesProperties;
-import com.moekr.aes.util.AesProperties.Gitlab;
 import com.moekr.aes.util.AesProperties.Jenkins;
-import com.moekr.aes.util.AesProperties.Local;
-import com.moekr.aes.util.AesProperties.Storage;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.BuildWithDetails;
+import com.offbytwo.jenkins.model.Executable;
 import com.offbytwo.jenkins.model.QueueItem;
 import com.offbytwo.jenkins.model.QueueReference;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -48,7 +48,12 @@ public class JenkinsApiImpl implements JenkinsApi {
 	@Override
 	public QueueItem invokeBuild(int id) throws IOException {
 		QueueReference reference = server.getJob(String.valueOf(id)).build();
-		return server.getQueueItem(reference);
+		QueueItem item =  server.getQueueItem(reference);
+		ExecutableDetails details = item.getClient().get(item.getUrl() + "executable", ExecutableDetails.class);
+		Executable executable = new Executable();
+		BeanUtils.copyProperties(details, executable);
+		item.setExecutable(executable);
+		return item;
 	}
 
 	@Override
@@ -86,17 +91,6 @@ public class JenkinsApiImpl implements JenkinsApi {
 		while ((buffer = bufferedReader.readLine()) != null) {
 			stringBuilder.append(buffer).append("\n");
 		}
-		String template = stringBuilder.toString();
-		Gitlab gitlab = properties.getGitlab();
-		Jenkins jenkins = properties.getJenkins();
-		Storage storage = properties.getStorage();
-		Local local = properties.getLocal();
-		template = template.replace("{%GIT_HOST%}", gitlab.getHost());
-		template = template.replace("{%CREDENTIAL%}", jenkins.getCredential());
-		template = template.replace("{%STORAGE_HOST%}", storage.getHost());
-		template = template.replace("{%LOCAL_HOST%}", local.getHost());
-		template = template.replace("{%HOST%}", local.getHost());
-		template = template.replace("{%SECRET%}", local.getSecret());
-		return template;
+		return stringBuilder.toString();
 	}
 }

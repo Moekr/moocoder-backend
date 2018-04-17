@@ -5,15 +5,12 @@ import com.moekr.aes.data.dao.ExaminationDAO;
 import com.moekr.aes.data.entity.Examination;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.logic.api.DockerApi;
-import com.moekr.aes.logic.storage.StorageProvider;
-import com.moekr.aes.util.exceptions.Asserts;
+import com.moekr.aes.util.enums.ExaminationStatus;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-import org.zeroturnaround.zip.ZipUtil;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -25,29 +22,27 @@ public class DockerImageBuilder {
 
 	private final ExaminationDAO examinationDAO;
 	private final TransactionWrapper wrapper;
-	private final StorageProvider provider;
+	private final PaperBuilder builder;
 	private final DockerApi dockerApi;
 
 	@Autowired
-	public DockerImageBuilder(ExaminationDAO examinationDAO, TransactionWrapper wrapper, StorageProvider provider, DockerApi dockerApi) {
+	public DockerImageBuilder(ExaminationDAO examinationDAO, TransactionWrapper wrapper, PaperBuilder builder, DockerApi dockerApi) {
 		this.examinationDAO = examinationDAO;
 		this.wrapper = wrapper;
-		this.provider = provider;
+		this.builder = builder;
 		this.dockerApi = dockerApi;
 	}
 
 	@Async
-	public void asyncBuildDockerImage(int examinationId) {
+	public void asyncBuildDockerImage(Examination examination) {
 		try {
-			wrapper.wrap((TransactionWrapper.Method) () -> buildDockerImage(examinationId));
+			wrapper.wrap((TransactionWrapper.Method) () -> buildDockerImage(examination));
 		} catch (Exception e) {
-			log.error("为#" + examinationId + "构建Docker镜像失败[" + e.getClass() + "]: " + e.getMessage());
+			log.error("为#" + examination.getId() + "构建Docker镜像失败[" + e.getClass() + "]: " + e.getMessage());
 		}
 	}
 
-	private void buildDockerImage(int examinationId) throws Exception {
-		Examination examination = examinationDAO.findById(examinationId);
-		Assert.notNull(examination, "找不到考试");
+	private void buildDockerImage(Examination examination) throws Exception {
 		File tempDir = Files.createTempDirectory(TEMP_PREFIX).toFile();
 		try {
 			buildDockerImage(tempDir, examination);
@@ -67,24 +62,18 @@ public class DockerImageBuilder {
 				writer.write("WORKDIR /var/ws/code/" + problem.getName() + "\n");
 				writer.write("RUN " + problem.getType().initialCommand());
 			}
-			writer.write("RUN chmod -R 777 /var/ws\n");
 		}
 		File codeDir = new File(tempDir, "code");
 		if (!codeDir.mkdir()) {
 			throw new IOException("创建临时文件夹失败！");
 		}
-		for (Problem problem : examination.getProblemSet()) {
-			File problemDir = new File(codeDir, problem.getName());
-			if (!problemDir.mkdir()) {
-				throw new IOException("创建临时文件夹失败！");
-			}
-			byte[] content = provider.fetch(problem.getId() + ".zip");
-			ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
-			ZipUtil.unpack(inputStream, problemDir);
-		}
+		builder.releaseCode(examination.getProblemSet(), codeDir);
 		int version = examination.getVersion() + 1;
 		dockerApi.build(tempDir.getAbsolutePath(), examination.getUuid(), String.valueOf(version));
 		examination.setVersion(version);
+		if (examination.getStatus() == ExaminationStatus.PREPARING) {
+			examination.setStatus(ExaminationStatus.AVAILABLE);
+		}
 		examinationDAO.save(examination);
 	}
 }

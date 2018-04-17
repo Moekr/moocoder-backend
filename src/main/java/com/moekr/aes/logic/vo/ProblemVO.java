@@ -6,15 +6,11 @@ import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.util.enums.ProblemType;
 import com.moekr.aes.util.serializer.TimestampLocalDateTimeSerializer;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDateTime;
 
 @Data
-@EqualsAndHashCode
-@ToString
 public class ProblemVO {
 	private Integer id;
 	private String name;
