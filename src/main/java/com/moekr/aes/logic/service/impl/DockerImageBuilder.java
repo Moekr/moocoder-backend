@@ -51,7 +51,11 @@ public class DockerImageBuilder {
 		}
 	}
 
-	private void buildDockerImage(File tempDir, Examination examination) throws Exception {
+	private void buildDockerImage(File tempDir, Examination examination) throws Exception {File codeDir = new File(tempDir, "code");
+		if (!codeDir.mkdir()) {
+			throw new IOException("创建临时文件夹失败！");
+		}
+		builder.releaseCode(examination.getProblemSet(), codeDir, false);
 		File dockerFile = new File(tempDir, "Dockerfile");
 		try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(dockerFile)))) {
 			writer.write("FROM ubuntu:16.04\n");
@@ -63,11 +67,6 @@ public class DockerImageBuilder {
 				writer.write("RUN " + problem.getType().initialCommand());
 			}
 		}
-		File codeDir = new File(tempDir, "code");
-		if (!codeDir.mkdir()) {
-			throw new IOException("创建临时文件夹失败！");
-		}
-		builder.releaseCode(examination.getProblemSet(), codeDir);
 		int version = examination.getVersion() + 1;
 		dockerApi.build(tempDir.getAbsolutePath(), examination.getUuid(), String.valueOf(version));
 		examination.setVersion(version);

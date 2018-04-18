@@ -18,13 +18,15 @@ public enum ProblemType {
 					+ "mvn -fn clean test -Dmaven.repo.local=/var/ws/repository/\n"
 					+ "popd\n"
 					+ "mkdir -p ./test-reports/" + problemName + "/\n"
-					+ "cp /var/ws/code/" + problemName + "/target/surefire-reports/*.xml ./test-reports/" + problemName + "/\n";
+					+ "cp /var/ws/code/" + problemName + "/target/surefire-reports/*.xml ./test-reports/" + problemName + "/ || :\n";
 		}
 
 		@Override
 		public FileType fileType(String filePath) {
 			if (filePath.startsWith("/src/main/")) {
 				return FileType.PUBLIC;
+			} else if (filePath.startsWith("/src/test/")){
+				return FileType.PRIVATE;
 			} else {
 				return FileType.PROTECTED;
 			}
@@ -46,14 +48,16 @@ public enum ProblemType {
 					+ "nosetests3 --with-xunit || :\n"
 					+ "popd\n"
 					+ "mkdir -p ./test-reports/" + problemName + "/\n"
-					+ "cp /var/ws/code/" + problemName + "/nosetests.xml ./test-reports/" + problemName + "/\n";
+					+ "cp /var/ws/code/" + problemName + "/nosetests.xml ./test-reports/" + problemName + "/ || :\n";
 		}
 
 		@Override
 		public FileType fileType(String filePath) {
 			if (filePath.startsWith("/src/")) {
 				return FileType.PUBLIC;
-			} else {
+			} else if (filePath.startsWith("/test/")) {
+				return FileType.PRIVATE;
+			} else  {
 				return FileType.PROTECTED;
 			}
 		}
@@ -71,10 +75,10 @@ public enum ProblemType {
 		@Override
 		public String runScript(String problemName) {
 			return "pushd /var/ws/code/" + problemName + "/\n"
-					+ "mvn -fn clean cobertura:cobertura -Dmaven.repo.local=/var/ws/repository/\n"
+					+ "mvn -fn clean cobertura:cobertura -Dcobertura.report.format=xml -Dmaven.repo.local=/var/ws/repository/\n"
 					+ "popd\n"
 					+ "mkdir -p ./coverage-reports/" + problemName + "/\n"
-					+ "cp /var/ws/code/" + problemName + "/target/site/cobertura/*.xml ./coverage-reports/" + problemName + "/\n";
+					+ "cp /var/ws/code/" + problemName + "/target/site/cobertura/*.xml ./coverage-reports/" + problemName + "/ || :\n";
 		}
 
 		@Override
@@ -102,7 +106,7 @@ public enum ProblemType {
 					+ "nosetests3 --with-coverage --cover-xml || :\n"
 					+ "popd\n"
 					+ "mkdir -p ./coverage-reports/" + problemName + "/\n"
-					+ "cp /var/ws/code/" + problemName + "/coverage.xml ./coverage-reports/" + problemName + "/\n";
+					+ "cp /var/ws/code/" + problemName + "/coverage.xml ./coverage-reports/" + problemName + "/ || :\n";
 		}
 
 		@Override

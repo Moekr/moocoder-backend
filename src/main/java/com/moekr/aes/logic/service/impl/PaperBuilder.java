@@ -6,6 +6,7 @@ import com.moekr.aes.logic.storage.StorageProvider;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.zip.ZipUtil;
@@ -33,14 +34,14 @@ public class PaperBuilder {
 	public void buildPaper(Examination examination) throws IOException, GitAPIException {
 		File tempDir = Files.createTempDirectory(TEMP_PREFIX).toFile();
 		try {
-			releaseCode(examination.getProblemSet(), tempDir);
+			releaseCode(examination.getProblemSet(), tempDir, true);
 			helper.push(tempDir, examination.getUuid());
 		} finally {
 			FileUtils.deleteDirectory(tempDir);
 		}
 	}
 
-	public void releaseCode(Set<Problem> problemSet, File codeDir) throws IOException {
+	public void releaseCode(Set<Problem> problemSet, File codeDir, boolean removePrivateFile) throws IOException {
 		FileUtils.cleanDirectory(codeDir);
 		for (Problem problem : problemSet) {
 			File problemDir = new File(codeDir, problem.getName());
@@ -50,6 +51,23 @@ public class PaperBuilder {
 			byte[] content = provider.fetch(problem.getId() + ".zip");
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
 			ZipUtil.unpack(inputStream, problemDir);
+			if (removePrivateFile) {
+				JSONArray array = new JSONArray(problem.getPrivateFiles());
+				for (Object object : array) {
+					if (object instanceof String) {
+						String path = (String) object;
+						if (File.separatorChar != '/') {
+							path = path.replace('/', File.separatorChar);
+						}
+						File privateFile = new File(problemDir, path);
+						if (privateFile.exists()) {
+							if (!privateFile.delete()) {
+								log.error("删除私有文件[" + privateFile.getAbsolutePath() + "]失败！");
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }

@@ -26,7 +26,7 @@ public class NotifyServiceImpl implements NotifyService {
 		try {
 			item = jenkinsApi.invokeBuild(id);
 		} catch (Exception e) {
-			log.error("触发项目#" + id + "构建时发生异常[" + e.getClass() + "]: " + e.getMessage());
+			log.error("触发项目#" + id + "构建时发生异常[" + e.getClass() + "]: " + e.getMessage(), e);
 		}
 		if (item != null) {
 			recorder.record(id, item.getExecutable().getNumber().intValue());

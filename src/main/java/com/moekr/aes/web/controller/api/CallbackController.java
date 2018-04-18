@@ -15,12 +15,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/notify")
 public class CallbackController {
-	private final NotifyService notifyService;
 	private final String secret;
+	private final NotifyService notifyService;
 
 	@Autowired
 	public CallbackController(AesProperties properties, NotifyService notifyService) {
-		this.secret = properties.getLocal().getSecret();
+		this.secret = properties.getSecret();
 		this.notifyService = notifyService;
 	}
 

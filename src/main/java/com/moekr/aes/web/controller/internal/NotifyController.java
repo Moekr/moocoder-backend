@@ -18,7 +18,7 @@ public class NotifyController {
 
 	@Autowired
 	public NotifyController(AesProperties properties, NotifyService notifyService) {
-		this.secret = properties.getLocal().getSecret();
+		this.secret = properties.getSecret();
 		this.notifyService = notifyService;
 	}
 

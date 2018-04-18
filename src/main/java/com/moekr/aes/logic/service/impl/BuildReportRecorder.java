@@ -31,8 +31,9 @@ import java.util.stream.Collectors;
 @CommonsLog
 public class BuildReportRecorder {
 	private static final long TIMEOUT = 3 * DateUtils.MILLIS_PER_MINUTE;
-	private static final String[] PASS_STATUS = {"PASS", "FIXED"};
-	private static final int FAILURE_MAX_LENGTH = 65500;
+	private static final String[] PASS_STATUS = {"PASSED", "FIXED"};
+	private static final int TEXT_MAX_LENGTH = 65500;
+	private static final String TRUNCATE_INDICATOR = "[达到长度限制]";
 
 	private final RecordDAO recordDAO;
 	private final ResultDAO resultDAO;
@@ -67,7 +68,7 @@ public class BuildReportRecorder {
 			int coverageCount = (int) problemSet.stream().map(Problem::getType).filter(ProblemType::isCoverage).count();
 			int testCount = problemSet.size() - coverageCount;
 			record.setStatus(status);
-			record.setConsoleOutput(buildDetails.getConsoleOutput());
+			record.setConsoleOutput(Ascii.truncate(buildDetails.getConsoleOutput(), TEXT_MAX_LENGTH, TRUNCATE_INDICATOR));
 			record.setScore((testScore * testCount + coverageScore * coverageCount) / problemSet.size());
 			record.setFailure(formatFailure(failureArray));
 		} else {
@@ -140,7 +141,7 @@ public class BuildReportRecorder {
 
 	private String formatFailure(JSONArray failureArray) {
 		String failure = failureArray.toString();
-		if (failure.length() < FAILURE_MAX_LENGTH) {
+		if (failure.length() < TEXT_MAX_LENGTH) {
 			return failure;
 		}
 		List<JSONObject> failureList = new ArrayList<>();
@@ -151,7 +152,7 @@ public class BuildReportRecorder {
 		}
 		List<Integer> traceLengthList = failureList.stream().map(o -> o.optString("trace")).map(String::length).sorted().collect(Collectors.toList());
 		int totalLength = traceLengthList.stream().reduce((a, b) -> a + b).orElse(0);
-		int targetLength = FAILURE_MAX_LENGTH - (failure.length() - totalLength);
+		int targetLength = TEXT_MAX_LENGTH - (failure.length() - totalLength);
 		int truncateLength = 0;
 		for (int traceLength : traceLengthList) {
 			int currentLength = traceLengthList.stream().map(a -> Math.min(a, traceLength)).reduce((a, b) -> a + b).orElse(0);
@@ -162,7 +163,7 @@ public class BuildReportRecorder {
 			}
 		}
 		int finalTruncateLength = truncateLength;
-		failureList.forEach(f -> f.put("trace", Ascii.truncate(f.optString("trace"), finalTruncateLength, "[达到长度限制]")));
+		failureList.forEach(f -> f.put("trace", Ascii.truncate(f.optString("trace"), finalTruncateLength, TRUNCATE_INDICATOR)));
 		return failureArray.toString();
 	}
 }

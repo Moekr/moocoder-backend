@@ -83,7 +83,7 @@ public class GitlabApiImpl implements GitlabApi {
 
 	@Override
 	public void createWebHook(int id) throws GitLabApiException {
-		String url = "http://localhost:3000/internal/notify/webhook/" + id + "?secret=" + properties.getLocal().getSecret();
+		String url = "http://localhost:3000/internal/notify/webhook/" + id + "?secret=" + properties.getSecret();
 		server.getProjectApi().addHook(id, url, true, false, false);
 	}
 

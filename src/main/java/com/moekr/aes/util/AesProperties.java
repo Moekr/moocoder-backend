@@ -1,43 +1,47 @@
 package com.moekr.aes.util;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
-@EqualsAndHashCode
-@ToString
 @Configuration
 @ConfigurationProperties("aes")
+@Validated
 public class AesProperties {
-	private Local local = new Local();
+	@Pattern(regexp = "^[a-zA-Z0-9]+$")
+	@NotEmpty
+	private String secret;
+	@Valid
 	private Gitlab gitlab = new Gitlab();
+	@Valid
 	private Jenkins jenkins = new Jenkins();
+	@Valid
 	private Docker docker = new Docker();
+	@Valid
 	private Mail mail = new Mail();
+	@Valid
 	private Storage storage = new Storage();
 
 	@Data
-	@EqualsAndHashCode
-	@ToString
-	public static class Local {
-		private String host;
-		private String secret;
-	}
-
-	@Data
-	@EqualsAndHashCode
-	@ToString
 	public static class Gitlab {
+		@URL
+		@NotEmpty
 		private String host;
 		private String proxy;
-		private String username;
+		@NotEmpty
+		private String username = "root";
+		@NotEmpty
 		private String token;
 
 		public String getProxy() {
@@ -46,35 +50,35 @@ public class AesProperties {
 	}
 
 	@Data
-	@EqualsAndHashCode
-	@ToString
 	public static class Jenkins {
+		@URL
+		@NotEmpty
 		private String host;
-		private String username;
+		@NotEmpty
+		private String username = "root";
+		@NotEmpty
 		private String token;
-		private String credential;
-		private Boolean deleteAfterClose = true;
 	}
 
 	@Data
-	@EqualsAndHashCode
-	@ToString
 	public static class Docker {
+		@URL
+		@NotEmpty
 		private String host = "unix:///var/run/docker.sock";
+		@NotEmpty
 		private String registry;
 	}
 
 	@Data
-	@EqualsAndHashCode
-	@ToString
 	public static class Mail {
+		@Email
+		@NotEmpty
 		private String from;
+		@NotEmpty
 		private String personal = "Automated Examination System";
 	}
 
 	@Data
-	@EqualsAndHashCode
-	@ToString
 	public static class Storage {
 		private String host = "";
 		private String type = "local";

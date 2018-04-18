@@ -17,7 +17,7 @@ public class EnvironmentController {
 
 	@Autowired
 	public EnvironmentController(AesProperties properties, EnvironmentService environmentService) {
-		this.secret = properties.getLocal().getSecret();
+		this.secret = properties.getSecret();
 		this.environmentService = environmentService;
 	}
 

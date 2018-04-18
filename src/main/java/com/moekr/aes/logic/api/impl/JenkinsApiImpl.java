@@ -49,6 +49,10 @@ public class JenkinsApiImpl implements JenkinsApi {
 	public QueueItem invokeBuild(int id) throws IOException {
 		QueueReference reference = server.getJob(String.valueOf(id)).build();
 		QueueItem item =  server.getQueueItem(reference);
+		try {
+			// 等待一段时间，避免对executable的请求返回404
+			Thread.sleep(500);
+		} catch (InterruptedException ignore) { }
 		ExecutableDetails details = item.getClient().get(item.getUrl() + "executable", ExecutableDetails.class);
 		Executable executable = new Executable();
 		BeanUtils.copyProperties(details, executable);
