@@ -20,7 +20,6 @@ public class APIExceptionHandler {
 			error = ((ServiceException) exception).getError();
 		}
 		response.setStatus(error);
-		exception.printStackTrace();
 		return ToolKit.assemblyResponseBody(error, exception.getMessage());
 	}
 }

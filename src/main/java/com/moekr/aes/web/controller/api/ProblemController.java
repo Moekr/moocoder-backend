@@ -2,11 +2,13 @@ package com.moekr.aes.web.controller.api;
 
 import com.moekr.aes.logic.service.ProblemService;
 import com.moekr.aes.util.ToolKit;
+import com.moekr.aes.util.editors.PageNumberEditor;
 import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.security.impl.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,6 +25,11 @@ public class ProblemController {
 		this.problemService = problemService;
 	}
 
+	@InitBinder("page")
+	public void initPageBinder(WebDataBinder binder) {
+		binder.registerCustomEditor(int.class, new PageNumberEditor());
+	}
+
 	@PostMapping("/problem")
 	public Map<String, Object> create(@AuthenticationPrincipal CustomUserDetails userDetails,
 									  @RequestParam MultipartFile file) throws ServiceException, IOException {
@@ -37,7 +44,7 @@ public class ProblemController {
 
 	@GetMapping("/problem")
 	public Map<String, Object> retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
-											@RequestParam Integer page) throws ServiceException {
+											@RequestParam(defaultValue = "1") int page) throws ServiceException {
 		if (userDetails.isTeacher()) {
 			return ToolKit.assemblyResponseBody(problemService.retrievePage(userDetails.getId(), page));
 		} else if (userDetails.isAdmin()) {
