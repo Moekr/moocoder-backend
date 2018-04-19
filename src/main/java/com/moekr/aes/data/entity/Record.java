@@ -1,5 +1,6 @@
 package com.moekr.aes.data.entity;
 
+import com.moekr.aes.data.converter.FailureSetConverter;
 import com.moekr.aes.util.enums.BuildStatus;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,10 +10,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(exclude = "result")
-@ToString
+@ToString(exclude = "result")
 @Entity
 @Table(name = "ENTITY_RECORD")
 @EntityListeners(AuditingEntityListener.class)
@@ -36,7 +39,7 @@ public class Record {
 	private BuildStatus status = BuildStatus.WAITING;
 
 	@Basic
-	@Column(name = "console_output", columnDefinition = "TEXT NOT NULL DEFAULT ''")
+	@Column(name = "console_output", columnDefinition = "TEXT NOT NULL")
 	private String consoleOutput = "";
 
 	@Basic
@@ -44,10 +47,18 @@ public class Record {
 	private Integer score = 0;
 
 	@Basic
-	@Column(name = "failure", columnDefinition = "TEXT NOT NULL DEFAULT '[]'")
-	private String failure = "[]";
+	@Column(name = "failures", columnDefinition = "JSON NOT NULL")
+	@Convert(converter = FailureSetConverter.class)
+	private Set<Failure> failures = new HashSet<>();
 
 	@ManyToOne(targetEntity = Result.class, fetch = FetchType.LAZY)
 	@JoinColumn(name = "result", referencedColumnName = "id")
 	private Result result;
+
+	@Data
+	public static class Failure {
+		private String name;
+		private String details;
+		private String trace;
+	}
 }

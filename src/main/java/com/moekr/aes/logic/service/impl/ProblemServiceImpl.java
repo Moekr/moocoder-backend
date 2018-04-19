@@ -10,14 +10,15 @@ import com.moekr.aes.logic.vo.ProblemVO;
 import com.moekr.aes.util.exceptions.*;
 import com.moekr.aes.web.dto.ProblemDTO;
 import lombok.extern.apachecommons.CommonsLog;
-import org.json.JSONArray;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,8 @@ import java.util.Set;
 @Service
 @CommonsLog
 public class ProblemServiceImpl implements ProblemService {
+	private static final Sort PAGE_SORT = Sort.by(Sort.Direction.DESC, "id");
+
 	private final UserDAO userDAO;
 	private final ProblemDAO problemDAO;
 	private final StorageProvider storageProvider;
@@ -43,6 +46,23 @@ public class ProblemServiceImpl implements ProblemService {
 	public ProblemVO create(int userId, byte[] content) throws ServiceException {
 		User user = userDAO.findById(userId);
 		return create(user, content);
+	}
+
+	@Override
+	public List<ProblemVO> retrievePage(int userId, int page) throws ServiceException {
+		User user = userDAO.findById(userId);
+		Page<Problem> problemPage = problemDAO.findAllByOwner(user, PageRequest.of(page, 10, PAGE_SORT));
+		return problemPage.map(ProblemVO::new).getContent();
+	}
+
+	@Override
+	public ProblemVO retrieve(int userId, int problemId) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		if (problem.getOwner().getId() != userId) {
+			throw new AccessDeniedException();
+		}
+		return new ProblemVO(problem);
 	}
 
 	@Override
@@ -87,6 +107,19 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
+	public List<ProblemVO> retrievePage(int page) throws ServiceException {
+		Page<Problem> problemPage = problemDAO.findAll(PageRequest.of(page, 10, PAGE_SORT));
+		return problemPage.map(ProblemVO::new).getContent();
+	}
+
+	@Override
+	public ProblemVO retrieve(int problemId) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		return new ProblemVO(problem);
+	}
+
+	@Override
 	@Transactional
 	public ProblemVO update(int problemId, ProblemDTO problemDTO) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
@@ -123,9 +156,9 @@ public class ProblemServiceImpl implements ProblemService {
 		}
 		Problem problem = new Problem();
 		BeanUtils.copyProperties(info, problem);
-		problem.setPublicFiles(new JSONArray(info.getPublicFiles()).toString());
-		problem.setProtectedFiles(new JSONArray(info.getProtectedFiles()).toString());
-		problem.setPrivateFiles(new JSONArray(info.getPrivateFiles()).toString());
+		problem.setPublicFiles(info.getPublicFiles());
+		problem.setProtectedFiles(info.getProtectedFiles());
+		problem.setPrivateFiles(info.getPrivateFiles());
 		problem.setOwner(user);
 		problem = problemDAO.save(problem);
 		try {
@@ -137,34 +170,20 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	private ProblemVO update(Problem problem, ProblemDTO problemDTO) throws ServiceException {
-		List<JSONArray> originFileArrayList = Arrays.asList(
-				new JSONArray(problem.getPublicFiles()),
-				new JSONArray(problem.getProtectedFiles()),
-				new JSONArray(problem.getPublicFiles())
-		);
 		Set<String> originFiles = new HashSet<>();
-		for (JSONArray originFileArray : originFileArrayList) {
-			for (Object object : originFileArray) {
-				if (object instanceof String) {
-					originFiles.add((String) object);
-				}
-			}
-		}
-		List<Set<String>> newFileSetList = Arrays.asList(
-				problemDTO.getPublicFiles(),
-				problemDTO.getProtectedFiles(),
-				problemDTO.getPrivateFiles()
-		);
+		originFiles.addAll(problem.getPublicFiles());
+		originFiles.addAll(problem.getProtectedFiles());
+		originFiles.addAll(problem.getPublicFiles());
 		Set<String> newFiles = new HashSet<>();
-		for (Set<String> newFileSet : newFileSetList) {
-			newFiles.addAll(newFileSet);
-		}
+		newFiles.addAll(problemDTO.getPublicFiles());
+		newFiles.addAll(problemDTO.getProtectedFiles());
+		newFiles.addAll(problemDTO.getPublicFiles());
 		if (!originFiles.equals(newFiles)) {
 			throw new InvalidRequestException("文件列表不匹配！");
 		}
-		problem.setPublicFiles(new JSONArray(problemDTO.getPublicFiles()).toString());
-		problem.setProtectedFiles(new JSONArray(problemDTO.getProtectedFiles()).toString());
-		problem.setPrivateFiles(new JSONArray(problemDTO.getPrivateFiles()).toString());
+		problem.setPublicFiles(problemDTO.getPublicFiles());
+		problem.setProtectedFiles(problemDTO.getProtectedFiles());
+		problem.setPrivateFiles(problemDTO.getPrivateFiles());
 		return new ProblemVO(problemDAO.save(problem));
 	}
 }

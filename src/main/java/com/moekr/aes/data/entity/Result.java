@@ -12,7 +12,7 @@ import java.util.Set;
 
 @Data
 @EqualsAndHashCode(exclude = {"examination", "owner", "recordSet"})
-@ToString
+@ToString(exclude = {"examination", "owner", "recordSet"})
 @Entity
 @Table(name = "ENTITY_RESULT")
 public class Result {
@@ -26,7 +26,7 @@ public class Result {
 
 	@Basic
 	@Column(name = "deleted", columnDefinition = "BIT(1) NOT NULL DEFAULT 0")
-	private Boolean deleted = false;
+	private boolean deleted;
 
 	@ManyToOne(targetEntity = Examination.class, fetch = FetchType.LAZY)
 	@JoinColumn(name = "examination", referencedColumnName = "id")
@@ -39,8 +39,4 @@ public class Result {
 	@OneToMany(targetEntity = Record.class, mappedBy = "result")
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Record> recordSet = new HashSet<>();
-
-	public boolean isDeleted() {
-		return deleted != null && deleted;
-	}
 }

@@ -35,6 +35,28 @@ public class ProblemController {
 		throw new AccessDeniedException();
 	}
 
+	@GetMapping("/problem")
+	public Map<String, Object> retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
+											@RequestParam Integer page) throws ServiceException {
+		if (userDetails.isTeacher()) {
+			return ToolKit.assemblyResponseBody(problemService.retrievePage(userDetails.getId(), page));
+		} else if (userDetails.isAdmin()) {
+			return ToolKit.assemblyResponseBody(problemService.retrievePage(page));
+		}
+		throw new AccessDeniedException();
+	}
+
+	@GetMapping("/problem/{problemId:\\d+}")
+	public Map<String, Object> retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
+										@PathVariable int problemId) throws ServiceException {
+		if (userDetails.isTeacher()) {
+			return ToolKit.assemblyResponseBody(problemService.retrieve(userDetails.getId(), problemId));
+		} else if (userDetails.isAdmin()) {
+			return ToolKit.assemblyResponseBody(problemService.retrieve(problemId));
+		}
+		throw new AccessDeniedException();
+	}
+
 	@DeleteMapping("/problem/{problemId:\\d+}")
 	public Map<String, Object> delete(@AuthenticationPrincipal CustomUserDetails userDetails,
 									  @PathVariable int problemId) throws ServiceException {

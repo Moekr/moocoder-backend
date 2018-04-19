@@ -1,6 +1,5 @@
 package com.moekr.aes.logic.vo;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.util.enums.ProblemType;
@@ -9,6 +8,7 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 public class ProblemVO {
@@ -16,12 +16,9 @@ public class ProblemVO {
 	private String name;
 	private ProblemType type;
 	private String description;
-	@JsonRawValue
-	private String publicFiles;
-	@JsonRawValue
-	private String protectedFiles;
-	@JsonRawValue
-	private String privateFiles;
+	private Set<String> publicFiles;
+	private Set<String> protectedFiles;
+	private Set<String> privateFiles;
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime createdAt;
 	private Boolean deprecated;

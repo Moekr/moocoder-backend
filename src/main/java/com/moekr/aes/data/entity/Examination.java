@@ -16,7 +16,7 @@ import java.util.Set;
 
 @Data
 @EqualsAndHashCode(exclude = {"owner", "problemSet", "resultSet"})
-@ToString
+@ToString(exclude = {"owner", "problemSet", "resultSet"})
 @Entity
 @Table(name = "ENTITY_EXAMINATION")
 @EntityListeners(AuditingEntityListener.class)

@@ -205,7 +205,7 @@ public class UserServiceImpl implements UserService {
 			} catch (GitLabApiException e) {
 				throw new ServiceException("删除GitLab用户时发生异常[" + e.getMessage() + "]");
 			}
-			if (!result.getDeleted()) {
+			if (!result.isDeleted()) {
 				try {
 					jenkinsApi.deleteJob(result.getId());
 				} catch (IOException e) {

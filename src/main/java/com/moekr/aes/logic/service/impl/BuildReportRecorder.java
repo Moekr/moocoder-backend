@@ -5,6 +5,7 @@ import com.moekr.aes.data.dao.RecordDAO;
 import com.moekr.aes.data.dao.ResultDAO;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.Record;
+import com.moekr.aes.data.entity.Record.Failure;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.logic.api.vo.BuildDetails;
 import com.moekr.aes.logic.api.vo.CoberturaElement;
@@ -17,15 +18,11 @@ import com.offbytwo.jenkins.model.TestSuites;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @CommonsLog
@@ -61,16 +58,16 @@ public class BuildReportRecorder {
 		Record record = recordDAO.findByResultIdAndNumber(id, buildDetails.getNumber()).orElse(null);
 		if (record != null) {
 			BuildStatus status = status(buildDetails);
-			JSONArray failureArray = new JSONArray();
-			int testScore = evaluateTest(buildDetails.getTestResult(), failureArray);
-			int coverageScore = evaluateCoverage(buildDetails.getCoberturaResult(), failureArray);
+			Set<Failure> failures = new HashSet<>();
+			int testScore = evaluateTest(buildDetails.getTestResult(), failures);
+			int coverageScore = evaluateCoverage(buildDetails.getCoberturaResult(), failures);
 			Set<Problem> problemSet = record.getResult().getExamination().getProblemSet();
 			int coverageCount = (int) problemSet.stream().map(Problem::getType).filter(ProblemType::isCoverage).count();
 			int testCount = problemSet.size() - coverageCount;
 			record.setStatus(status);
 			record.setConsoleOutput(Ascii.truncate(buildDetails.getConsoleOutput(), TEXT_MAX_LENGTH, TRUNCATE_INDICATOR));
 			record.setScore((testScore * testCount + coverageScore * coverageCount) / problemSet.size());
-			record.setFailure(formatFailure(failureArray));
+			record.setFailures(failures);
 		} else {
 			log.error("编号#" + id + "/" + buildDetails.getNumber() + "的提交记录不存在！");
 		}
@@ -95,7 +92,7 @@ public class BuildReportRecorder {
 		return BuildStatus.FAILURE;
 	}
 
-	private int evaluateTest(TestResult testResult, JSONArray failureArray) {
+	private int evaluateTest(TestResult testResult, Set<Failure> failures) {
 		if (testResult == null) {
 			return 0;
 		}
@@ -107,11 +104,11 @@ public class BuildReportRecorder {
 				if (StringUtils.equalsAnyIgnoreCase(testCase.getStatus(), PASS_STATUS)) {
 					passCount++;
 				} else {
-					JSONObject object = new JSONObject();
-					object.put("name", caseName);
-					object.put("details", StringUtils.defaultString(testCase.getErrorDetails()));
-					object.put("trace", StringUtils.defaultString(testCase.getErrorStackTrace()));
-					failureArray.put(object);
+					Failure failure = new Failure();
+					failure.setName(caseName);
+					failure.setDetails(StringUtils.defaultString(testCase.getErrorDetails()));
+					failure.setTrace(StringUtils.defaultString(testCase.getErrorStackTrace()));
+					failures.add(failure);
 				}
 				totalCount++;
 			}
@@ -119,7 +116,7 @@ public class BuildReportRecorder {
 		return (int) (100.0 * passCount / totalCount);
 	}
 
-	private int evaluateCoverage(CoberturaResult coberturaResult, JSONArray failureArray) {
+	private int evaluateCoverage(CoberturaResult coberturaResult, Set<Failure> failures) {
 		if (coberturaResult == null) {
 			return 0;
 		}
@@ -130,40 +127,12 @@ public class BuildReportRecorder {
 			totalRatio = totalRatio + element.getRatio();
 		}
 		if (totalRatio < coberturaResult.getElements().size() * 100) {
-			JSONObject object = new JSONObject();
-			object.put("name", "Cobertura Coverage");
-			object.put("details", StringUtils.EMPTY);
-			object.put("trace", builder.toString());
-			failureArray.put(object);
+			Failure failure = new Failure();
+			failure.setName("Cobertura Coverage");
+			failure.setDetails(StringUtils.EMPTY);
+			failure.setTrace(builder.toString());
+			failures.add(failure);
 		}
 		return (int) (100.0 * totalRatio / coberturaResult.getElements().size());
-	}
-
-	private String formatFailure(JSONArray failureArray) {
-		String failure = failureArray.toString();
-		if (failure.length() < TEXT_MAX_LENGTH) {
-			return failure;
-		}
-		List<JSONObject> failureList = new ArrayList<>();
-		for (Object object : failureArray) {
-			if (object instanceof JSONObject) {
-				failureList.add((JSONObject) object);
-			}
-		}
-		List<Integer> traceLengthList = failureList.stream().map(o -> o.optString("trace")).map(String::length).sorted().collect(Collectors.toList());
-		int totalLength = traceLengthList.stream().reduce((a, b) -> a + b).orElse(0);
-		int targetLength = TEXT_MAX_LENGTH - (failure.length() - totalLength);
-		int truncateLength = 0;
-		for (int traceLength : traceLengthList) {
-			int currentLength = traceLengthList.stream().map(a -> Math.min(a, traceLength)).reduce((a, b) -> a + b).orElse(0);
-			if (currentLength <= targetLength) {
-				truncateLength = currentLength;
-			} else {
-				break;
-			}
-		}
-		int finalTruncateLength = truncateLength;
-		failureList.forEach(f -> f.put("trace", Ascii.truncate(f.optString("trace"), finalTruncateLength, TRUNCATE_INDICATOR)));
-		return failureArray.toString();
 	}
 }

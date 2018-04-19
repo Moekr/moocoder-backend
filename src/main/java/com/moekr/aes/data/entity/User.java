@@ -16,7 +16,7 @@ import java.util.Set;
 
 @Data
 @EqualsAndHashCode(exclude = {"problemSet", "examinationSet", "resultSet"})
-@ToString
+@ToString(exclude = {"problemSet", "examinationSet", "resultSet"})
 @Entity
 @Table(name = "ENTITY_USER", indexes = {@Index(columnList = "username"), @Index(columnList = "email")})
 @EntityListeners(AuditingEntityListener.class)

@@ -1,5 +1,6 @@
 package com.moekr.aes.data.entity;
 
+import com.moekr.aes.data.converter.StringSetConverter;
 import com.moekr.aes.util.enums.ProblemType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,7 +17,7 @@ import java.util.Set;
 
 @Data
 @EqualsAndHashCode(exclude = {"owner", "examinationSet"})
-@ToString
+@ToString(exclude = {"owner", "examinationSet"})
 @Entity
 @Table(name = "ENTITY_PROBLEM")
 @EntityListeners(AuditingEntityListener.class)
@@ -39,16 +40,19 @@ public class Problem {
 	private String description;
 
 	@Basic
-	@Column(name = "public_files", columnDefinition = "TEXT NOT NULL")
-	private String publicFiles = "[]";
+	@Column(name = "public_files", columnDefinition = "JSON NOT NULL")
+	@Convert(converter = StringSetConverter.class)
+	private Set<String> publicFiles = new HashSet<>();
 
 	@Basic
-	@Column(name = "protected_files", columnDefinition = "TEXT NOT NULL")
-	private String protectedFiles = "[]";
+	@Column(name = "protected_files", columnDefinition = "JSON NOT NULL")
+	@Convert(converter = StringSetConverter.class)
+	private Set<String> protectedFiles = new HashSet<>();
 
 	@Basic
-	@Column(name = "private_files", columnDefinition = "TEXT NOT NULL")
-	private String privateFiles = "[]";
+	@Column(name = "private_files", columnDefinition = "JSON NOT NULL")
+	@Convert(converter = StringSetConverter.class)
+	private Set<String> privateFiles = new HashSet<>();
 
 	@Basic
 	@Column(name = "created_at", nullable = false)
@@ -57,7 +61,7 @@ public class Problem {
 
 	@Basic
 	@Column(name = "deprecated", columnDefinition = "BIT(1) NOT NULL DEFAULT 0")
-	private Boolean deprecated = false;
+	private boolean deprecated;
 
 	@ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
 	@JoinColumn(name = "owner", referencedColumnName = "id")
@@ -70,8 +74,4 @@ public class Problem {
 	)
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Examination> examinationSet = new HashSet<>();
-
-	public boolean isDeprecated() {
-		return deprecated != null && deprecated;
-	}
 }

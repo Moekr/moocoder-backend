@@ -1,10 +1,15 @@
 package com.moekr.aes.data.dao;
 
 import com.moekr.aes.data.entity.Problem;
+import com.moekr.aes.data.entity.User;
 import com.moekr.aes.util.enums.ProblemType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProblemDAO extends JpaRepository<Problem, Integer> {
+	Page<Problem> findAllByOwner(User owner, Pageable pageable);
+
 	Problem findById(int id);
 
 	Integer countByType(ProblemType type);

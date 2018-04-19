@@ -6,7 +6,6 @@ import com.moekr.aes.logic.storage.StorageProvider;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.zip.ZipUtil;
@@ -52,18 +51,14 @@ public class PaperBuilder {
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
 			ZipUtil.unpack(inputStream, problemDir);
 			if (removePrivateFile) {
-				JSONArray array = new JSONArray(problem.getPrivateFiles());
-				for (Object object : array) {
-					if (object instanceof String) {
-						String path = (String) object;
-						if (File.separatorChar != '/') {
-							path = path.replace('/', File.separatorChar);
-						}
-						File privateFile = new File(problemDir, path);
-						if (privateFile.exists()) {
-							if (!privateFile.delete()) {
-								log.error("删除私有文件[" + privateFile.getAbsolutePath() + "]失败！");
-							}
+				for (String path : problem.getPrivateFiles()) {
+					if (File.separatorChar != '/') {
+						path = path.replace('/', File.separatorChar);
+					}
+					File privateFile = new File(problemDir, path);
+					if (privateFile.exists()) {
+						if (!privateFile.delete()) {
+							log.error("删除私有文件[" + privateFile.getAbsolutePath() + "]失败！");
 						}
 					}
 				}
