@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RecordDAO extends JpaRepository<Record, Integer> {
+	Record findById(int id);
+
 	@Query(value = "SELECT rec.* FROM ENTITY_RECORD AS rec, ENTITY_RESULT AS res WHERE rec.result = res.id AND res.owner = ?1", nativeQuery = true)
 	List<Record> findAllByUser(int userId);
 

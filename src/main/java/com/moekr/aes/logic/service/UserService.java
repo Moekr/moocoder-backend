@@ -6,15 +6,20 @@ import com.moekr.aes.web.dto.UserDTO;
 import com.moekr.aes.web.dto.form.ChangePasswordForm;
 import com.moekr.aes.web.dto.form.StudentRegisterForm;
 import com.moekr.aes.web.dto.form.TeacherRegisterForm;
+import org.springframework.data.domain.Page;
 
 public interface UserService {
 	UserVO create(UserDTO userDTO) throws ServiceException;
+
+	Page<UserVO> retrievePage(int page, int limit) throws ServiceException;
+
+	UserVO retrieve(int userId) throws ServiceException;
+
+	void delete(int userId) throws ServiceException;
 
 	void register(StudentRegisterForm form) throws ServiceException;
 
 	void register(TeacherRegisterForm form) throws ServiceException;
 
 	void changePassword(String username, ChangePasswordForm form) throws ServiceException;
-
-	void delete(int userId) throws ServiceException;
 }

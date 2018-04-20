@@ -1,17 +1,18 @@
 package com.moekr.aes.util.editors;
 
-import com.sun.beans.editors.IntegerEditor;
-import org.apache.commons.lang3.StringUtils;
+public class PageNumberEditor extends DefaultNumberEditor {
+	private static final int DEFAULT_PAGE_NUMBER = 1;
 
-public class PageNumberEditor extends IntegerEditor {
-	private static final int DEFAULT_PAGE_NUMBER = 0;
+	public PageNumberEditor() {
+		super(DEFAULT_PAGE_NUMBER);
+	}
 
 	@Override
-	public void setAsText(String s) {
-		if (StringUtils.isNumeric(s)) {
-			setValue(Math.max(Integer.valueOf(s) - 1, DEFAULT_PAGE_NUMBER));
+	public void setValue(Object value) {
+		if (value instanceof Integer) {
+			super.setValue((Integer) value - 1);
 		} else {
-			setValue(DEFAULT_PAGE_NUMBER);
+			super.setValue(value);
 		}
 	}
 }

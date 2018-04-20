@@ -11,6 +11,7 @@ import com.moekr.aes.logic.service.ExaminationService;
 import com.moekr.aes.logic.vo.ExaminationVO;
 import com.moekr.aes.util.ToolKit;
 import com.moekr.aes.util.enums.ExaminationStatus;
+import com.moekr.aes.util.enums.UserRole;
 import com.moekr.aes.util.exceptions.*;
 import com.moekr.aes.web.dto.ExaminationDTO;
 import lombok.extern.apachecommons.CommonsLog;
@@ -18,6 +19,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.gitlab4j.api.GitLabApiException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +33,8 @@ import java.util.stream.Collectors;
 @Service
 @CommonsLog
 public class ExaminationServiceImpl implements ExaminationService {
+	private static final Sort PAGE_SORT = Sort.by(Sort.Direction.DESC, "id");
+
 	private final UserDAO userDAO;
 	private final ProblemDAO problemDAO;
 	private final ExaminationDAO examinationDAO;
@@ -85,6 +91,16 @@ public class ExaminationServiceImpl implements ExaminationService {
 		}
 		imageBuilder.asyncBuildDockerImage(examination);
 		return new ExaminationVO(examination);
+	}
+
+	@Override
+	public Page<ExaminationVO> retrievePage(int userId, int page, int limit) throws ServiceException {
+		User user = userDAO.findById(userId);
+		if (user.getRole() == UserRole.TEACHER) {
+			return examinationDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(ExaminationVO::new);
+		} else {
+			return resultDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(Result::getExamination).map(ExaminationVO::new);
+		}
 	}
 
 	@Override
@@ -175,5 +191,10 @@ public class ExaminationServiceImpl implements ExaminationService {
 		result.setOwner(user);
 		result.setExamination(examination);
 		resultDAO.save(result);
+	}
+
+	@Override
+	public Page<ExaminationVO> retrievePage(int page, int limit) {
+		return examinationDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(ExaminationVO::new);
 	}
 }

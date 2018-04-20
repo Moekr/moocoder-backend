@@ -3,6 +3,10 @@ package com.moekr.aes.logic.service.impl;
 import com.moekr.aes.data.dao.ResultDAO;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.logic.service.ResultService;
+import com.moekr.aes.logic.vo.ResultVO;
+import com.moekr.aes.util.exceptions.AccessDeniedException;
+import com.moekr.aes.util.exceptions.Asserts;
+import com.moekr.aes.util.exceptions.ServiceException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +24,25 @@ public class ResultServiceImpl implements ResultService {
 	@Autowired
 	public ResultServiceImpl(ResultDAO resultDAO) {
 		this.resultDAO = resultDAO;
+	}
+
+	@Override
+	public ResultVO retrieve(int userId, int resultId) throws ServiceException {
+		Result result = resultDAO.findById(resultId);
+		Asserts.notNull(result, "所选的成绩不存在");
+		if (result.getOwner().getId() == userId) {
+			return new ResultVO(result);
+		} else if (result.getExamination().getOwner().getId() == userId) {
+			return new ResultVO(result);
+		}
+		throw new AccessDeniedException();
+	}
+
+	@Override
+	public ResultVO retrieve(int resultId) throws ServiceException {
+		Result result = resultDAO.findById(resultId);
+		Asserts.notNull(result, "所选的成绩不存在");
+		return new ResultVO(result);
 	}
 
 	@Override

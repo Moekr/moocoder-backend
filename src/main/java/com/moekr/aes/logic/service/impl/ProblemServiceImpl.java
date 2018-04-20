@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -49,10 +48,9 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
-	public List<ProblemVO> retrievePage(int userId, int page) throws ServiceException {
+	public Page<ProblemVO> retrievePage(int userId, int page, int limit) {
 		User user = userDAO.findById(userId);
-		Page<Problem> problemPage = problemDAO.findAllByOwner(user, PageRequest.of(page, 10, PAGE_SORT));
-		return problemPage.map(ProblemVO::new).getContent();
+		return problemDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(ProblemVO::new);
 	}
 
 	@Override
@@ -107,9 +105,8 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
-	public List<ProblemVO> retrievePage(int page) throws ServiceException {
-		Page<Problem> problemPage = problemDAO.findAll(PageRequest.of(page, 10, PAGE_SORT));
-		return problemPage.map(ProblemVO::new).getContent();
+	public Page<ProblemVO> retrievePage(int page, int limit) {
+		return problemDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(ProblemVO::new);
 	}
 
 	@Override
@@ -173,11 +170,11 @@ public class ProblemServiceImpl implements ProblemService {
 		Set<String> originFiles = new HashSet<>();
 		originFiles.addAll(problem.getPublicFiles());
 		originFiles.addAll(problem.getProtectedFiles());
-		originFiles.addAll(problem.getPublicFiles());
+		originFiles.addAll(problem.getPrivateFiles());
 		Set<String> newFiles = new HashSet<>();
 		newFiles.addAll(problemDTO.getPublicFiles());
 		newFiles.addAll(problemDTO.getProtectedFiles());
-		newFiles.addAll(problemDTO.getPublicFiles());
+		newFiles.addAll(problemDTO.getPrivateFiles());
 		if (!originFiles.equals(newFiles)) {
 			throw new InvalidRequestException("文件列表不匹配！");
 		}

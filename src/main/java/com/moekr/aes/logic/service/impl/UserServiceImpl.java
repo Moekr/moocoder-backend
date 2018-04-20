@@ -10,10 +10,10 @@ import com.moekr.aes.logic.api.JenkinsApi;
 import com.moekr.aes.logic.service.MailService;
 import com.moekr.aes.logic.service.UserService;
 import com.moekr.aes.logic.vo.UserVO;
-import com.moekr.aes.util.exceptions.AccessDeniedException;
-import com.moekr.aes.util.exceptions.Asserts;
 import com.moekr.aes.util.ToolKit;
 import com.moekr.aes.util.enums.UserRole;
+import com.moekr.aes.util.exceptions.AccessDeniedException;
+import com.moekr.aes.util.exceptions.Asserts;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.dto.UserDTO;
 import com.moekr.aes.web.dto.form.ChangePasswordForm;
@@ -24,6 +24,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.gitlab4j.api.GitLabApiException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
@@ -35,6 +38,8 @@ import java.time.LocalDateTime;
 
 @Service
 public class UserServiceImpl implements UserService {
+	private static final Sort PAGE_SORT = Sort.by(Sort.Direction.DESC, "id");
+
 	private final UserDAO userDAO;
 	private final ResultDAO resultDAO;
 	private final RecordDAO recordDAO;
@@ -90,6 +95,43 @@ public class UserServiceImpl implements UserService {
 		model.addAttribute("role", userDTO.getRole());
 		mailService.send(userDTO.getEmail(), userDTO.getUsername(), "注册成功", new ModelAndView("mail/register", model));
 		return new UserVO(userDAO.save(user));
+	}
+
+	@Override
+	public Page<UserVO> retrievePage(int page, int limit) {
+		return userDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(UserVO::new);
+	}
+
+	@Override
+	public UserVO retrieve(int userId) throws ServiceException {
+		User user = userDAO.findById(userId);
+		Asserts.notNull(user, "所选用户不存在");
+		return new UserVO(user);
+	}
+
+	@Override
+	@Transactional
+	public void delete(int userId) throws ServiceException {
+		User user = userDAO.findById(userId);
+		Assert.notNull(user, "找不到要删除的用户");
+		Assert.isTrue(user.getRole() == UserRole.STUDENT, "目标用户只能是学生");
+		for (Result result : user.getResultSet()) {
+			recordDAO.deleteAll(result.getRecordSet());
+			try {
+				gitlabApi.deleteUser(userId);
+			} catch (GitLabApiException e) {
+				throw new ServiceException("删除GitLab用户时发生异常[" + e.getMessage() + "]");
+			}
+			if (!result.isDeleted()) {
+				try {
+					jenkinsApi.deleteJob(result.getId());
+				} catch (IOException e) {
+					throw new ServiceException("删除Jenkins项目时发生异常[" + e.getMessage() + "]");
+				}
+			}
+			resultDAO.delete(result);
+		}
+		userDAO.delete(user);
 	}
 
 	@Override
@@ -190,30 +232,5 @@ public class UserServiceImpl implements UserService {
 		}
 		user.setPassword(DigestUtils.sha256Hex(form.getPassword()));
 		userDAO.save(user);
-	}
-
-	@Override
-	@Transactional
-	public void delete(int userId) throws ServiceException {
-		User user = userDAO.findById(userId);
-		Assert.notNull(user, "找不到要删除的用户");
-		Assert.isTrue(user.getRole() == UserRole.STUDENT, "目标用户只能是学生");
-		for (Result result : user.getResultSet()) {
-			recordDAO.deleteAll(result.getRecordSet());
-			try {
-				gitlabApi.deleteUser(userId);
-			} catch (GitLabApiException e) {
-				throw new ServiceException("删除GitLab用户时发生异常[" + e.getMessage() + "]");
-			}
-			if (!result.isDeleted()) {
-				try {
-					jenkinsApi.deleteJob(result.getId());
-				} catch (IOException e) {
-					throw new ServiceException("删除Jenkins项目时发生异常[" + e.getMessage() + "]");
-				}
-			}
-			resultDAO.delete(result);
-		}
-		userDAO.delete(user);
 	}
 }

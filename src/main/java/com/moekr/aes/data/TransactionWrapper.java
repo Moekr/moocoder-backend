@@ -50,6 +50,7 @@ public class TransactionWrapper {
 		void invoke() throws Exception;
 	}
 
+	@FunctionalInterface
 	public interface SafeMethod {
 		void invoke();
 	}

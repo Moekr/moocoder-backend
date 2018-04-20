@@ -7,8 +7,6 @@ import com.moekr.aes.data.entity.User;
 import com.moekr.aes.util.serializer.CustomLocalDateTimeSerializer;
 import com.moekr.aes.util.serializer.TimestampLocalDateTimeSerializer;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDateTime;
@@ -16,8 +14,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
-@EqualsAndHashCode
-@ToString
 public class ExaminationVO {
 	private Integer id;
 	private String name;
@@ -37,25 +33,21 @@ public class ExaminationVO {
 	}
 
 	@Data
-	@EqualsAndHashCode
-	@ToString
 	private static class NestedUserVO {
 		private Integer id;
 		private String username;
 
-		public NestedUserVO(User user) {
+		NestedUserVO(User user) {
 			BeanUtils.copyProperties(user, this);
 		}
 	}
 
 	@Data
-	@EqualsAndHashCode
-	@ToString
 	private static class NestedProblemVO {
 		private Integer id;
 		private String name;
 
-		public NestedProblemVO(Problem problem) {
+		NestedProblemVO(Problem problem) {
 			BeanUtils.copyProperties(problem, this);
 		}
 	}

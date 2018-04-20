@@ -42,7 +42,7 @@ public class BuildReportRecorder {
 
 	@Transactional
 	public void record(int id, int buildNumber) {
-		Result result = resultDAO.findById(id).orElse(null);
+		Result result = resultDAO.findById(id);
 		if (result != null) {
 			Record record = new Record();
 			record.setNumber(buildNumber);

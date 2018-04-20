@@ -26,7 +26,7 @@ public class EnvironmentServiceImpl implements EnvironmentService {
 
 	@Override
 	public Map<String, String> env(int resultId) {
-		Result result = resultDAO.findById(resultId).orElse(null);
+		Result result = resultDAO.findById(resultId);
 		if (result == null) return Collections.emptyMap();
 		Examination examination = result.getExamination();
 		Map<String, String> env = new HashMap<>();

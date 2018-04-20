@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-public class ExaminationController {
+public class ExaminationController extends AbstractApiController {
 	private final ExaminationService examinationService;
 
 	@Autowired
@@ -35,6 +35,17 @@ public class ExaminationController {
 			return ToolKit.assemblyResponseBody(examinationService.create(userDetails.getId(), examinationDTO));
 		}
 		throw new AccessDeniedException();
+	}
+
+	@GetMapping("/examination")
+	public Map<String, Object> retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
+											@RequestParam(defaultValue = "1") int page,
+											@RequestParam(defaultValue = "10") int limit) throws ServiceException {
+		if (userDetails.isAdmin()) {
+			return ToolKit.assemblyResponseBody(examinationService.retrievePage(page, limit));
+		} else {
+			return ToolKit.assemblyResponseBody(examinationService.retrievePage(userDetails.getId(), page, limit));
+		}
 	}
 
 	@PostMapping("/examination/{examinationId:\\d+}/participate")

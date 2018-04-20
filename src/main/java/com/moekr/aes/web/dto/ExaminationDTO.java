@@ -21,12 +21,6 @@ import java.util.Set;
 public class ExaminationDTO {
 	@NotBlank(message = "请填写考试名称！", groups = {PostMapping.class, PutMapping.class})
 	private String name;
-//	@Pattern(regexp = "^20[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[1-2][0-9]|30|31) ([0-1][0-9]|2[0-3]):[0-5][0-9]$", message = "考试开始时间格式不正确！")
-//	@NotNull(message = "请填写考试开始时间！")
-//	private String startAt;
-//	@Pattern(regexp = "^20[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[1-2][0-9]|30|31) ([0-1][0-9]|2[0-3]):[0-5][0-9]$", message = "考试结束时间格式不正确！")
-//	@NotNull(message = "请填写考试结束时间！")
-//	private String endAt;
 	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
 	@NotNull(message = "请填写考试开始时间！", groups = {PostMapping.class, PutMapping.class})
 	private LocalDateTime startAt;

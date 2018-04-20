@@ -38,7 +38,7 @@ public class Record {
 	@Column(name = "status", columnDefinition = "VARCHAR(255) NOT NULL DEFAULT 'WAITING'")
 	private BuildStatus status = BuildStatus.WAITING;
 
-	@Basic
+	@Basic(fetch = FetchType.LAZY)
 	@Column(name = "console_output", columnDefinition = "TEXT NOT NULL")
 	private String consoleOutput = "";
 
