@@ -1,7 +1,7 @@
 package com.moekr.aes.logic.service;
 
-import com.moekr.aes.logic.vo.model.StatisticModel;
+import com.moekr.aes.logic.vo.StatisticVO;
 
 public interface StatisticService {
-	StatisticModel statistic();
+	StatisticVO statistic();
 }

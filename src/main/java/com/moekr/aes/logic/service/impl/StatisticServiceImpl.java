@@ -2,7 +2,7 @@ package com.moekr.aes.logic.service.impl;
 
 import com.moekr.aes.data.dao.*;
 import com.moekr.aes.logic.service.StatisticService;
-import com.moekr.aes.logic.vo.model.StatisticModel;
+import com.moekr.aes.logic.vo.StatisticVO;
 import com.moekr.aes.util.enums.ProblemType;
 import com.moekr.aes.util.enums.UserRole;
 import org.springframework.stereotype.Service;
@@ -24,8 +24,8 @@ public class StatisticServiceImpl implements StatisticService {
 	}
 
 	@Override
-	public StatisticModel statistic() {
-		StatisticModel statistic = new StatisticModel();
+	public StatisticVO statistic() {
+		StatisticVO statistic = new StatisticVO();
 		statistic.setStudentCount(userDAO.countByRole(UserRole.STUDENT));
 		statistic.setTeacherCount(userDAO.countByRole(UserRole.TEACHER));
 		statistic.setExaminationCount((int) examinationDAO.count());

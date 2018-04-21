@@ -1,13 +1,9 @@
-package com.moekr.aes.logic.vo.model;
+package com.moekr.aes.logic.vo;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 @Data
-@EqualsAndHashCode
-@ToString
-public class StatisticModel {
+public class StatisticVO {
 	private Integer studentCount;
 	private Integer teacherCount;
 	private Integer examinationCount;
