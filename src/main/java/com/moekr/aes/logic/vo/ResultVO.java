@@ -1,10 +1,12 @@
 package com.moekr.aes.logic.vo;
 
-import com.moekr.aes.data.entity.Examination;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.moekr.aes.data.entity.Exam;
 import com.moekr.aes.data.entity.Record;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.data.entity.User;
 import com.moekr.aes.util.enums.BuildStatus;
+import com.moekr.aes.util.serializer.TimestampLocalDateTimeSerializer;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -17,24 +19,24 @@ public class ResultVO {
 	private Integer id;
 	private Integer score;
 	private boolean deleted;
-	private NestedExaminationVO examination;
+	private NestedExamVO exam;
 	private NestedUserVO owner;
 	private List<NestedRecordVO> recordList;
 
 	public ResultVO(Result result) {
 		BeanUtils.copyProperties(result, this);
-		this.examination = new NestedExaminationVO(result.getExamination());
+		this.exam = new NestedExamVO(result.getExam());
 		this.owner = new NestedUserVO(result.getOwner());
 		this.recordList = result.getRecordSet().stream().map(NestedRecordVO::new).collect(Collectors.toList());
 	}
 
 	@Data
-	private static class NestedExaminationVO {
+	private static class NestedExamVO {
 		private Integer id;
 		private String name;
 
-		NestedExaminationVO(Examination examination) {
-			BeanUtils.copyProperties(examination, this);
+		NestedExamVO(Exam exam) {
+			BeanUtils.copyProperties(exam, this);
 		}
 	}
 
@@ -51,6 +53,7 @@ public class ResultVO {
 	@Data
 	private static class NestedRecordVO {
 		private Integer id;
+		@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 		private LocalDateTime createdAt;
 		private BuildStatus status;
 		private Integer score;

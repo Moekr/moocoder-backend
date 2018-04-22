@@ -50,14 +50,14 @@ public class ProblemServiceImpl implements ProblemService {
 	@Override
 	public Page<ProblemVO> retrievePage(int userId, int page, int limit) {
 		User user = userDAO.findById(userId);
-		return problemDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(ProblemVO::new);
+		return problemDAO.findAllByCreator(user, PageRequest.of(page, limit, PAGE_SORT)).map(ProblemVO::new);
 	}
 
 	@Override
 	public ProblemVO retrieve(int userId, int problemId) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
-		if (problem.getOwner().getId() != userId) {
+		if (problem.getCreator().getId() != userId) {
 			throw new AccessDeniedException();
 		}
 		return new ProblemVO(problem);
@@ -67,7 +67,7 @@ public class ProblemServiceImpl implements ProblemService {
 	public ProblemVO update(int userId, int problemId, ProblemDTO problemDTO) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
-		if (problem.getOwner().getId() != userId) {
+		if (problem.getCreator().getId() != userId) {
 			throw new AccessDeniedException();
 		}
 		return update(problem, problemDTO);
@@ -78,10 +78,10 @@ public class ProblemServiceImpl implements ProblemService {
 	public void delete(int userId, int problemId) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
-		if (problem.getOwner().getId() != userId) {
+		if (problem.getCreator().getId() != userId) {
 			throw new AccessDeniedException();
 		}
-		if (!problem.getExaminationSet().isEmpty()) {
+		if (!problem.getExamSet().isEmpty()) {
 			throw new EntityNotAvailableException("题目已被使用至少一次，无法删除");
 		}
 		problemDAO.delete(problem);
@@ -91,7 +91,7 @@ public class ProblemServiceImpl implements ProblemService {
 	public ProblemVO deprecate(int userId, int problemId) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
-		if (problem.getOwner().getId() != userId) {
+		if (problem.getCreator().getId() != userId) {
 			throw new AccessDeniedException();
 		}
 		problem.setDeprecated(true);
@@ -129,7 +129,7 @@ public class ProblemServiceImpl implements ProblemService {
 	public void delete(int problemId) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
-		if (!problem.getExaminationSet().isEmpty()) {
+		if (!problem.getExamSet().isEmpty()) {
 			throw new EntityNotAvailableException("题目已被使用至少一次，无法删除");
 		}
 		problemDAO.delete(problem);
@@ -156,7 +156,7 @@ public class ProblemServiceImpl implements ProblemService {
 		problem.setPublicFiles(info.getPublicFiles());
 		problem.setProtectedFiles(info.getProtectedFiles());
 		problem.setPrivateFiles(info.getPrivateFiles());
-		problem.setOwner(user);
+		problem.setCreator(user);
 		problem = problemDAO.save(problem);
 		try {
 			storageProvider.save(content, problem.getId() + ".zip");

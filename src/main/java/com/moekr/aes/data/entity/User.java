@@ -15,8 +15,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"problemSet", "examinationSet", "resultSet"})
-@ToString(exclude = {"problemSet", "examinationSet", "resultSet"})
+@EqualsAndHashCode(exclude = {"problemSet", "examSet", "resultSet"})
+@ToString(exclude = {"problemSet", "examSet", "resultSet"})
 @Entity
 @Table(name = "ENTITY_USER", indexes = {@Index(columnList = "username"), @Index(columnList = "email")})
 @EntityListeners(AuditingEntityListener.class)
@@ -54,13 +54,13 @@ public class User {
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@OneToMany(targetEntity = Problem.class, mappedBy = "owner")
+	@OneToMany(targetEntity = Problem.class, mappedBy = "creator")
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Problem> problemSet = new HashSet<>();
 
-	@OneToMany(targetEntity = Examination.class, mappedBy = "owner")
+	@OneToMany(targetEntity = Exam.class, mappedBy = "creator")
 	@LazyCollection(LazyCollectionOption.EXTRA)
-	private Set<Examination> examinationSet = new HashSet<>();
+	private Set<Exam> examSet = new HashSet<>();
 
 	@OneToMany(targetEntity = Result.class, mappedBy = "owner")
 	@LazyCollection(LazyCollectionOption.EXTRA)

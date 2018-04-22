@@ -4,6 +4,7 @@ import com.moekr.aes.logic.service.NotifyService;
 import com.moekr.aes.util.AesProperties;
 import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
+import com.moekr.aes.web.response.EmptyResponse;
 import com.moekr.aes.web.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,7 @@ public class NotifyController {
 			throw new AccessDeniedException();
 		}
 		notifyService.webHook(id);
-		return new Response();
+		return new EmptyResponse();
 	}
 
 	@PostMapping(value = "/callback/{id:\\d+}/{buildNumber:\\d+}", params = "secret")
@@ -35,6 +36,6 @@ public class NotifyController {
 			throw new AccessDeniedException();
 		}
 		notifyService.callback(id, buildNumber);
-		return new Response();
+		return new EmptyResponse();
 	}
 }

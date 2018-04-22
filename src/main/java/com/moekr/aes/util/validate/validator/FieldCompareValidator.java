@@ -20,6 +20,7 @@ public class FieldCompareValidator implements ConstraintValidator<FieldCompare, 
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public boolean isValid(Object value, ConstraintValidatorContext context) {
 		try {
 			Comparable lessObject = (Comparable) BeanUtils.getPropertyDescriptor(value.getClass(), lessField).getReadMethod().invoke(value);

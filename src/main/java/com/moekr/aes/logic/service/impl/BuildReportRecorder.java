@@ -61,7 +61,7 @@ public class BuildReportRecorder {
 			Set<Failure> failures = new HashSet<>();
 			int testScore = evaluateTest(buildDetails.getTestResult(), failures);
 			int coverageScore = evaluateCoverage(buildDetails.getCoberturaResult(), failures);
-			Set<Problem> problemSet = record.getResult().getExamination().getProblemSet();
+			Set<Problem> problemSet = record.getResult().getExam().getProblemSet();
 			int coverageCount = (int) problemSet.stream().map(Problem::getType).filter(ProblemType::isCoverage).count();
 			int testCount = problemSet.size() - coverageCount;
 			record.setStatus(status);

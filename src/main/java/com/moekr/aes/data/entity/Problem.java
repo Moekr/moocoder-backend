@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -16,10 +17,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"owner", "examinationSet"})
-@ToString(exclude = {"owner", "examinationSet"})
+@EqualsAndHashCode(exclude = {"creator", "examSet"})
+@ToString(exclude = {"creator", "examSet"})
 @Entity
 @Table(name = "ENTITY_PROBLEM")
+@Where(clause = "deprecated = 1")
 @EntityListeners(AuditingEntityListener.class)
 public class Problem {
 	@Id
@@ -64,14 +66,14 @@ public class Problem {
 	private boolean deprecated;
 
 	@ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
-	@JoinColumn(name = "owner", referencedColumnName = "id")
-	private User owner;
+	@JoinColumn(name = "creator", referencedColumnName = "id")
+	private User creator;
 
-	@ManyToMany(targetEntity = Examination.class)
-	@JoinTable(name = "LINK_PROBLEM_EXAMINATION",
+	@ManyToMany(targetEntity = Exam.class)
+	@JoinTable(name = "LINK_PROBLEM_EXAM",
 			joinColumns = @JoinColumn(name = "problem", referencedColumnName = "id"),
-			inverseJoinColumns = @JoinColumn(name = "examination", referencedColumnName = "id")
+			inverseJoinColumns = @JoinColumn(name = "exam", referencedColumnName = "id")
 	)
 	@LazyCollection(LazyCollectionOption.EXTRA)
-	private Set<Examination> examinationSet = new HashSet<>();
+	private Set<Exam> examSet = new HashSet<>();
 }

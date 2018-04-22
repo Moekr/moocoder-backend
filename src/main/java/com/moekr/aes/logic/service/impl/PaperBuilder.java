@@ -1,6 +1,6 @@
 package com.moekr.aes.logic.service.impl;
 
-import com.moekr.aes.data.entity.Examination;
+import com.moekr.aes.data.entity.Exam;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.logic.storage.StorageProvider;
 import lombok.extern.apachecommons.CommonsLog;
@@ -30,11 +30,11 @@ public class PaperBuilder {
 		this.helper = helper;
 	}
 
-	public void buildPaper(Examination examination) throws IOException, GitAPIException {
+	public void buildPaper(Exam exam) throws IOException, GitAPIException {
 		File tempDir = Files.createTempDirectory(TEMP_PREFIX).toFile();
 		try {
-			releaseCode(examination.getProblemSet(), tempDir, true);
-			helper.push(tempDir, examination.getUuid());
+			releaseCode(exam.getProblemSet(), tempDir, true);
+			helper.push(tempDir, exam.getUuid());
 		} finally {
 			FileUtils.deleteDirectory(tempDir);
 		}

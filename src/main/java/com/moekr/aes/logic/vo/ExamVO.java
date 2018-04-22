@@ -1,7 +1,7 @@
 package com.moekr.aes.logic.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.moekr.aes.data.entity.Examination;
+import com.moekr.aes.data.entity.Exam;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.User;
 import com.moekr.aes.util.serializer.TimestampLocalDateTimeSerializer;
@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
-public class ExaminationVO {
+public class ExamVO {
 	private Integer id;
 	private String name;
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
@@ -25,10 +25,10 @@ public class ExaminationVO {
 	private NestedUserVO creator;
 	private Set<NestedProblemVO> problems;
 
-	public ExaminationVO(Examination examination) {
-		BeanUtils.copyProperties(examination, this);
-		creator = new NestedUserVO(examination.getOwner());
-		problems = examination.getProblemSet().stream().map(NestedProblemVO::new).collect(Collectors.toSet());
+	public ExamVO(Exam exam) {
+		BeanUtils.copyProperties(exam, this);
+		creator = new NestedUserVO(exam.getCreator());
+		problems = exam.getProblemSet().stream().map(NestedProblemVO::new).collect(Collectors.toSet());
 	}
 
 	@Data

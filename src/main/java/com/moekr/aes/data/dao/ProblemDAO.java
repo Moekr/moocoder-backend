@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProblemDAO extends JpaRepository<Problem, Integer> {
-	Page<Problem> findAllByOwner(User owner, Pageable pageable);
+	Page<Problem> findAllByCreator(User creator, Pageable pageable);
 
 	Problem findById(int id);
 

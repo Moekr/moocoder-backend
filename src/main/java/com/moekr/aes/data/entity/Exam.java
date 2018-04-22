@@ -15,12 +15,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"owner", "problemSet", "resultSet"})
-@ToString(exclude = {"owner", "problemSet", "resultSet"})
+@EqualsAndHashCode(exclude = {"creator", "problemSet", "resultSet"})
+@ToString(exclude = {"creator", "problemSet", "resultSet"})
 @Entity
-@Table(name = "ENTITY_EXAMINATION")
+@Table(name = "ENTITY_EXAM")
 @EntityListeners(AuditingEntityListener.class)
-public class Examination {
+public class Exam {
 	@Id
 	@Column(name = "id")
 	private Integer id;
@@ -55,18 +55,18 @@ public class Examination {
 	private ExaminationStatus status = ExaminationStatus.PREPARING;
 
 	@ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
-	@JoinColumn(name = "owner", referencedColumnName = "id")
-	private User owner;
+	@JoinColumn(name = "creator", referencedColumnName = "id")
+	private User creator;
 
 	@ManyToMany(targetEntity = Problem.class)
-	@JoinTable(name = "LINK_PROBLEM_EXAMINATION",
-			joinColumns = @JoinColumn(name = "examination", referencedColumnName = "id"),
+	@JoinTable(name = "LINK_PROBLEM_EXAM",
+			joinColumns = @JoinColumn(name = "exam", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "problem", referencedColumnName = "id")
 	)
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Problem> problemSet = new HashSet<>();
 
-	@OneToMany(targetEntity = Result.class, mappedBy = "examination")
+	@OneToMany(targetEntity = Result.class, mappedBy = "exam")
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Result> resultSet = new HashSet<>();
 

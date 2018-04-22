@@ -4,6 +4,7 @@ import com.moekr.aes.logic.service.ProblemService;
 import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.dto.ProblemDTO;
+import com.moekr.aes.web.response.EmptyResponse;
 import com.moekr.aes.web.response.PageResourceResponse;
 import com.moekr.aes.web.response.ResourceResponse;
 import com.moekr.aes.web.response.Response;
@@ -85,6 +86,6 @@ public class ProblemController extends AbstractApiController {
 		} else {
 			throw new AccessDeniedException();
 		}
-		return new Response();
+		return new EmptyResponse();
 	}
 }

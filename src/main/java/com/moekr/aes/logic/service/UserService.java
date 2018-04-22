@@ -3,9 +3,7 @@ package com.moekr.aes.logic.service;
 import com.moekr.aes.logic.vo.UserVO;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.dto.UserDTO;
-import com.moekr.aes.web.dto.form.ChangePasswordForm;
 import com.moekr.aes.web.dto.form.StudentRegisterForm;
-import com.moekr.aes.web.dto.form.TeacherRegisterForm;
 import org.springframework.data.domain.Page;
 
 public interface UserService {
@@ -18,8 +16,4 @@ public interface UserService {
 	void delete(int userId) throws ServiceException;
 
 	void register(StudentRegisterForm form) throws ServiceException;
-
-	void register(TeacherRegisterForm form) throws ServiceException;
-
-	void changePassword(String username, ChangePasswordForm form) throws ServiceException;
 }

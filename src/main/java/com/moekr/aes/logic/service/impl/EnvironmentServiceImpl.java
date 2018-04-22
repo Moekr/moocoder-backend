@@ -1,7 +1,7 @@
 package com.moekr.aes.logic.service.impl;
 
 import com.moekr.aes.data.dao.ResultDAO;
-import com.moekr.aes.data.entity.Examination;
+import com.moekr.aes.data.entity.Exam;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.logic.service.EnvironmentService;
@@ -28,18 +28,18 @@ public class EnvironmentServiceImpl implements EnvironmentService {
 	public Map<String, String> env(int resultId) {
 		Result result = resultDAO.findById(resultId);
 		if (result == null) return Collections.emptyMap();
-		Examination examination = result.getExamination();
+		Exam exam = result.getExam();
 		Map<String, String> env = new HashMap<>();
-		env.put("GIT_URL", properties.getGitlab().getHost() + "/" + result.getOwner().getUsername() + "/" + examination.getUuid());
-		env.put("DOCKER_IMAGE", properties.getDocker().getRegistry() + "/" + examination.getUuid() + ":" + examination.getVersion());
+		env.put("GIT_URL", properties.getGitlab().getHost() + "/" + result.getOwner().getUsername() + "/" + exam.getUuid());
+		env.put("DOCKER_IMAGE", properties.getDocker().getRegistry() + "/" + exam.getUuid() + ":" + exam.getVersion());
 		StringBuilder builder = new StringBuilder();
 		builder.append("#!/bin/bash\n");
-		for (Problem problem : examination.getProblemSet()) {
+		for (Problem problem : exam.getProblemSet()) {
 			for (String publicFile : problem.getPublicFiles()) {
 				builder.append("cp --parents ").append(problem.getName()).append(publicFile).append(" /var/ws/code/ || :\n");
 			}
 		}
-		for (Problem problem : examination.getProblemSet()) {
+		for (Problem problem : exam.getProblemSet()) {
 			builder.append(problem.getType().runScript(problem.getName()));
 		}
 		env.put("EXECUTE_SHELL", builder.toString());

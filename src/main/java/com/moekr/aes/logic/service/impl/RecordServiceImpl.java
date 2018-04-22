@@ -25,7 +25,7 @@ public class RecordServiceImpl implements RecordService {
 		Asserts.notNull(record, "选择的提交记录不存在");
 		if (record.getResult().getOwner().getId() == userId) {
 			return new RecordVO(record);
-		} else if (record.getResult().getExamination().getOwner().getId() == userId) {
+		} else if (record.getResult().getExam().getCreator().getId() == userId) {
 			return new RecordVO(record);
 		}
 		throw new AccessDeniedException();

@@ -1,19 +1,19 @@
 package com.moekr.aes.logic.service.impl;
 
 import com.moekr.aes.data.dao.*;
-import com.moekr.aes.data.entity.Examination;
+import com.moekr.aes.data.entity.Exam;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.data.entity.User;
 import com.moekr.aes.logic.api.GitlabApi;
 import com.moekr.aes.logic.api.JenkinsApi;
-import com.moekr.aes.logic.service.ExaminationService;
-import com.moekr.aes.logic.vo.ExaminationVO;
+import com.moekr.aes.logic.service.ExamService;
+import com.moekr.aes.logic.vo.ExamVO;
 import com.moekr.aes.util.ToolKit;
 import com.moekr.aes.util.enums.ExaminationStatus;
 import com.moekr.aes.util.enums.UserRole;
 import com.moekr.aes.util.exceptions.*;
-import com.moekr.aes.web.dto.ExaminationDTO;
+import com.moekr.aes.web.dto.ExamDTO;
 import lombok.extern.apachecommons.CommonsLog;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.gitlab4j.api.GitLabApiException;
@@ -32,12 +32,12 @@ import java.util.stream.Collectors;
 
 @Service
 @CommonsLog
-public class ExaminationServiceImpl implements ExaminationService {
+public class ExamServiceImpl implements ExamService {
 	private static final Sort PAGE_SORT = Sort.by(Sort.Direction.DESC, "id");
 
 	private final UserDAO userDAO;
 	private final ProblemDAO problemDAO;
-	private final ExaminationDAO examinationDAO;
+	private final ExamDAO examDAO;
 	private final ResultDAO resultDAO;
 	private final RecordDAO recordDAO;
 	private final GitlabApi gitlabApi;
@@ -46,11 +46,11 @@ public class ExaminationServiceImpl implements ExaminationService {
 	private final DockerImageBuilder imageBuilder;
 
 	@Autowired
-	public ExaminationServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, ExaminationDAO examinationDAO, ResultDAO resultDAO, RecordDAO recordDAO,
-								  GitlabApi gitlabApi, JenkinsApi jenkinsApi, PaperBuilder paperBuilder, DockerImageBuilder imageBuilder) {
+	public ExamServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, ExamDAO examDAO, ResultDAO resultDAO, RecordDAO recordDAO,
+						   GitlabApi gitlabApi, JenkinsApi jenkinsApi, PaperBuilder paperBuilder, DockerImageBuilder imageBuilder) {
 		this.userDAO = userDAO;
 		this.problemDAO = problemDAO;
-		this.examinationDAO = examinationDAO;
+		this.examDAO = examDAO;
 		this.resultDAO = resultDAO;
 		this.recordDAO = recordDAO;
 		this.gitlabApi = gitlabApi;
@@ -61,13 +61,13 @@ public class ExaminationServiceImpl implements ExaminationService {
 
 	@Override
 	@Transactional
-	public ExaminationVO create(int userId, ExaminationDTO examinationDTO) throws ServiceException {
+	public ExamVO create(int userId, ExamDTO examDTO) throws ServiceException {
 		User user = userDAO.findById(userId);
-		List<Problem> problemList = problemDAO.findAllById(examinationDTO.getProblemSet());
+		List<Problem> problemList = problemDAO.findAllById(examDTO.getProblemSet());
 		Set<Problem> problemSet = problemList.stream()
-				.filter(p -> p.getOwner() == null || p.getOwner().getId() == userId)
+				.filter(p -> p.getCreator() == null || p.getCreator().getId() == userId)
 				.collect(Collectors.toSet());
-		if (examinationDTO.getProblemSet().size() != problemSet.size()) {
+		if (examDTO.getProblemSet().size() != problemSet.size()) {
 			throw new InvalidRequestException("存在无效的题目！");
 		}
 		String uuid = ToolKit.randomUUID();
@@ -77,63 +77,63 @@ public class ExaminationServiceImpl implements ExaminationService {
 		} catch (GitLabApiException e) {
 			throw new ServiceException("创建GitLab项目时发生异常[" + e.getMessage() + "]");
 		}
-		Examination examination = new Examination();
-		BeanUtils.copyProperties(examinationDTO, examination);
-		examination.setId(id);
-		examination.setUuid(uuid);
-		examination.setOwner(user);
-		examination.setProblemSet(problemSet);
-		examination = examinationDAO.save(examination);
+		Exam exam = new Exam();
+		BeanUtils.copyProperties(examDTO, exam);
+		exam.setId(id);
+		exam.setUuid(uuid);
+		exam.setCreator(user);
+		exam.setProblemSet(problemSet);
+		exam = examDAO.save(exam);
 		try {
-			paperBuilder.buildPaper(examination);
+			paperBuilder.buildPaper(exam);
 		} catch (IOException | GitAPIException e) {
 			throw new ServiceException("构建试题时发生异常[" + e.getMessage() + "]");
 		}
-		imageBuilder.asyncBuildDockerImage(examination);
-		return new ExaminationVO(examination);
+		imageBuilder.asyncBuildDockerImage(exam);
+		return new ExamVO(exam);
 	}
 
 	@Override
-	public Page<ExaminationVO> retrievePage(int userId, int page, int limit) {
+	public Page<ExamVO> retrievePage(int userId, int page, int limit) {
 		User user = userDAO.findById(userId);
 		if (user.getRole() == UserRole.TEACHER) {
-			return examinationDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(ExaminationVO::new);
+			return examDAO.findAllByCreator(user, PageRequest.of(page, limit, PAGE_SORT)).map(ExamVO::new);
 		} else {
-			return resultDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(Result::getExamination).map(ExaminationVO::new);
+			return resultDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(Result::getExam).map(ExamVO::new);
 		}
 	}
 
 	@Override
-	public ExaminationVO retrieve(int userId, int examinationId) throws ServiceException {
-		Examination examination = examinationDAO.findById(examinationId);
-		Asserts.notNull(examination, "所选考试不存在");
-		if (examination.getOwner().getId() != userId) {
-			Result result = resultDAO.findByOwner_IdAndExamination(userId, examination);
+	public ExamVO retrieve(int userId, int examinationId) throws ServiceException {
+		Exam exam = examDAO.findById(examinationId);
+		Asserts.notNull(exam, "所选考试不存在");
+		if (exam.getCreator().getId() != userId) {
+			Result result = resultDAO.findByOwner_IdAndExam(userId, exam);
 			if (result == null) {
 				throw new AccessDeniedException();
 			}
 		}
-		return new ExaminationVO(examination);
+		return new ExamVO(exam);
 	}
 
 	@Override
 	@Transactional
-	public ExaminationVO update(int userId, int examinationId, ExaminationDTO examinationDTO) throws EntityNotFoundException, AccessDeniedException {
-		Examination examination = examinationDAO.findById(examinationId);
-		Asserts.notNull(examination, "所选考试不存在");
-		if (examination.getOwner().getId() != userId) {
+	public ExamVO update(int userId, int examinationId, ExamDTO examDTO) throws EntityNotFoundException, AccessDeniedException {
+		Exam exam = examDAO.findById(examinationId);
+		Asserts.notNull(exam, "所选考试不存在");
+		if (exam.getCreator().getId() != userId) {
 			throw new AccessDeniedException();
 		}
-		BeanUtils.copyProperties(examinationDTO, examination);
-		return new ExaminationVO(examinationDAO.save(examination));
+		BeanUtils.copyProperties(examDTO, exam);
+		return new ExamVO(examDAO.save(exam));
 	}
 
 	@Override
 	@Transactional
 	public void delete(int userId, int examinationId) throws EntityNotFoundException, AccessDeniedException {
-		Examination examination = examinationDAO.findById(examinationId);
-		Asserts.notNull(examination, "所选考试不存在");
-		if (examination.getOwner().getId() != userId) {
+		Exam exam = examDAO.findById(examinationId);
+		Asserts.notNull(exam, "所选考试不存在");
+		if (exam.getCreator().getId() != userId) {
 			throw new AccessDeniedException();
 		}
 		delete(examinationId);
@@ -143,14 +143,14 @@ public class ExaminationServiceImpl implements ExaminationService {
 	@Transactional
 	public void participate(int userId, int examinationId) throws ServiceException {
 		User user = userDAO.findById(userId);
-		Examination examination = examinationDAO.findById(examinationId);
-		Asserts.notNull(examination, "所选考试不存在");
-		if (examination.getResultSet().stream().anyMatch(r -> r.getOwner().getId() == userId)) {
+		Exam exam = examDAO.findById(examinationId);
+		Asserts.notNull(exam, "所选考试不存在");
+		if (exam.getResultSet().stream().anyMatch(r -> r.getOwner().getId() == userId)) {
 			throw new AlreadyInExaminationException();
 		}
-		if (examination.getStatus() == ExaminationStatus.PREPARING) {
+		if (exam.getStatus() == ExaminationStatus.PREPARING) {
 			throw new EntityNotAvailableException("考试正在准备中！");
-		} else if (examination.getStatus() == ExaminationStatus.CLOSED) {
+		} else if (exam.getStatus() == ExaminationStatus.CLOSED) {
 			throw new EntityNotAvailableException("考试已经结束！");
 		}
 		int id;
@@ -172,37 +172,37 @@ public class ExaminationServiceImpl implements ExaminationService {
 		Result result = new Result();
 		result.setId(id);
 		result.setOwner(user);
-		result.setExamination(examination);
+		result.setExam(exam);
 		resultDAO.save(result);
 	}
 
 	@Override
-	public Page<ExaminationVO> retrievePage(int page, int limit) {
-		return examinationDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(ExaminationVO::new);
+	public Page<ExamVO> retrievePage(int page, int limit) {
+		return examDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(ExamVO::new);
 	}
 
 	@Override
-	public ExaminationVO retrieve(int examinationId) throws ServiceException {
-		Examination examination = examinationDAO.findById(examinationId);
-		Asserts.notNull(examination, "所选考试不存在");
-		return new ExaminationVO(examination);
+	public ExamVO retrieve(int examinationId) throws ServiceException {
+		Exam exam = examDAO.findById(examinationId);
+		Asserts.notNull(exam, "所选考试不存在");
+		return new ExamVO(exam);
 	}
 
 	@Override
-	public ExaminationVO update(int examinationId, ExaminationDTO examinationDTO) throws ServiceException {
-		Examination examination = examinationDAO.findById(examinationId);
-		Asserts.notNull(examination, "所选考试不存在");
-		BeanUtils.copyProperties(examinationDTO, examination);
-		return new ExaminationVO(examinationDAO.save(examination));
+	public ExamVO update(int examinationId, ExamDTO examDTO) throws ServiceException {
+		Exam exam = examDAO.findById(examinationId);
+		Asserts.notNull(exam, "所选考试不存在");
+		BeanUtils.copyProperties(examDTO, exam);
+		return new ExamVO(examDAO.save(exam));
 	}
 
 	@Override
 	@Transactional
 	public void delete(int examinationId) throws EntityNotFoundException {
-		Examination examination = examinationDAO.findById(examinationId);
-		Asserts.notNull(examination, "所选考试不存在");
+		Exam exam = examDAO.findById(examinationId);
+		Asserts.notNull(exam, "所选考试不存在");
 		// TODO: 细化事务控制
-		for (Result result : examination.getResultSet()) {
+		for (Result result : exam.getResultSet()) {
 			try {
 				gitlabApi.deleteProject(result.getId());
 			} catch (Exception e) {
@@ -219,10 +219,10 @@ public class ExaminationServiceImpl implements ExaminationService {
 			resultDAO.delete(result);
 		}
 		try {
-			gitlabApi.deleteProject(examination.getId());
+			gitlabApi.deleteProject(exam.getId());
 		} catch (Exception e) {
 			log.error(e);
 		}
-		examinationDAO.delete(examination);
+		examDAO.delete(exam);
 	}
 }

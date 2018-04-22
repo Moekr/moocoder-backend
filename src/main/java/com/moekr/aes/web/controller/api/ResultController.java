@@ -33,11 +33,11 @@ public class ResultController extends AbstractApiController {
 		}
 	}
 
-	@GetMapping("/examination/{examinationId:\\d+}/result")
+	@GetMapping("/exam/{examId:\\d+}/result")
 	public Response retrieveByExamination(@AuthenticationPrincipal CustomUserDetails userDetails,
-							 @PathVariable int examinationId) throws ServiceException {
+							 @PathVariable int examId) throws ServiceException {
 		if (!userDetails.isAdmin()) {
-			return new ResourceResponse(resultService.retrieveByExamination(userDetails.getId(), examinationId));
+			return new ResourceResponse(resultService.retrieveByExamination(userDetails.getId(), examId));
 		}
 		throw new AccessDeniedException();
 	}

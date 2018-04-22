@@ -18,7 +18,7 @@ import java.util.Set;
 		@FieldCompare(lessField = "startAt", greaterField = "endAt", message = "考试考试时间必须早于考试结束时间！", groups = PostMapping.class),
 		@FieldCompare(lessField = "now", greaterField = "endAt", message = "考试考试时间必须早于考试结束时间！", groups = PostMapping.class)
 })
-public class ExaminationDTO {
+public class ExamDTO {
 	@NotBlank(message = "请填写考试名称！", groups = {PostMapping.class, PutMapping.class})
 	private String name;
 	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)

@@ -4,6 +4,7 @@ import com.moekr.aes.logic.service.UserService;
 import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.dto.UserDTO;
+import com.moekr.aes.web.response.EmptyResponse;
 import com.moekr.aes.web.response.PageResourceResponse;
 import com.moekr.aes.web.response.ResourceResponse;
 import com.moekr.aes.web.response.Response;
@@ -58,7 +59,7 @@ public class UserController extends AbstractApiController {
 						   @PathVariable int userId) throws ServiceException {
 		if (userDetails.isAdmin()) {
 			userService.delete(userId);
-			return new Response();
+			return new EmptyResponse();
 		} else {
 			throw new AccessDeniedException();
 		}

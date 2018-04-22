@@ -1,14 +1,16 @@
 package com.moekr.aes.web.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ResourceResponse extends Response {
-	private Object res;
+public class ResourceResponse extends EmptyResponse {
+	@JsonProperty("res")
+	private Object resource;
 
-	public ResourceResponse(Object res) {
-		this.res = res;
+	public ResourceResponse(Object resource) {
+		this.resource = resource;
 	}
 }

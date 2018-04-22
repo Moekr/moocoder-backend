@@ -2,9 +2,11 @@ package com.moekr.aes.web.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class ErrorResponse extends Response {
+@EqualsAndHashCode(callSuper = true)
+public class ErrorResponse extends EmptyResponse {
 	@JsonProperty("msg")
 	private String message;
 
