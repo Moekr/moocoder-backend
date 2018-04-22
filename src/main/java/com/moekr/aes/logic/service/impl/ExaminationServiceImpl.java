@@ -94,13 +94,26 @@ public class ExaminationServiceImpl implements ExaminationService {
 	}
 
 	@Override
-	public Page<ExaminationVO> retrievePage(int userId, int page, int limit) throws ServiceException {
+	public Page<ExaminationVO> retrievePage(int userId, int page, int limit) {
 		User user = userDAO.findById(userId);
 		if (user.getRole() == UserRole.TEACHER) {
 			return examinationDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(ExaminationVO::new);
 		} else {
 			return resultDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(Result::getExamination).map(ExaminationVO::new);
 		}
+	}
+
+	@Override
+	public ExaminationVO retrieve(int userId, int examinationId) throws ServiceException {
+		Examination examination = examinationDAO.findById(examinationId);
+		Asserts.notNull(examination, "所选考试不存在");
+		if (examination.getOwner().getId() != userId) {
+			Result result = resultDAO.findByOwner_IdAndExamination(userId, examination);
+			if (result == null) {
+				throw new AccessDeniedException();
+			}
+		}
+		return new ExaminationVO(examination);
 	}
 
 	@Override
@@ -124,36 +137,6 @@ public class ExaminationServiceImpl implements ExaminationService {
 			throw new AccessDeniedException();
 		}
 		delete(examinationId);
-	}
-
-	@Override
-	@Transactional
-	public void delete(int examinationId) throws EntityNotFoundException {
-		Examination examination = examinationDAO.findById(examinationId);
-		Asserts.notNull(examination, "所选考试不存在");
-		// TODO: 细化事务控制
-		for (Result result : examination.getResultSet()) {
-			try {
-				gitlabApi.deleteProject(result.getId());
-			} catch (Exception e) {
-				log.error(e);
-			}
-			if (!result.isDeleted()) {
-				try {
-					jenkinsApi.deleteJob(result.getId());
-				} catch (Exception e) {
-					log.error(e);
-				}
-			}
-			recordDAO.deleteAll(result.getRecordSet());
-			resultDAO.delete(result);
-		}
-		try {
-			gitlabApi.deleteProject(examination.getId());
-		} catch (Exception e) {
-			log.error(e);
-		}
-		examinationDAO.delete(examination);
 	}
 
 	@Override
@@ -196,5 +179,50 @@ public class ExaminationServiceImpl implements ExaminationService {
 	@Override
 	public Page<ExaminationVO> retrievePage(int page, int limit) {
 		return examinationDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(ExaminationVO::new);
+	}
+
+	@Override
+	public ExaminationVO retrieve(int examinationId) throws ServiceException {
+		Examination examination = examinationDAO.findById(examinationId);
+		Asserts.notNull(examination, "所选考试不存在");
+		return new ExaminationVO(examination);
+	}
+
+	@Override
+	public ExaminationVO update(int examinationId, ExaminationDTO examinationDTO) throws ServiceException {
+		Examination examination = examinationDAO.findById(examinationId);
+		Asserts.notNull(examination, "所选考试不存在");
+		BeanUtils.copyProperties(examinationDTO, examination);
+		return new ExaminationVO(examinationDAO.save(examination));
+	}
+
+	@Override
+	@Transactional
+	public void delete(int examinationId) throws EntityNotFoundException {
+		Examination examination = examinationDAO.findById(examinationId);
+		Asserts.notNull(examination, "所选考试不存在");
+		// TODO: 细化事务控制
+		for (Result result : examination.getResultSet()) {
+			try {
+				gitlabApi.deleteProject(result.getId());
+			} catch (Exception e) {
+				log.error(e);
+			}
+			if (!result.isDeleted()) {
+				try {
+					jenkinsApi.deleteJob(result.getId());
+				} catch (Exception e) {
+					log.error(e);
+				}
+			}
+			recordDAO.deleteAll(result.getRecordSet());
+			resultDAO.delete(result);
+		}
+		try {
+			gitlabApi.deleteProject(examination.getId());
+		} catch (Exception e) {
+			log.error(e);
+		}
+		examinationDAO.delete(examination);
 	}
 }

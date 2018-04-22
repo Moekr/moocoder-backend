@@ -1,5 +1,6 @@
 package com.moekr.aes.data.dao;
 
+import com.moekr.aes.data.entity.Examination;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.data.entity.User;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,8 @@ public interface ResultDAO extends JpaRepository<Result, Integer> {
 
 	@Query(value = "SELECT r.* FROM ENTITY_RESULT AS r, ENTITY_USER AS u WHERE r.examination = ?1 AND r.owner = u.id AND u.role = 'STUDENT'", nativeQuery = true)
 	List<Result> findAllByExamination(int examinationId);
+
+	Result findByOwner_IdAndExamination(int ownerId, Examination examination);
 
 	Page<Result> findAllByOwner(User owner, Pageable pageable);
 }

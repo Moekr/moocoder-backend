@@ -10,6 +10,8 @@ public interface ResultService {
 
 	ResultVO retrieve(int resultId) throws ServiceException;
 
+	ResultVO retrieveByExamination(int userId, int examinationId) throws ServiceException;
+
 	String scoreDistribution(int examinationId);
 
 	Map<String, Integer> scoreData(int examinationId);

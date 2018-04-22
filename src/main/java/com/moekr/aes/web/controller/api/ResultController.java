@@ -1,6 +1,7 @@
 package com.moekr.aes.web.controller.api;
 
 import com.moekr.aes.logic.service.ResultService;
+import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.response.ResourceResponse;
 import com.moekr.aes.web.response.Response;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/result")
+@RequestMapping("/api")
 public class ResultController extends AbstractApiController {
 	private final ResultService resultService;
 
@@ -22,7 +23,7 @@ public class ResultController extends AbstractApiController {
 		this.resultService = resultService;
 	}
 
-	@GetMapping("/{resultId:\\d+}")
+	@GetMapping("/result/{resultId:\\d+}")
 	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
 							 @PathVariable int resultId) throws ServiceException {
 		if (userDetails.isAdmin()) {
@@ -30,5 +31,14 @@ public class ResultController extends AbstractApiController {
 		} else {
 			return new ResourceResponse(resultService.retrieve(userDetails.getId(), resultId));
 		}
+	}
+
+	@GetMapping("/examination/{examinationId:\\d+}/result")
+	public Response retrieveByExamination(@AuthenticationPrincipal CustomUserDetails userDetails,
+							 @PathVariable int examinationId) throws ServiceException {
+		if (!userDetails.isAdmin()) {
+			return new ResourceResponse(resultService.retrieveByExamination(userDetails.getId(), examinationId));
+		}
+		throw new AccessDeniedException();
 	}
 }

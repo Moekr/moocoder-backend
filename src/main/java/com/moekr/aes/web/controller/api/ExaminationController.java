@@ -36,8 +36,8 @@ public class ExaminationController extends AbstractApiController {
 
 	@GetMapping
 	public Response retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
-											@RequestParam(defaultValue = "1") int page,
-											@RequestParam(defaultValue = "10") int limit) throws ServiceException {
+								 @RequestParam(defaultValue = "1") int page,
+								 @RequestParam(defaultValue = "10") int limit) throws ServiceException {
 		if (userDetails.isAdmin()) {
 			return new PageResourceResponse(examinationService.retrievePage(page, limit));
 		} else {
@@ -45,9 +45,44 @@ public class ExaminationController extends AbstractApiController {
 		}
 	}
 
+	@GetMapping("/{examinationId:\\d+}")
+	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
+							 @PathVariable int examinationId) throws ServiceException {
+		if (userDetails.isAdmin()) {
+			return new ResourceResponse(examinationService.retrieve(examinationId));
+		}
+		return new ResourceResponse(examinationService.retrieve(userDetails.getId(), examinationId));
+	}
+
+	@PutMapping("/{examinationId:\\d+}")
+	public Response update(@AuthenticationPrincipal CustomUserDetails userDetails,
+						   @PathVariable int examinationId,
+						   @RequestBody @Validated(PutMapping.class) ExaminationDTO examinationDTO, Errors errors) throws ServiceException {
+		checkErrors(errors);
+		if (userDetails.isTeacher()) {
+			return new ResourceResponse(examinationService.update(userDetails.getId(), examinationId, examinationDTO));
+		} else if (userDetails.isAdmin()) {
+			return new ResourceResponse(examinationService.update(examinationId, examinationDTO));
+		}
+		throw new AccessDeniedException();
+	}
+
+	@DeleteMapping("/{examinationId:\\d+}")
+	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
+						   @PathVariable int examinationId) throws ServiceException {
+		if (userDetails.isTeacher()) {
+			examinationService.delete(userDetails.getId(), examinationId);
+		} else if (userDetails.isAdmin()) {
+			examinationService.delete(examinationId);
+		} else {
+			throw new AccessDeniedException();
+		}
+		return new Response();
+	}
+
 	@PostMapping("/{examinationId:\\d+}/participate")
 	public Response participate(@AuthenticationPrincipal CustomUserDetails userDetails,
-										   @PathVariable int examinationId) throws ServiceException {
+								@PathVariable int examinationId) throws ServiceException {
 		if (userDetails.isStudent()) {
 			examinationService.participate(userDetails.getId(), examinationId);
 			return new Response();

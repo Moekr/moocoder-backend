@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.moekr.aes.data.entity.Examination;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.User;
-import com.moekr.aes.util.serializer.CustomLocalDateTimeSerializer;
 import com.moekr.aes.util.serializer.TimestampLocalDateTimeSerializer;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -19,9 +18,9 @@ public class ExaminationVO {
 	private String name;
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime createdAt;
-	@JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime startAt;
-	@JsonSerialize(using = CustomLocalDateTimeSerializer.class)
+	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime endAt;
 	private NestedUserVO creator;
 	private Set<NestedProblemVO> problems;

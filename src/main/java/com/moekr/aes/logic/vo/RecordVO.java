@@ -1,8 +1,10 @@
 package com.moekr.aes.logic.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.moekr.aes.data.entity.Record;
 import com.moekr.aes.data.entity.Record.Failure;
 import com.moekr.aes.util.enums.BuildStatus;
+import com.moekr.aes.util.serializer.TimestampLocalDateTimeSerializer;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 public class RecordVO {
 	private Integer id;
 	private Integer number;
+	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime createdAt;
 	private BuildStatus status;
 	private Integer score;

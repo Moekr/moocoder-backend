@@ -36,8 +36,8 @@ public class UserController extends AbstractApiController {
 
 	@GetMapping
 	public Response retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
-											@RequestParam(defaultValue = "1") int page,
-											@RequestParam(defaultValue = "10") int limit) throws ServiceException {
+								 @RequestParam(defaultValue = "1") int page,
+								 @RequestParam(defaultValue = "10") int limit) throws ServiceException {
 		if (userDetails.isAdmin()) {
 			return new PageResourceResponse(userService.retrievePage(page, limit));
 		}
@@ -46,7 +46,7 @@ public class UserController extends AbstractApiController {
 
 	@GetMapping("/{userId:\\d+}")
 	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
-										@PathVariable int userId) throws ServiceException {
+							 @PathVariable int userId) throws ServiceException {
 		if (userDetails.isAdmin() || userDetails.getId() == userId) {
 			return new ResourceResponse(userService.retrieve(userId));
 		}
@@ -55,7 +55,7 @@ public class UserController extends AbstractApiController {
 
 	@DeleteMapping("/{userId:\\d+}")
 	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
-									  @PathVariable int userId) throws ServiceException {
+						   @PathVariable int userId) throws ServiceException {
 		if (userDetails.isAdmin()) {
 			userService.delete(userId);
 			return new Response();

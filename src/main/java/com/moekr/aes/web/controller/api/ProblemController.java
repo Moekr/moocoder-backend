@@ -41,8 +41,8 @@ public class ProblemController extends AbstractApiController {
 
 	@GetMapping
 	public Response retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
-											@RequestParam(defaultValue = "1") int page,
-											@RequestParam(defaultValue = "10") int limit) throws ServiceException {
+								 @RequestParam(defaultValue = "1") int page,
+								 @RequestParam(defaultValue = "10") int limit) throws ServiceException {
 		if (userDetails.isTeacher()) {
 			return new PageResourceResponse(problemService.retrievePage(userDetails.getId(), page));
 		} else if (userDetails.isAdmin()) {
@@ -53,7 +53,7 @@ public class ProblemController extends AbstractApiController {
 
 	@GetMapping("/{problemId:\\d+}")
 	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
-										@PathVariable int problemId) throws ServiceException {
+							 @PathVariable int problemId) throws ServiceException {
 		if (userDetails.isTeacher()) {
 			return new ResourceResponse(problemService.retrieve(userDetails.getId(), problemId));
 		} else if (userDetails.isAdmin()) {
@@ -64,13 +64,12 @@ public class ProblemController extends AbstractApiController {
 
 	@PutMapping("/{problemId:\\d+}")
 	public Response update(@AuthenticationPrincipal CustomUserDetails userDetails,
-									  @PathVariable int problemId,
-									  @RequestBody @Validated(PutMapping.class) ProblemDTO problemDTO, Errors errors) throws ServiceException {
+						   @PathVariable int problemId,
+						   @RequestBody @Validated(PutMapping.class) ProblemDTO problemDTO, Errors errors) throws ServiceException {
+		checkErrors(errors);
 		if (userDetails.isTeacher()) {
-			checkErrors(errors);
 			return new ResourceResponse(problemService.update(userDetails.getId(), problemId, problemDTO));
 		} else if (userDetails.isAdmin()) {
-			checkErrors(errors);
 			return new ResourceResponse(problemService.update(problemId, problemDTO));
 		}
 		throw new AccessDeniedException();
@@ -78,7 +77,7 @@ public class ProblemController extends AbstractApiController {
 
 	@DeleteMapping("/{problemId:\\d+}")
 	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
-									  @PathVariable int problemId) throws ServiceException {
+						   @PathVariable int problemId) throws ServiceException {
 		if (userDetails.isTeacher()) {
 			problemService.delete(userDetails.getId(), problemId);
 		} else if (userDetails.isAdmin()) {

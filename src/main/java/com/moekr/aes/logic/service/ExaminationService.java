@@ -10,13 +10,19 @@ public interface ExaminationService {
 
 	Page<ExaminationVO> retrievePage(int userId, int page, int limit) throws ServiceException;
 
+	ExaminationVO retrieve(int userId, int examinationId) throws ServiceException;
+
 	ExaminationVO update(int userId, int examinationId, ExaminationDTO examinationDTO) throws ServiceException;
 
 	void delete(int userId, int examinationId) throws ServiceException;
 
-	void delete(int examinationId) throws ServiceException;
-
 	void participate(int userId, int examinationId) throws ServiceException;
 
 	Page<ExaminationVO> retrievePage(int page, int limit) throws ServiceException;
+
+	ExaminationVO retrieve(int examinationId) throws ServiceException;
+
+	ExaminationVO update(int examinationId, ExaminationDTO examinationDTO) throws ServiceException;
+
+	void delete(int examinationId) throws ServiceException;
 }

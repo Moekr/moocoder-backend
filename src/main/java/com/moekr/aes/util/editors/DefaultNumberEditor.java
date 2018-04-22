@@ -1,7 +1,6 @@
 package com.moekr.aes.util.editors;
 
 import com.sun.beans.editors.IntegerEditor;
-import org.apache.commons.lang3.StringUtils;
 
 public class DefaultNumberEditor extends IntegerEditor {
 	private final int defaultValue;
@@ -12,9 +11,9 @@ public class DefaultNumberEditor extends IntegerEditor {
 
 	@Override
 	public void setAsText(String s) throws IllegalArgumentException {
-		if (StringUtils.isNumeric(s)) {
+		try {
 			setValue(Integer.valueOf(s));
-		} else {
+		} catch (NumberFormatException e) {
 			setValue(defaultValue);
 		}
 	}

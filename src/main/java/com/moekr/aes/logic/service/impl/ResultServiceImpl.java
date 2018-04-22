@@ -1,6 +1,8 @@
 package com.moekr.aes.logic.service.impl;
 
+import com.moekr.aes.data.dao.ExaminationDAO;
 import com.moekr.aes.data.dao.ResultDAO;
+import com.moekr.aes.data.entity.Examination;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.logic.service.ResultService;
 import com.moekr.aes.logic.vo.ResultVO;
@@ -19,10 +21,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class ResultServiceImpl implements ResultService {
+	private final ExaminationDAO examinationDAO;
 	private final ResultDAO resultDAO;
 
 	@Autowired
-	public ResultServiceImpl(ResultDAO resultDAO) {
+	public ResultServiceImpl(ExaminationDAO examinationDAO, ResultDAO resultDAO) {
+		this.examinationDAO = examinationDAO;
 		this.resultDAO = resultDAO;
 	}
 
@@ -42,6 +46,15 @@ public class ResultServiceImpl implements ResultService {
 	public ResultVO retrieve(int resultId) throws ServiceException {
 		Result result = resultDAO.findById(resultId);
 		Asserts.notNull(result, "所选的成绩不存在");
+		return new ResultVO(result);
+	}
+
+	@Override
+	public ResultVO retrieveByExamination(int userId, int examinationId) throws ServiceException {
+		Examination examination = examinationDAO.findById(examinationId);
+		Asserts.notNull(examination, "所选的考试不存在");
+		Result result = resultDAO.findByOwner_IdAndExamination(userId, examination);
+		Asserts.notNull(result, "所选的考试没有成绩记录");
 		return new ResultVO(result);
 	}
 

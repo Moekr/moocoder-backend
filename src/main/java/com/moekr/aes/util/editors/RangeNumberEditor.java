@@ -1,7 +1,5 @@
 package com.moekr.aes.util.editors;
 
-import org.apache.commons.lang3.StringUtils;
-
 public class RangeNumberEditor extends DefaultNumberEditor {
 	private final int min;
 	private final int max;
@@ -14,10 +12,10 @@ public class RangeNumberEditor extends DefaultNumberEditor {
 
 	@Override
 	public void setAsText(String s) throws IllegalArgumentException {
-		if (StringUtils.isNumeric(s)) {
+		try {
 			int value = Integer.valueOf(s);
 			setValue(Math.max(min, Math.min(max, value)));
-		} else {
+		} catch (NumberFormatException e) {
 			super.setAsText(s);
 		}
 	}
