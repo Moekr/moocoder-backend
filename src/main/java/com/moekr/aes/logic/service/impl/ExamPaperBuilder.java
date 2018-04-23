@@ -18,14 +18,14 @@ import java.util.Set;
 
 @Component
 @CommonsLog
-public class PaperBuilder {
+public class ExamPaperBuilder {
 	private static final String TEMP_PREFIX = "AES-CODE-";
 
 	private final StorageProvider provider;
 	private final GitProcessHelper helper;
 
 	@Autowired
-	public PaperBuilder(StorageProvider provider, GitProcessHelper helper) {
+	public ExamPaperBuilder(StorageProvider provider, GitProcessHelper helper) {
 		this.provider = provider;
 		this.helper = helper;
 	}

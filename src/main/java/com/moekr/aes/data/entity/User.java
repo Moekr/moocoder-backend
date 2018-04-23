@@ -54,15 +54,15 @@ public class User {
 	@CreatedDate
 	private LocalDateTime createdAt;
 
-	@OneToMany(targetEntity = Problem.class, mappedBy = "creator")
+	@OneToMany(targetEntity = Problem.class, mappedBy = "creator", cascade = CascadeType.REMOVE)
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Problem> problemSet = new HashSet<>();
 
-	@OneToMany(targetEntity = Exam.class, mappedBy = "creator")
+	@OneToMany(targetEntity = Exam.class, mappedBy = "creator", cascade = CascadeType.REMOVE)
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Exam> examSet = new HashSet<>();
 
-	@OneToMany(targetEntity = Result.class, mappedBy = "owner")
+	@OneToMany(targetEntity = Result.class, mappedBy = "owner", cascade = CascadeType.REMOVE)
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Result> resultSet = new HashSet<>();
 }

@@ -21,7 +21,7 @@ import java.util.Set;
 @ToString(exclude = {"creator", "examSet"})
 @Entity
 @Table(name = "ENTITY_PROBLEM")
-@Where(clause = "deprecated = 1")
+@Where(clause = "deprecated = 0")
 @EntityListeners(AuditingEntityListener.class)
 public class Problem {
 	@Id
@@ -69,7 +69,7 @@ public class Problem {
 	@JoinColumn(name = "creator", referencedColumnName = "id")
 	private User creator;
 
-	@ManyToMany(targetEntity = Exam.class)
+	@ManyToMany(targetEntity = Exam.class, cascade = CascadeType.DETACH)
 	@JoinTable(name = "LINK_PROBLEM_EXAM",
 			joinColumns = @JoinColumn(name = "problem", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "exam", referencedColumnName = "id")

@@ -23,9 +23,9 @@ public class RecordServiceImpl implements RecordService {
 	public RecordVO retrieve(int userId, int recordId) throws ServiceException {
 		Record record = recordDAO.findById(recordId);
 		Asserts.notNull(record, "选择的提交记录不存在");
-		if (record.getResult().getOwner().getId() == userId) {
+		if (record.getCommit().getResult().getOwner().getId() == userId) {
 			return new RecordVO(record);
-		} else if (record.getResult().getExam().getCreator().getId() == userId) {
+		} else if (record.getCommit().getResult().getExam().getCreator().getId() == userId) {
 			return new RecordVO(record);
 		}
 		throw new AccessDeniedException();

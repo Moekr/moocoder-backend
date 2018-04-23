@@ -7,13 +7,11 @@ import com.moekr.aes.data.entity.Exam;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.logic.api.GitlabApi;
 import com.moekr.aes.logic.api.JenkinsApi;
-import com.moekr.aes.util.enums.ExaminationStatus;
+import com.moekr.aes.util.enums.ExamStatus;
 import lombok.extern.apachecommons.CommonsLog;
-import org.gitlab4j.api.GitLabApiException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,24 +39,24 @@ public class ClosedExaminationChecker {
 	}
 
 	private void checkClosedExamination() {
-		List<Exam> examList = examDAO.findAllByStatus(ExaminationStatus.AVAILABLE);
+		List<Exam> examList = examDAO.findAllByStatus(ExamStatus.AVAILABLE);
+		LocalDateTime now = LocalDateTime.now();
 		examList = examList.stream()
-				.filter(e -> e.getEndAt().isBefore(LocalDateTime.now()))
-				.peek(e -> e.setStatus(ExaminationStatus.CLOSED))
+				.filter(e -> e.getEndAt().isBefore(now))
+				.peek(e -> e.setStatus(ExamStatus.CLOSED))
 				.collect(Collectors.toList());
 		examList = examDAO.saveAll(examList);
-		// TODO: 细化事务处理
 		for (Exam exam : examList) {
 			for (Result result : exam.getResultSet()) {
 				try {
 					gitlabApi.archiveProject(result.getId());
-				} catch (GitLabApiException e) {
+				} catch (Exception e) {
 					log.error("归档GitLab项目#" + result.getId() + "时发生异常[" + e.getClass() + "]: " + e.getMessage());
 				}
 				try {
 					jenkinsApi.deleteJob(result.getId());
 					result.setDeleted(true);
-				} catch (IOException e) {
+				} catch (Exception e) {
 					log.error("删除Jenkins项目#" + result.getId() + "时发生异常[" + e.getClass() + "]: " + e.getMessage());
 				}
 			}

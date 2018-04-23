@@ -1,9 +1,10 @@
 package com.moekr.aes.logic.api;
 
+import com.moekr.aes.logic.api.vo.GitlabUser;
 import org.gitlab4j.api.GitLabApiException;
 
 public interface GitlabApi {
-	Integer createUser(String username, String email, String password) throws GitLabApiException;
+	GitlabUser createUser(String username, String email, String password) throws GitLabApiException;
 
 	Integer fetchNamespace(String username) throws GitLabApiException;
 

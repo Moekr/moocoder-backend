@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(exclude = {"exam", "owner", "recordSet"})
-@ToString(exclude = {"exam", "owner", "recordSet"})
+@EqualsAndHashCode(exclude = {"exam", "owner", "commitList"})
+@ToString(exclude = {"exam", "owner", "commitList"})
 @Entity
 @Table(name = "ENTITY_RESULT")
 public class Result {
@@ -36,8 +36,8 @@ public class Result {
 	@JoinColumn(name = "owner", referencedColumnName = "id")
 	private User owner;
 
-	@OneToMany(targetEntity = Record.class, mappedBy = "result")
+	@OneToMany(targetEntity = Commit.class, mappedBy = "result", cascade = CascadeType.REMOVE)
 	@LazyCollection(LazyCollectionOption.EXTRA)
-	@OrderBy("id desc")
-	private List<Record> recordSet = new ArrayList<>();
+	@OrderBy("created_at DESC")
+	private List<Commit> commitList = new ArrayList<>();
 }

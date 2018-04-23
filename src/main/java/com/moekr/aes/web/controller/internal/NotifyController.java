@@ -4,6 +4,7 @@ import com.moekr.aes.logic.service.NotifyService;
 import com.moekr.aes.util.AesProperties;
 import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
+import com.moekr.aes.web.dto.webhook.WebHookDTO;
 import com.moekr.aes.web.response.EmptyResponse;
 import com.moekr.aes.web.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +23,11 @@ public class NotifyController {
 	}
 
 	@PostMapping(value = "/webhook/{id:\\d+}", params = "secret")
-	public Response webHook(@PathVariable int id, @RequestParam String secret) throws ServiceException {
+	public Response webHook(@PathVariable int id, @RequestParam String secret, @RequestBody WebHookDTO webHookDTO) throws ServiceException {
 		if (!this.secret.equals(secret)) {
 			throw new AccessDeniedException();
 		}
-		notifyService.webHook(id);
+		notifyService.webHook(id, webHookDTO.getCheckoutSha());
 		return new EmptyResponse();
 	}
 

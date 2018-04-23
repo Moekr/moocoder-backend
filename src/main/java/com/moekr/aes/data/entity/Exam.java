@@ -1,6 +1,6 @@
 package com.moekr.aes.data.entity;
 
-import com.moekr.aes.util.enums.ExaminationStatus;
+import com.moekr.aes.util.enums.ExamStatus;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -52,13 +52,13 @@ public class Exam {
 
 	@Enumerated(value = EnumType.STRING)
 	@Column(name = "status", columnDefinition = "VARCHAR(255) NOT NULL DEFAULT 'PREPARING'")
-	private ExaminationStatus status = ExaminationStatus.PREPARING;
+	private ExamStatus status = ExamStatus.PREPARING;
 
 	@ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
 	@JoinColumn(name = "creator", referencedColumnName = "id")
 	private User creator;
 
-	@ManyToMany(targetEntity = Problem.class)
+	@ManyToMany(targetEntity = Problem.class, cascade = CascadeType.DETACH)
 	@JoinTable(name = "LINK_PROBLEM_EXAM",
 			joinColumns = @JoinColumn(name = "exam", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "problem", referencedColumnName = "id")
@@ -66,12 +66,12 @@ public class Exam {
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Problem> problemSet = new HashSet<>();
 
-	@OneToMany(targetEntity = Result.class, mappedBy = "exam")
+	@OneToMany(targetEntity = Result.class, mappedBy = "exam", cascade = CascadeType.REMOVE)
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Result> resultSet = new HashSet<>();
 
-	public void setStatus(ExaminationStatus status) {
-		if (status == ExaminationStatus.READY || status == ExaminationStatus.FINISHED) {
+	public void setStatus(ExamStatus status) {
+		if (status == ExamStatus.READY || status == ExamStatus.FINISHED) {
 			throw new IllegalArgumentException("READY 与 FINISHED 状态不应持久化！");
 		}
 		this.status = status;

@@ -1,5 +1,5 @@
 package com.moekr.aes.util.enums;
 
-public enum ExaminationStatus {
+public enum ExamStatus {
 	PREPARING, READY, AVAILABLE, FINISHED, CLOSED
 }

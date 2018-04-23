@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 @Component
 public class JenkinsApiImpl implements JenkinsApi {
@@ -46,8 +47,13 @@ public class JenkinsApiImpl implements JenkinsApi {
 	}
 
 	@Override
-	public QueueItem invokeBuild(int id) throws IOException {
-		QueueReference reference = server.getJob(String.valueOf(id)).build();
+	public QueueItem invokeBuild(int id, Map<String, String> paramMap) throws IOException {
+		QueueReference reference;
+		if (paramMap == null) {
+			reference = server.getJob(String.valueOf(id)).build();
+		} else {
+			reference = server.getJob(String.valueOf(id)).build(paramMap);
+		}
 		QueueItem item =  server.getQueueItem(reference);
 		try {
 			// 等待一段时间，避免对executable的请求返回404

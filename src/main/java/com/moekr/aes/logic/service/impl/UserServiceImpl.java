@@ -1,12 +1,11 @@
 package com.moekr.aes.logic.service.impl;
 
-import com.moekr.aes.data.dao.RecordDAO;
-import com.moekr.aes.data.dao.ResultDAO;
 import com.moekr.aes.data.dao.UserDAO;
 import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.data.entity.User;
 import com.moekr.aes.logic.api.GitlabApi;
 import com.moekr.aes.logic.api.JenkinsApi;
+import com.moekr.aes.logic.api.vo.GitlabUser;
 import com.moekr.aes.logic.service.MailService;
 import com.moekr.aes.logic.service.UserService;
 import com.moekr.aes.logic.vo.UserVO;
@@ -29,25 +28,18 @@ import org.springframework.ui.ModelMap;
 import org.springframework.util.Assert;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-
 @Service
 public class UserServiceImpl implements UserService {
 	private static final Sort PAGE_SORT = Sort.by(Sort.Direction.DESC, "id");
 
 	private final UserDAO userDAO;
-	private final ResultDAO resultDAO;
-	private final RecordDAO recordDAO;
 	private final MailService mailService;
 	private final GitlabApi gitlabApi;
 	private final JenkinsApi jenkinsApi;
 
 	@Autowired
-	public UserServiceImpl(UserDAO userDAO, ResultDAO resultDAO, RecordDAO recordDAO, MailService mailService, GitlabApi gitlabApi, JenkinsApi jenkinsApi) {
+	public UserServiceImpl(UserDAO userDAO, MailService mailService, GitlabApi gitlabApi, JenkinsApi jenkinsApi) {
 		this.userDAO = userDAO;
-		this.resultDAO = resultDAO;
-		this.recordDAO = recordDAO;
 		this.mailService = mailService;
 		this.gitlabApi = gitlabApi;
 		this.jenkinsApi = jenkinsApi;
@@ -60,31 +52,16 @@ public class UserServiceImpl implements UserService {
 		user = userDAO.findByEmail(userDTO.getEmail());
 		Asserts.isNull(user, "邮箱已被使用！");
 		String password = ToolKit.randomPassword();
-		int userId;
+		GitlabUser gitlabUser;
 		try {
-			userId = gitlabApi.createUser(userDTO.getUsername(), userDTO.getEmail(), password);
+			gitlabUser = gitlabApi.createUser(userDTO.getUsername(), userDTO.getEmail(), password);
 		} catch (GitLabApiException e) {
 			throw new ServiceException("创建GitLab用户时发生异常[" + e.getMessage() + "]");
 		}
-		int namespaceId;
-		try {
-			namespaceId = gitlabApi.fetchNamespace(userDTO.getUsername());
-		} catch (GitLabApiException e) {
-			throw new ServiceException("获取GitLab用户名称空间时发生异常[" + e.getMessage() + "]");
-		}
-		String token;
-		try {
-			token = gitlabApi.createToken(userId);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("创建GitLab用户Token时发生异常[" + e.getMessage() + "]");
-		}
 		user = new User();
+		BeanUtils.copyProperties(gitlabUser, user);
 		BeanUtils.copyProperties(userDTO, user);
-		user.setId(userId);
 		user.setPassword(DigestUtils.sha256Hex(password));
-		user.setNamespace(namespaceId);
-		user.setToken(token);
-		user.setCreatedAt(LocalDateTime.now());
 		ModelMap model = new ModelMap();
 		model.addAttribute("username", userDTO.getUsername());
 		model.addAttribute("password", password);
@@ -111,21 +88,19 @@ public class UserServiceImpl implements UserService {
 		User user = userDAO.findById(userId);
 		Assert.notNull(user, "找不到要删除的用户");
 		Assert.isTrue(user.getRole() == UserRole.STUDENT, "目标用户只能是学生");
+		try {
+			gitlabApi.deleteUser(userId);
+		} catch (Exception e) {
+			throw new ServiceException("删除GitLab用户时发生异常[" + e.getMessage() + "]");
+		}
 		for (Result result : user.getResultSet()) {
-			recordDAO.deleteAll(result.getRecordSet());
-			try {
-				gitlabApi.deleteUser(userId);
-			} catch (GitLabApiException e) {
-				throw new ServiceException("删除GitLab用户时发生异常[" + e.getMessage() + "]");
-			}
 			if (!result.isDeleted()) {
 				try {
 					jenkinsApi.deleteJob(result.getId());
-				} catch (IOException e) {
+				} catch (Exception e) {
 					throw new ServiceException("删除Jenkins项目时发生异常[" + e.getMessage() + "]");
 				}
 			}
-			resultDAO.delete(result);
 		}
 		userDAO.delete(user);
 	}
@@ -137,32 +112,17 @@ public class UserServiceImpl implements UserService {
 		Asserts.isNull(user, "用户名已被使用！");
 		user = userDAO.findByEmail(form.getEmail());
 		Asserts.isNull(user, "邮箱已被使用！");
-		int userId;
+		GitlabUser gitlabUser;
 		try {
-			userId = gitlabApi.createUser(form.getUsername(), form.getEmail(), form.getPassword());
+			gitlabUser = gitlabApi.createUser(form.getUsername(), form.getEmail(), form.getPassword());
 		} catch (GitLabApiException e) {
 			throw new ServiceException("创建GitLab用户时发生异常[" + e.getMessage() + "]");
 		}
-		int namespaceId;
-		try {
-			namespaceId = gitlabApi.fetchNamespace(form.getUsername());
-		} catch (GitLabApiException e) {
-			throw new ServiceException("获取GitLab用户名称空间时发生异常[" + e.getMessage() + "]");
-		}
-		String token;
-		try {
-			token = gitlabApi.createToken(userId);
-		} catch (GitLabApiException e) {
-			throw new ServiceException("创建GitLab用户Token时发生异常[" + e.getMessage() + "]");
-		}
 		user = new User();
-		BeanUtils.copyProperties(form, user, "password");
-		user.setId(userId);
+		BeanUtils.copyProperties(gitlabUser, user);
+		BeanUtils.copyProperties(form, user);
 		user.setPassword(DigestUtils.sha256Hex(form.getPassword()));
-		user.setNamespace(namespaceId);
-		user.setToken(token);
 		user.setRole(UserRole.STUDENT);
-		user.setCreatedAt(LocalDateTime.now());
 		userDAO.save(user);
 		ModelMap model = new ModelMap();
 		model.addAttribute("username", form.getUsername());

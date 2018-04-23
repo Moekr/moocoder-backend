@@ -5,7 +5,7 @@ import com.moekr.aes.data.dao.ExamDAO;
 import com.moekr.aes.data.entity.Exam;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.logic.api.DockerApi;
-import com.moekr.aes.util.enums.ExaminationStatus;
+import com.moekr.aes.util.enums.ExamStatus;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +22,11 @@ public class DockerImageBuilder {
 
 	private final ExamDAO examDAO;
 	private final TransactionWrapper wrapper;
-	private final PaperBuilder builder;
+	private final ExamPaperBuilder builder;
 	private final DockerApi dockerApi;
 
 	@Autowired
-	public DockerImageBuilder(ExamDAO examDAO, TransactionWrapper wrapper, PaperBuilder builder, DockerApi dockerApi) {
+	public DockerImageBuilder(ExamDAO examDAO, TransactionWrapper wrapper, ExamPaperBuilder builder, DockerApi dockerApi) {
 		this.examDAO = examDAO;
 		this.wrapper = wrapper;
 		this.builder = builder;
@@ -70,8 +70,8 @@ public class DockerImageBuilder {
 		int version = exam.getVersion() + 1;
 		dockerApi.build(tempDir.getAbsolutePath(), exam.getUuid(), String.valueOf(version));
 		exam.setVersion(version);
-		if (exam.getStatus() == ExaminationStatus.PREPARING) {
-			exam.setStatus(ExaminationStatus.AVAILABLE);
+		if (exam.getStatus() == ExamStatus.PREPARING) {
+			exam.setStatus(ExamStatus.AVAILABLE);
 		}
 		examDAO.save(exam);
 	}

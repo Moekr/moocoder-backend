@@ -1,6 +1,7 @@
 package com.moekr.aes.logic.api.impl;
 
 import com.moekr.aes.logic.api.GitlabApi;
+import com.moekr.aes.logic.api.vo.GitlabUser;
 import com.moekr.aes.util.AesProperties;
 import com.moekr.aes.util.AesProperties.Gitlab;
 import com.moekr.aes.util.ToolKit;
@@ -24,14 +25,18 @@ public class GitlabApiImpl implements GitlabApi {
 	}
 
 	@Override
-	public synchronized Integer createUser(String username, String email, String password) throws GitLabApiException {
+	public synchronized GitlabUser createUser(String username, String email, String password) throws GitLabApiException {
 		User user = new User();
 		user.setUsername(username);
 		user.setEmail(email);
 		user.setName(username);
 		user.setSkipConfirmation(true);
 		user = server.getUserApi().createUser(user, password, 1000);
-		return user.getId();
+		GitlabUser gitlabUser = new GitlabUser();
+		gitlabUser.setId(user.getId());
+		gitlabUser.setNamespace(fetchNamespace(username));
+		gitlabUser.setToken(createToken(user.getId()));
+		return gitlabUser;
 	}
 
 	@Override

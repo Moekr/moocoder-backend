@@ -5,20 +5,16 @@ import com.moekr.aes.util.enums.BuildStatus;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = "result")
-@ToString(exclude = "result")
+@EqualsAndHashCode(exclude = {"commit", "problem"})
+@ToString(exclude = {"commit", "problem"})
 @Entity
 @Table(name = "ENTITY_RECORD")
-@EntityListeners(AuditingEntityListener.class)
 public class Record {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,11 +24,6 @@ public class Record {
 	@Basic
 	@Column(name = "number", nullable = false)
 	private Integer number;
-
-	@Basic
-	@Column(name = "created_at", nullable = false)
-	@CreatedDate
-	private LocalDateTime createdAt;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status", columnDefinition = "VARCHAR(255) NOT NULL DEFAULT 'WAITING'")
@@ -51,9 +42,13 @@ public class Record {
 	@Convert(converter = FailureSetConverter.class)
 	private Set<Failure> failures = new HashSet<>();
 
-	@ManyToOne(targetEntity = Result.class, fetch = FetchType.LAZY)
-	@JoinColumn(name = "result", referencedColumnName = "id")
-	private Result result;
+	@ManyToOne(targetEntity = Commit.class, fetch = FetchType.LAZY)
+	@JoinColumn(name = "commit", referencedColumnName = "id")
+	private Commit commit;
+
+	@ManyToOne(targetEntity = Problem.class, fetch = FetchType.LAZY)
+	@JoinColumn(name = "problem", referencedColumnName = "id")
+	private Problem problem;
 
 	@Data
 	public static class Failure {

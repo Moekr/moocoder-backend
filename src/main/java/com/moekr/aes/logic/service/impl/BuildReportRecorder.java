@@ -2,16 +2,12 @@ package com.moekr.aes.logic.service.impl;
 
 import com.google.common.base.Ascii;
 import com.moekr.aes.data.dao.RecordDAO;
-import com.moekr.aes.data.dao.ResultDAO;
-import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.Record;
 import com.moekr.aes.data.entity.Record.Failure;
-import com.moekr.aes.data.entity.Result;
 import com.moekr.aes.logic.api.vo.BuildDetails;
 import com.moekr.aes.logic.api.vo.CoberturaElement;
 import com.moekr.aes.logic.api.vo.CoberturaResult;
 import com.moekr.aes.util.enums.BuildStatus;
-import com.moekr.aes.util.enums.ProblemType;
 import com.offbytwo.jenkins.model.TestCase;
 import com.offbytwo.jenkins.model.TestResult;
 import com.offbytwo.jenkins.model.TestSuites;
@@ -33,40 +29,23 @@ public class BuildReportRecorder {
 	private static final String TRUNCATE_INDICATOR = "[达到长度限制]";
 
 	private final RecordDAO recordDAO;
-	private final ResultDAO resultDAO;
 
-	public BuildReportRecorder(RecordDAO recordDAO, ResultDAO resultDAO) {
+	public BuildReportRecorder(RecordDAO recordDAO) {
 		this.recordDAO = recordDAO;
-		this.resultDAO = resultDAO;
-	}
-
-	@Transactional
-	public void record(int id, int buildNumber) {
-		Result result = resultDAO.findById(id);
-		if (result != null) {
-			Record record = new Record();
-			record.setNumber(buildNumber);
-			record.setResult(result);
-			recordDAO.save(record);
-		} else {
-			log.error("编号#" + id + "的成绩记录不存在！");
-		}
 	}
 
 	@Transactional
 	public void record(int id, BuildDetails buildDetails) {
-		Record record = recordDAO.findByResultIdAndNumber(id, buildDetails.getNumber()).orElse(null);
+		Record record = recordDAO.findByCommit_Result_IdAndNumber(id, buildDetails.getNumber());
 		if (record != null) {
-			BuildStatus status = status(buildDetails);
-			Set<Failure> failures = new HashSet<>();
-			int testScore = evaluateTest(buildDetails.getTestResult(), failures);
-			int coverageScore = evaluateCoverage(buildDetails.getCoberturaResult(), failures);
-			Set<Problem> problemSet = record.getResult().getExam().getProblemSet();
-			int coverageCount = (int) problemSet.stream().map(Problem::getType).filter(ProblemType::isCoverage).count();
-			int testCount = problemSet.size() - coverageCount;
-			record.setStatus(status);
+			record.setStatus(status(buildDetails));
 			record.setConsoleOutput(Ascii.truncate(buildDetails.getConsoleOutput(), TEXT_MAX_LENGTH, TRUNCATE_INDICATOR));
-			record.setScore((testScore * testCount + coverageScore * coverageCount) / problemSet.size());
+			Set<Failure> failures = new HashSet<>();
+			if (record.getProblem().getType().isCoverage()) {
+				record.setScore(evaluateCoverage(buildDetails.getCoberturaResult(), failures));
+			} else {
+				record.setScore(evaluateTest(buildDetails.getTestResult(), failures));
+			}
 			record.setFailures(failures);
 		} else {
 			log.error("编号#" + id + "/" + buildDetails.getNumber() + "的提交记录不存在！");

@@ -10,7 +10,7 @@ import com.moekr.aes.logic.api.JenkinsApi;
 import com.moekr.aes.logic.service.ExamService;
 import com.moekr.aes.logic.vo.ExamVO;
 import com.moekr.aes.util.ToolKit;
-import com.moekr.aes.util.enums.ExaminationStatus;
+import com.moekr.aes.util.enums.ExamStatus;
 import com.moekr.aes.util.enums.UserRole;
 import com.moekr.aes.util.exceptions.*;
 import com.moekr.aes.web.dto.ExamDTO;
@@ -39,20 +39,18 @@ public class ExamServiceImpl implements ExamService {
 	private final ProblemDAO problemDAO;
 	private final ExamDAO examDAO;
 	private final ResultDAO resultDAO;
-	private final RecordDAO recordDAO;
 	private final GitlabApi gitlabApi;
 	private final JenkinsApi jenkinsApi;
-	private final PaperBuilder paperBuilder;
+	private final ExamPaperBuilder paperBuilder;
 	private final DockerImageBuilder imageBuilder;
 
 	@Autowired
-	public ExamServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, ExamDAO examDAO, ResultDAO resultDAO, RecordDAO recordDAO,
-						   GitlabApi gitlabApi, JenkinsApi jenkinsApi, PaperBuilder paperBuilder, DockerImageBuilder imageBuilder) {
+	public ExamServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, ExamDAO examDAO, ResultDAO resultDAO,
+						   GitlabApi gitlabApi, JenkinsApi jenkinsApi, ExamPaperBuilder paperBuilder, DockerImageBuilder imageBuilder) {
 		this.userDAO = userDAO;
 		this.problemDAO = problemDAO;
 		this.examDAO = examDAO;
 		this.resultDAO = resultDAO;
-		this.recordDAO = recordDAO;
 		this.gitlabApi = gitlabApi;
 		this.jenkinsApi = jenkinsApi;
 		this.paperBuilder = paperBuilder;
@@ -148,9 +146,9 @@ public class ExamServiceImpl implements ExamService {
 		if (exam.getResultSet().stream().anyMatch(r -> r.getOwner().getId() == userId)) {
 			throw new AlreadyInExaminationException();
 		}
-		if (exam.getStatus() == ExaminationStatus.PREPARING) {
+		if (exam.getStatus() == ExamStatus.PREPARING) {
 			throw new EntityNotAvailableException("考试正在准备中！");
-		} else if (exam.getStatus() == ExaminationStatus.CLOSED) {
+		} else if (exam.getStatus() == ExamStatus.CLOSED) {
 			throw new EntityNotAvailableException("考试已经结束！");
 		}
 		int id;
@@ -201,27 +199,24 @@ public class ExamServiceImpl implements ExamService {
 	public void delete(int examinationId) throws EntityNotFoundException {
 		Exam exam = examDAO.findById(examinationId);
 		Asserts.notNull(exam, "所选考试不存在");
-		// TODO: 细化事务控制
 		for (Result result : exam.getResultSet()) {
 			try {
 				gitlabApi.deleteProject(result.getId());
 			} catch (Exception e) {
-				log.error(e);
+				log.error("删除GitLab项目#" + result.getId() + "时发生异常[" + e.getClass() + "]: " + e.getMessage());
 			}
 			if (!result.isDeleted()) {
 				try {
 					jenkinsApi.deleteJob(result.getId());
 				} catch (Exception e) {
-					log.error(e);
+					log.error("删除Jenkins项目#" + result.getId() + "时发生异常[" + e.getClass() + "]: " + e.getMessage());
 				}
 			}
-			recordDAO.deleteAll(result.getRecordSet());
-			resultDAO.delete(result);
 		}
 		try {
 			gitlabApi.deleteProject(exam.getId());
 		} catch (Exception e) {
-			log.error(e);
+			log.error("删除GitLab项目#" + exam.getId() + "时发生异常[" + e.getClass() + "]: " + e.getMessage());
 		}
 		examDAO.delete(exam);
 	}

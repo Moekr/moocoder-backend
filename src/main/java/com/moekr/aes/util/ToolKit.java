@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public abstract class ToolKit {
 	public static final String BANNER = "AES";
-	public static final String VERSION = "0.3.0-SNAPSHOT";
+	public static final String VERSION = "0.4.0-SNAPSHOT";
 
 	public static HttpStatus httpStatus(HttpServletRequest request) {
 		Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");

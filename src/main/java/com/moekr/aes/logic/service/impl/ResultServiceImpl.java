@@ -60,7 +60,7 @@ public class ResultServiceImpl implements ResultService {
 
 	@Override
 	public String scoreDistribution(int examinationId) {
-		List<Integer> scoreList = resultDAO.findAllByExamination(examinationId).stream().map(Result::getScore).collect(Collectors.toList());
+		List<Integer> scoreList = resultDAO.findAllByExam_Id(examinationId).stream().map(Result::getScore).collect(Collectors.toList());
 		Map<Integer, Integer> scoreDistribution = scoreList.stream().collect(Collectors.toMap(s -> (s / 10), s -> 1, (a, b) -> a + b));
 		JSONArray array = new JSONArray();
 		for (int scoreLevel = 0; scoreLevel < 10; scoreLevel++) {
@@ -79,7 +79,7 @@ public class ResultServiceImpl implements ResultService {
 
 	@Override
 	public Map<String, Integer> scoreData(int examinationId) {
-		List<Result> resultList = resultDAO.findAllByExamination(examinationId);
+		List<Result> resultList = resultDAO.findAllByExam_Id(examinationId);
 		Map<String, Integer> scoreData = new HashMap<>();
 		resultList.forEach(r -> scoreData.put(r.getOwner().getUsername(), r.getScore()));
 		return scoreData;
