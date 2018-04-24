@@ -29,15 +29,17 @@ public class ProblemServiceImpl implements ProblemService {
 
 	private final UserDAO userDAO;
 	private final ProblemDAO problemDAO;
-	private final StorageProvider storageProvider;
+	private final DockerImageBuilder builder;
+	private final StorageProvider provider;
 
 	private final ProblemFormatter formatter = new ProblemFormatter();
 
 	@Autowired
-	public ProblemServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, StorageProvider storageProvider) {
+	public ProblemServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, DockerImageBuilder builder, StorageProvider provider) {
 		this.userDAO = userDAO;
 		this.problemDAO = problemDAO;
-		this.storageProvider = storageProvider;
+		this.builder = builder;
+		this.provider = provider;
 	}
 
 	@Override
@@ -153,16 +155,14 @@ public class ProblemServiceImpl implements ProblemService {
 		}
 		Problem problem = new Problem();
 		BeanUtils.copyProperties(info, problem);
-		problem.setPublicFiles(info.getPublicFiles());
-		problem.setProtectedFiles(info.getProtectedFiles());
-		problem.setPrivateFiles(info.getPrivateFiles());
 		problem.setCreator(user);
 		problem = problemDAO.save(problem);
 		try {
-			storageProvider.save(content, problem.getId() + ".zip");
+			provider.save(content, problem.getId() + ".zip");
 		} catch (IOException e) {
 			throw new ServiceException("保存题目文件时发生异常[" + e.getMessage() + "]");
 		}
+		builder.asyncBuildDockerImage(problem);
 		return new ProblemVO(problem);
 	}
 
@@ -178,9 +178,7 @@ public class ProblemServiceImpl implements ProblemService {
 		if (!originFiles.equals(newFiles)) {
 			throw new InvalidRequestException("文件列表不匹配！");
 		}
-		problem.setPublicFiles(problemDTO.getPublicFiles());
-		problem.setProtectedFiles(problemDTO.getProtectedFiles());
-		problem.setPrivateFiles(problemDTO.getPrivateFiles());
+		BeanUtils.copyProperties(problemDTO, problem);
 		return new ProblemVO(problemDAO.save(problem));
 	}
 }

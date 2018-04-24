@@ -1,6 +1,9 @@
 package com.moekr.aes.logic.service.impl;
 
-import com.moekr.aes.data.dao.*;
+import com.moekr.aes.data.dao.ExamDAO;
+import com.moekr.aes.data.dao.ProblemDAO;
+import com.moekr.aes.data.dao.ResultDAO;
+import com.moekr.aes.data.dao.UserDAO;
 import com.moekr.aes.data.entity.Exam;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.Result;
@@ -15,7 +18,6 @@ import com.moekr.aes.util.enums.UserRole;
 import com.moekr.aes.util.exceptions.*;
 import com.moekr.aes.web.dto.ExamDTO;
 import lombok.extern.apachecommons.CommonsLog;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.gitlab4j.api.GitLabApiException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,12 +84,7 @@ public class ExamServiceImpl implements ExamService {
 		exam.setCreator(user);
 		exam.setProblemSet(problemSet);
 		exam = examDAO.save(exam);
-		try {
-			paperBuilder.buildPaper(exam);
-		} catch (IOException | GitAPIException e) {
-			throw new ServiceException("构建试题时发生异常[" + e.getMessage() + "]");
-		}
-		imageBuilder.asyncBuildDockerImage(exam);
+		paperBuilder.asyncBuildPaper(exam);
 		return new ExamVO(exam);
 	}
 

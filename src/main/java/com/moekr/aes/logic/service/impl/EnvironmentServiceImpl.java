@@ -31,7 +31,6 @@ public class EnvironmentServiceImpl implements EnvironmentService {
 		Exam exam = result.getExam();
 		Map<String, String> env = new HashMap<>();
 		env.put("GIT_URL", properties.getGitlab().getHost() + "/" + result.getOwner().getUsername() + "/" + exam.getUuid());
-		env.put("DOCKER_IMAGE", properties.getDocker().getRegistry() + "/" + exam.getUuid() + ":" + exam.getVersion());
 		StringBuilder builder = new StringBuilder();
 		builder.append("#!/bin/bash\n");
 		for (Problem problem : exam.getProblemSet()) {

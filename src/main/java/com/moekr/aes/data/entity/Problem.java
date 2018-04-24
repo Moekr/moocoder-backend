@@ -13,6 +13,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -62,6 +63,10 @@ public class Problem {
 	private LocalDateTime createdAt;
 
 	@Basic
+	@Column(name = "modified_at")
+	private LocalDateTime modifiedAt;
+
+	@Basic
 	@Column(name = "deprecated", columnDefinition = "BIT(1) NOT NULL DEFAULT 0")
 	private boolean deprecated;
 
@@ -76,4 +81,12 @@ public class Problem {
 	)
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Exam> examSet = new HashSet<>();
+
+	public String getImageName() {
+		return (name + "-" + id).toLowerCase();
+	}
+
+	public String getImageTag() {
+		return modifiedAt == null ? null : String.valueOf(modifiedAt.atZone(ZoneId.systemDefault()).toEpochSecond());
+	}
 }

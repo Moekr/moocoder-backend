@@ -46,10 +46,6 @@ public class Exam {
 	@Column(name = "end_at", nullable = false)
 	private LocalDateTime endAt;
 
-	@Basic
-	@Column(name = "version", columnDefinition = "INT(11) NOT NULL DEFAULT 0")
-	private Integer version = 0;
-
 	@Enumerated(value = EnumType.STRING)
 	@Column(name = "status", columnDefinition = "VARCHAR(255) NOT NULL DEFAULT 'PREPARING'")
 	private ExamStatus status = ExamStatus.PREPARING;

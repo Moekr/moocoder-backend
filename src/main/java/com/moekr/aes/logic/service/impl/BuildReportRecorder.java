@@ -56,6 +56,9 @@ public class BuildReportRecorder {
 		if (details.getBuildResult() == null && details.getCoberturaResult() == null) {
 			return BuildStatus.FAILURE;
 		}
+		if (details.getBuildResult() == null) {
+			return BuildStatus.SUCCESS;
+		}
 		switch (details.getBuildResult()) {
 			case SUCCESS:
 				return BuildStatus.SUCCESS;
@@ -112,6 +115,6 @@ public class BuildReportRecorder {
 			failure.setTrace(builder.toString());
 			failures.add(failure);
 		}
-		return (int) (100.0 * totalRatio / coberturaResult.getElements().size());
+		return totalRatio / coberturaResult.getElements().size();
 	}
 }

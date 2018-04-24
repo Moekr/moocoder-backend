@@ -52,7 +52,8 @@ public class JenkinsApiImpl implements JenkinsApi {
 		if (paramMap == null) {
 			reference = server.getJob(String.valueOf(id)).build();
 		} else {
-			reference = server.getJob(String.valueOf(id)).build(paramMap);
+			// 0.3.7版本的Jenkins客户端库中build(Map<String, String> params)方法存在BUG，会触发两次构建
+			reference = server.getJob(String.valueOf(id)).build(paramMap, false);
 		}
 		QueueItem item =  server.getQueueItem(reference);
 		try {

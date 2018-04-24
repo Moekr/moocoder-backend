@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -45,7 +46,7 @@ public class Commit {
 	@JoinColumn(name = "result", referencedColumnName = "id")
 	private Result result;
 
-	@OneToMany(targetEntity = Record.class, mappedBy = "commit")
+	@OneToMany(targetEntity = Record.class, mappedBy = "commit", cascade = CascadeType.REMOVE)
 	@LazyCollection(LazyCollectionOption.EXTRA)
-	private Set<Record> records;
+	private Set<Record> records = new HashSet<>();
 }

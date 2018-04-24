@@ -2,15 +2,32 @@
 <flow-definition plugin="workflow-job@2.19">
     <description/>
     <keepDependencies>false</keepDependencies>
-    <properties/>
+    <properties>
+        <hudson.model.ParametersDefinitionProperty>
+            <parameterDefinitions>
+                <hudson.model.TextParameterDefinition>
+                    <name>GIT_URL</name>
+                    <description/>
+                    <defaultValue/>
+                    <trim>false</trim>
+                </hudson.model.TextParameterDefinition>
+                <hudson.model.TextParameterDefinition>
+                    <name>DOCKER_IMAGE</name>
+                    <description/>
+                    <defaultValue/>
+                    <trim>false</trim>
+                </hudson.model.TextParameterDefinition>
+                <hudson.model.TextParameterDefinition>
+                    <name>EXECUTE_SHELL</name>
+                    <description/>
+                    <defaultValue/>
+                    <trim>false</trim>
+                </hudson.model.TextParameterDefinition>
+            </parameterDefinitions>
+        </hudson.model.ParametersDefinitionProperty>
+    </properties>
     <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.48">
         <script>
-node {
-    sh &quot;curl ${AES_HOST}/internal/env/${JOB_NAME}?secret=${AES_SECRET} &gt; env&quot;
-    load &apos;env&apos;
-    sh &apos;rm -rf env&apos;
-}
-
 pipeline {
     agent any
     stages {
@@ -34,7 +51,7 @@ pipeline {
             }
             steps {
                 catchError {
-                    timeout(3) {
+                    timeout(1) {
                         sh &quot;${EXECUTE_SHELL}&quot;
                     }
                 }
@@ -48,7 +65,8 @@ pipeline {
             sh &apos;curl -X POST &quot;${AES_HOST}/internal/notify/callback/${JOB_NAME}/${BUILD_NUMBER}?secret=${AES_SECRET}&quot;&apos;
         }
     }
-}   </script>
+}
+        </script>
         <sandbox>true</sandbox>
     </definition>
     <triggers/>
