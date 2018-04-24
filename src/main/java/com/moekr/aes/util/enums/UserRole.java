@@ -1,7 +1,14 @@
 package com.moekr.aes.util.enums;
 
 public enum UserRole {
-	STUDENT("学生"), TEACHER("教师");
+	/**
+	 * 学生角色
+	 */
+	STUDENT("学生"),
+	/**
+	 * 教师角色
+	 */
+	TEACHER("教师");
 
 	private final String name;
 

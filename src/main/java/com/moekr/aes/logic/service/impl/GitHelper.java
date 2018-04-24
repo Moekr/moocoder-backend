@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 @Component
-public class GitProcessHelper {
+public class GitHelper {
 	private static final String TEMP_PREFIX = "AES-REPO-";
 	private static final String COMMIT_MESSAGE = "初始化";
 
@@ -23,7 +23,7 @@ public class GitProcessHelper {
 	private final CredentialsProvider provider;
 
 	@Autowired
-	public GitProcessHelper(AesProperties properties) {
+	public GitHelper(AesProperties properties) {
 		this.gitlab = properties.getGitlab();
 		this.provider = new UsernamePasswordCredentialsProvider(gitlab.getUsername(), gitlab.getToken());
 	}

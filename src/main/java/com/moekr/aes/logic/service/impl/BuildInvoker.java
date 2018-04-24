@@ -38,43 +38,50 @@ public class BuildInvoker {
 
 	@Transactional
 	public void invokeNextBuild(int resultId) {
+		Record record;
+		while ((record = nextUnbuiltRecord(resultId)) != null) {
+			try {
+				QueueItem item = jenkinsApi.invokeBuild(resultId, buildParam(record));
+				record.setNumber(item.getExecutable().getNumber().intValue());
+				record.setStatus(BuildStatus.RUNNING);
+				break;
+			} catch (Exception e) {
+				log.error("触发构建#" + record.getId() + "时发生异常[" + e.getClass() + "]:" + e.getMessage());
+				record.setStatus(BuildStatus.FAILURE);
+			} finally {
+				recordDAO.save(record);
+			}
+		}
+
+	}
+
+	private Record nextUnbuiltRecord(int resultId) {
 		List<Commit> commitList = commitDAO.findAllByResult_IdAndFinishedOrderByIdAsc(resultId, false);
 		for (Commit commit : commitList) {
-			Set<Record> records = commit.getRecords();
-			Record record = records.stream()
-					.filter(r -> r.getStatus() == BuildStatus.RUNNING)
-					.findFirst().orElse(null);
-			if (record == null) {
-				record = records.stream()
-						.filter(r -> r.getStatus() == BuildStatus.WAITING)
-						.findFirst().orElse(null);
-				if (record != null) {
-					try {
-						QueueItem item = jenkinsApi.invokeBuild(resultId, buildParam(record));
-						record.setNumber(item.getExecutable().getNumber().intValue());
-						record.setStatus(BuildStatus.RUNNING);
-					} catch (Exception e) {
-						log.error("触发#" + resultId + "/" + commit.getId() + "/" + record.getId() + "构建时发生异常");
-						record.setStatus(BuildStatus.FAILURE);
-					}
-					recordDAO.save(record);
-					break;
-				} else {
-					commit.setScore(records.stream()
-							.map(Record::getScore)
-							.reduce((a, b) -> a + b)
-							.orElse(0) / records.size());
-					commit.setFinished(true);
-					commitDAO.save(commit);
-					Result result = commit.getResult();
-					if (commit.getScore() > result.getScore()) {
-						result.setScore(commit.getScore());
-						resultDAO.save(result);
-					}
+			for (Record record : commit.getRecords()) {
+				if (record.getStatus() == BuildStatus.RUNNING) {
+					return null;
+				} else if (record.getStatus() == BuildStatus.WAITING) {
+					return record;
 				}
-			} else {
-				break;
 			}
+			completeCommit(commit);
+		}
+		return null;
+	}
+
+	private void completeCommit(Commit commit) {
+		Set<Record> records = commit.getRecords();
+		commit.setScore(records.stream()
+				.map(Record::getScore)
+				.reduce((a, b) -> a + b)
+				.orElse(0) / Math.min(records.size(), 1));
+		commit.setFinished(true);
+		commit = commitDAO.save(commit);
+		Result result = commit.getResult();
+		if (commit.getScore() > result.getScore()) {
+			result.setScore(commit.getScore());
+			resultDAO.save(result);
 		}
 	}
 
@@ -89,9 +96,9 @@ public class BuildInvoker {
 		StringBuilder builder = new StringBuilder();
 		builder.append("#!/bin/bash\n");
 		for (String publicFile : problem.getPublicFiles()) {
-			builder.append("cp --parents ").append(problem.getName()).append(publicFile).append(" /var/ws/code/ || :\n");
+			builder.append("cp --parents ").append(problem.getUniqueName()).append(publicFile).append(" /var/ws/code/ || :\n");
 		}
-		builder.append(problem.getType().runScript(problem.getName()));
+		builder.append(problem.getType().getHelper().runScript(problem.getUniqueName()));
 		param.put("EXECUTE_SHELL", builder.toString());
 		return param;
 	}

@@ -82,8 +82,12 @@ public class Problem {
 	@LazyCollection(LazyCollectionOption.EXTRA)
 	private Set<Exam> examSet = new HashSet<>();
 
+	public String getUniqueName() {
+		return (id + "-" + name).toLowerCase();
+	}
+
 	public String getImageName() {
-		return (name + "-" + id).toLowerCase();
+		return getUniqueName();
 	}
 
 	public String getImageTag() {

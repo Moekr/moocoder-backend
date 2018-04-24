@@ -12,6 +12,12 @@
                     <trim>false</trim>
                 </hudson.model.TextParameterDefinition>
                 <hudson.model.TextParameterDefinition>
+                    <name>COMMIT_HASH</name>
+                    <description/>
+                    <defaultValue/>
+                    <trim>false</trim>
+                </hudson.model.TextParameterDefinition>
+                <hudson.model.TextParameterDefinition>
                     <name>DOCKER_IMAGE</name>
                     <description/>
                     <defaultValue/>
@@ -39,6 +45,11 @@ pipeline {
         stage(&apos;Pull&apos;) {
             steps {
                 git credentialsId: &quot;AES&quot;, url: &quot;${GIT_URL}&quot;
+            }
+        }
+        stage(&apos;Reset&apos;) {
+            steps {
+                sh &quot;git reset --hard ${COMMIT_HASH}&quot;
             }
         }
         stage(&apos;Run&apos;) {

@@ -101,7 +101,7 @@ public class ProblemFormatter {
 		deleteUselessFiles(tempDir);
 		List<String> fileList = listFiles(tempDir);
 		for (String file : fileList) {
-			FileType fileType = info.getType().fileType(file);
+			FileType fileType = info.getType().getHelper().fileType(file);
 			if (fileType == FileType.PUBLIC) {
 				info.getPublicFiles().add(file);
 			} else if (fileType == FileType.PROTECTED) {

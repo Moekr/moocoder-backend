@@ -18,6 +18,10 @@ public abstract class ToolKit {
 	public static final String BANNER = "AES";
 	public static final String VERSION = "0.4.0-SNAPSHOT";
 
+	public static String format(Exception exception) {
+		return "[" + exception.getClass().getName() + "]:" + exception.getMessage();
+	}
+
 	public static HttpStatus httpStatus(HttpServletRequest request) {
 		Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
 		if (statusCode == null) {

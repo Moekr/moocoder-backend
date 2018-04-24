@@ -15,8 +15,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"creator", "problemSet", "resultSet"})
-@ToString(exclude = {"creator", "problemSet", "resultSet"})
+@EqualsAndHashCode(exclude = {"creator", "problems", "results"})
+@ToString(exclude = {"creator", "problems", "results"})
 @Entity
 @Table(name = "ENTITY_EXAM")
 @EntityListeners(AuditingEntityListener.class)
@@ -60,11 +60,11 @@ public class Exam {
 			inverseJoinColumns = @JoinColumn(name = "problem", referencedColumnName = "id")
 	)
 	@LazyCollection(LazyCollectionOption.EXTRA)
-	private Set<Problem> problemSet = new HashSet<>();
+	private Set<Problem> problems = new HashSet<>();
 
 	@OneToMany(targetEntity = Result.class, mappedBy = "exam", cascade = CascadeType.REMOVE)
 	@LazyCollection(LazyCollectionOption.EXTRA)
-	private Set<Result> resultSet = new HashSet<>();
+	private Set<Result> results = new HashSet<>();
 
 	public void setStatus(ExamStatus status) {
 		if (status == ExamStatus.READY || status == ExamStatus.FINISHED) {

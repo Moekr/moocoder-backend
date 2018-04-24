@@ -28,7 +28,7 @@ public class ExamVO {
 	public ExamVO(Exam exam) {
 		BeanUtils.copyProperties(exam, this);
 		creator = new NestedUserVO(exam.getCreator());
-		problems = exam.getProblemSet().stream().map(NestedProblemVO::new).collect(Collectors.toSet());
+		problems = exam.getProblems().stream().map(NestedProblemVO::new).collect(Collectors.toSet());
 	}
 
 	@Data

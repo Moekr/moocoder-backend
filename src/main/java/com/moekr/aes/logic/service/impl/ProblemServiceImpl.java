@@ -4,6 +4,7 @@ import com.moekr.aes.data.dao.ProblemDAO;
 import com.moekr.aes.data.dao.UserDAO;
 import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.User;
+import com.moekr.aes.logic.AsyncWrapper;
 import com.moekr.aes.logic.service.ProblemService;
 import com.moekr.aes.logic.storage.StorageProvider;
 import com.moekr.aes.logic.vo.ProblemVO;
@@ -31,15 +32,17 @@ public class ProblemServiceImpl implements ProblemService {
 	private final ProblemDAO problemDAO;
 	private final DockerImageBuilder builder;
 	private final StorageProvider provider;
+	private final AsyncWrapper asyncWrapper;
 
 	private final ProblemFormatter formatter = new ProblemFormatter();
 
 	@Autowired
-	public ProblemServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, DockerImageBuilder builder, StorageProvider provider) {
+	public ProblemServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, DockerImageBuilder builder, StorageProvider provider, AsyncWrapper asyncWrapper) {
 		this.userDAO = userDAO;
 		this.problemDAO = problemDAO;
 		this.builder = builder;
 		this.provider = provider;
+		this.asyncWrapper = asyncWrapper;
 	}
 
 	@Override
@@ -158,11 +161,12 @@ public class ProblemServiceImpl implements ProblemService {
 		problem.setCreator(user);
 		problem = problemDAO.save(problem);
 		try {
-			provider.save(content, problem.getId() + ".zip");
+			provider.save(content, problem.getUniqueName() + ".zip");
 		} catch (IOException e) {
 			throw new ServiceException("保存题目文件时发生异常[" + e.getMessage() + "]");
 		}
-		builder.asyncBuildDockerImage(problem);
+		int problemId = problem.getId();
+		asyncWrapper.asyncInvoke(() -> builder.buildDockerImage(problemId), 1000);
 		return new ProblemVO(problem);
 	}
 

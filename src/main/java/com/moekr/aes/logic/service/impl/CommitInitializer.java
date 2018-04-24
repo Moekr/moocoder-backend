@@ -11,6 +11,8 @@ import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Component
 @CommonsLog
 public class CommitInitializer {
@@ -25,20 +27,22 @@ public class CommitInitializer {
 	}
 
 	@Transactional
-	public void initializeCommit(int resultId, String commitHash) {
+	public boolean initializeCommit(int resultId, String commitHash) {
 		Result result = resultDAO.findById(resultId);
-		if (result != null) {
+		if (result != null && result.getExam().getEndAt().isAfter(LocalDateTime.now())) {
 			Commit commit = new Commit();
 			commit.setHash(commitHash);
 			commit.setResult(result);
 			commit = commitDAO.save(commit);
-			for (Problem problem : commit.getResult().getExam().getProblemSet()) {
+			for (Problem problem : commit.getResult().getExam().getProblems()) {
 				Record record = new Record();
 				record.setNumber(-1);
 				record.setCommit(commit);
 				record.setProblem(problem);
-				commit.getRecords().add(recordDAO.save(record));
+				recordDAO.save(record);
 			}
+			return true;
 		}
+		return false;
 	}
 }

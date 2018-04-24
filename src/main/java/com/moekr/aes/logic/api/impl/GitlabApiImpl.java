@@ -39,8 +39,7 @@ public class GitlabApiImpl implements GitlabApi {
 		return gitlabUser;
 	}
 
-	@Override
-	public synchronized Integer fetchNamespace(String username) throws GitLabApiException {
+	private Integer fetchNamespace(String username) throws GitLabApiException {
 		Namespace namespace;
 		namespace = server.getNamespaceApi().findNamespaces(username)
 				.stream()
@@ -50,8 +49,7 @@ public class GitlabApiImpl implements GitlabApi {
 		return namespace != null ? namespace.getId() : null;
 	}
 
-	@Override
-	public synchronized String createToken(int userId) throws GitLabApiException {
+	private String createToken(int userId) throws GitLabApiException {
 		Scope[] scopes = new Scope[]{Scope.API};
 		ImpersonationToken token;
 		token = server.getUserApi().createImpersonationToken(userId, "AES-" + ToolKit.randomUUID(), null, scopes);
@@ -78,18 +76,20 @@ public class GitlabApiImpl implements GitlabApi {
 		} finally {
 			server.unsudo();
 		}
+		if (project != null) {
+			createWebHook(project.getId());
+		}
 		return project != null ? project.getId() : null;
+	}
+
+	private void createWebHook(int id) throws GitLabApiException {
+		String url = "http://localhost:3000/internal/notify/webhook/" + id + "?secret=" + properties.getSecret();
+		server.getProjectApi().addHook(id, url, true, false, false);
 	}
 
 	@Override
 	public synchronized void archiveProject(int projectId) throws GitLabApiException {
 		server.getProjectApi().archiveProject(projectId);
-	}
-
-	@Override
-	public void createWebHook(int id) throws GitLabApiException {
-		String url = "http://localhost:3000/internal/notify/webhook/" + id + "?secret=" + properties.getSecret();
-		server.getProjectApi().addHook(id, url, true, false, false);
 	}
 
 	@Override
