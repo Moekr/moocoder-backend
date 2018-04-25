@@ -6,7 +6,7 @@ import com.moekr.aes.web.dto.ProblemDTO;
 import org.springframework.data.domain.Page;
 
 public interface ProblemService {
-	ProblemVO create(int userId, byte[] content) throws ServiceException;
+	ProblemVO create(int userId, ProblemDTO problemDTO, byte[] content) throws ServiceException;
 
 	Page<ProblemVO> retrievePage(int userId, int page, int limit) throws ServiceException;
 
@@ -18,7 +18,7 @@ public interface ProblemService {
 
 	ProblemVO deprecate(int userId, int problemId) throws ServiceException;
 
-	ProblemVO create(byte[] content) throws ServiceException;
+	ProblemVO create(ProblemDTO problemDTO, byte[] content) throws ServiceException;
 
 	Page<ProblemVO> retrievePage(int page, int limit) throws ServiceException;
 

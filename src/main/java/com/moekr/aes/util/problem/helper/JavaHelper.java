@@ -2,7 +2,7 @@ package com.moekr.aes.util.problem.helper;
 
 import com.moekr.aes.util.enums.FileType;
 
-public class JavaHelper implements ProblemHelper {
+public class JavaHelper extends AbstractJavaHelper {
 	@Override
 	public FileType fileType(String filePath) {
 		if (filePath.startsWith("/src/main/")) {

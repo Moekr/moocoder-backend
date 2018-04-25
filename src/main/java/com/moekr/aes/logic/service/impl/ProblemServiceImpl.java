@@ -46,10 +46,10 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
-	@Transactional
-	public ProblemVO create(int userId, byte[] content) throws ServiceException {
+	@Transactional(rollbackFor = Exception.class)
+	public ProblemVO create(int userId, ProblemDTO problemDTO, byte[] content) throws ServiceException {
 		User user = userDAO.findById(userId);
-		return create(user, content);
+		return create(user, problemDTO, content);
 	}
 
 	@Override
@@ -104,9 +104,9 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
-	@Transactional
-	public ProblemVO create(byte[] content) throws ServiceException {
-		return create(null, content);
+	@Transactional(rollbackFor = Exception.class)
+	public ProblemVO create(ProblemDTO problemDTO, byte[] content) throws ServiceException {
+		return create(null, problemDTO, content);
 	}
 
 	@Override
@@ -149,15 +149,14 @@ public class ProblemServiceImpl implements ProblemService {
 		return new ProblemVO(problemDAO.save(problem));
 	}
 
-	private ProblemVO create(User user, byte[] content) throws ServiceException {
-		FormattedProblemInfo info;
+	private ProblemVO create(User user, ProblemDTO problemDTO, byte[] content) throws ServiceException {
+		Problem problem = new Problem();
+		BeanUtils.copyProperties(problemDTO, problem, "publicFiles", "protectedFiles", "privateFiles");
 		try {
-			info = formatter.format(content);
+			content = formatter.format(problem, content);
 		} catch (IOException e) {
 			throw new ServiceException("格式化题目文件时发生异常[" + e.getMessage() + "]");
 		}
-		Problem problem = new Problem();
-		BeanUtils.copyProperties(info, problem);
 		problem.setCreator(user);
 		problem = problemDAO.save(problem);
 		try {

@@ -2,7 +2,7 @@ package com.moekr.aes.util.problem.helper;
 
 import com.moekr.aes.util.enums.FileType;
 
-public class PythonCoverageHelper implements ProblemHelper {
+public class PythonCoverageHelper extends AbstractPythonHelper {
 	@Override
 	public FileType fileType(String filePath) {
 		if (filePath.startsWith("/test/")) {

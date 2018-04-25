@@ -30,12 +30,14 @@ public class ProblemController extends AbstractApiController {
 
 	@PostMapping
 	public Response create(@AuthenticationPrincipal CustomUserDetails userDetails,
-						   @RequestParam MultipartFile file) throws ServiceException, IOException {
+						   @RequestPart("meta") @Validated(PostMapping.class) ProblemDTO problemDTO, Errors errors,
+						   @RequestPart("data") MultipartFile file) throws ServiceException, IOException {
+		checkErrors(errors);
 		byte[] content = file.getBytes();
 		if (userDetails.isTeacher()) {
-			return new ResourceResponse(problemService.create(userDetails.getId(), content));
+			return new ResourceResponse(problemService.create(userDetails.getId(), problemDTO, content));
 		} else if (userDetails.isAdmin()) {
-			return new ResourceResponse(problemService.create(content));
+			return new ResourceResponse(problemService.create(problemDTO, content));
 		}
 		throw new AccessDeniedException();
 	}

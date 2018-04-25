@@ -1,16 +1,19 @@
 package com.moekr.aes.logic.service.impl;
 
+import com.moekr.aes.data.entity.Problem;
+import com.moekr.aes.util.ToolKit;
 import com.moekr.aes.util.enums.FileType;
-import com.moekr.aes.util.enums.ProblemType;
-import com.moekr.aes.util.exceptions.MalformedProblemArchiveException;
+import com.moekr.aes.util.exceptions.MalformedProblemException;
 import com.moekr.aes.util.exceptions.ServiceException;
-import com.moekr.aes.util.exceptions.UnsupportedProblemTypeException;
+import com.moekr.aes.util.problem.helper.ProblemHelper;
 import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.zeroturnaround.zip.ZipUtil;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -22,13 +25,8 @@ import java.util.zip.ZipException;
 @CommonsLog
 public class ProblemFormatter {
 	private static final String TEMP_PREFIX = "AES-PROB-";
-	private static final Pattern NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9-_]+$");
 	private static final Charset CHARSET = Charset.forName("UTF-8");
 	private static final Charset ALT_CHARSET = Charset.forName("GBK");
-	private static final int README_MIN_LINE = 4;
-	private static final int README_LANG_INDEX = 0;
-	private static final int README_NAME_INDEX = 1;
-	private static final int README_BLANK_INDEX = 2;
 	private static final List<Pattern> USELESS_FILE_PATH_PATTERN = Arrays.asList(
 			Pattern.compile("^/target/"),
 			Pattern.compile("^/bin/"),
@@ -40,80 +38,52 @@ public class ProblemFormatter {
 			Pattern.compile("\\.(iml|py[cod])$")
 	);
 
-	public FormattedProblemInfo format(byte[] content) throws IOException, ServiceException {
+	public byte[] format(Problem problem, byte[] content) throws IOException, ServiceException {
 		if (content == null) {
 			throw new NullPointerException("待格式化的内容为Null！");
 		}
 		File tempDir = Files.createTempDirectory(TEMP_PREFIX).toFile();
 		try {
-			return format(content, tempDir);
+			return format(problem, content, tempDir);
 		} finally {
 			FileUtils.deleteDirectory(tempDir);
 		}
 	}
 
-	private FormattedProblemInfo format(byte[] content, File tempDir) throws IOException, ServiceException {
+	private byte[] format(Problem problem, byte[] content, File tempDir) throws IOException, ServiceException {
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
 		try {
 			ZipUtil.unpack(inputStream, tempDir, CHARSET);
 		} catch (RuntimeException e1) {
-			log.debug("尝试使用UTF-8编码解压缩文件失败，切换至GBK编码[" + e1.getClass() + "]: " + e1.getMessage());
+			log.debug("尝试使用UTF-8编码解压缩文件失败，切换至GBK编码" + ToolKit.format(e1));
 			FileUtils.cleanDirectory(tempDir);
 			inputStream = new ByteArrayInputStream(content);
 			try {
 				ZipUtil.unpack(inputStream, tempDir, ALT_CHARSET);
 			} catch (RuntimeException e2) {
-				log.debug("尝试使用GBK编码解压缩文件失败，文件可能损坏[" + e2.getClass() + "]: " + e2.getMessage());
+				log.debug("尝试使用GBK编码解压缩文件失败，文件可能损坏" + ToolKit.format(e2));
 				throw new ZipException("解压缩文件失败，文件可能损坏！");
 			}
 		}
-		FormattedProblemInfo info = new FormattedProblemInfo();
-		File readme = new File(tempDir, "README.md");
-		if (!readme.exists()) {
-			throw new MalformedProblemArchiveException("找不到题目描述文件（README.md）！");
-		}
-		List<String> lines = new ArrayList<>();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(readme), CHARSET))) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				lines.add(line);
-			}
-		}
-		if (lines.size() < README_MIN_LINE || !lines.get(README_BLANK_INDEX).isEmpty()) {
-			throw new MalformedProblemArchiveException("无法识别的题目描述文件！");
-		}
-		try {
-			info.setType(ProblemType.valueOf(lines.get(README_LANG_INDEX).trim().toUpperCase()));
-		} catch (IllegalArgumentException e) {
-			throw new UnsupportedProblemTypeException(lines.get(README_LANG_INDEX).trim().toUpperCase());
-		}
-		String name = lines.get(README_NAME_INDEX).trim();
-		if (name.isEmpty()) {
-			throw new MalformedProblemArchiveException("题目名称为空！");
-		}
-		if (!NAME_PATTERN.matcher(name).matches()) {
-			throw new MalformedProblemArchiveException("题目名称含有非法字符！");
-		}
-		info.setName(name);
-		StringBuilder builder = new StringBuilder();
-		lines.stream().skip(README_MIN_LINE - 1).forEach(line -> builder.append(line).append('\n'));
-		info.setDescription(builder.toString());
 		deleteUselessFiles(tempDir);
+		ProblemHelper helper = problem.getType().getHelper();
 		List<String> fileList = listFiles(tempDir);
+		if (!helper.validate(fileList)) {
+			throw new MalformedProblemException("题目文件未能通过模式校验");
+		}
 		for (String file : fileList) {
-			FileType fileType = info.getType().getHelper().fileType(file);
+			FileType fileType = helper.fileType(file);
 			if (fileType == FileType.PUBLIC) {
-				info.getPublicFiles().add(file);
+				problem.getPublicFiles().add(file);
 			} else if (fileType == FileType.PROTECTED) {
-				info.getProtectedFiles().add(file);
+				problem.getProtectedFiles().add(file);
 			} else if (fileType == FileType.PRIVATE) {
-				info.getPrivateFiles().add(file);
+				problem.getPrivateFiles().add(file);
 			}
 		}
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		ZipUtil.pack(tempDir, outputStream);
-		info.setFormattedContent(outputStream.toByteArray());
-		return info;
+		return outputStream.toByteArray();
 	}
 
 	private void deleteUselessFiles(File directory) throws IOException {
