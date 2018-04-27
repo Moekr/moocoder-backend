@@ -25,10 +25,10 @@ public class PythonHelper extends AbstractPythonHelper {
 
 	@Override
 	public String runScript(String uniqueName) {
-		return "pushd /var/ws/code/" + uniqueName + "/\n"
+		return "pushd /var/ws/code/" + uniqueName + "/ &>/dev/null\n"
 				+ "nosetests3 --with-xunit || :\n"
-				+ "popd\n"
-				+ "mkdir -p ./test-reports/" + uniqueName + "/\n"
-				+ "cp /var/ws/code/" + uniqueName + "/nosetests.xml ./test-reports/" + uniqueName + "/ || :\n";
+				+ "popd &>/dev/null\n"
+				+ "mkdir -p ./test-reports/" + uniqueName + "/ &>/dev/null\n"
+				+ "cp /var/ws/code/" + uniqueName + "/nosetests.xml ./test-reports/" + uniqueName + "/ &>/dev/null || :\n";
 	}
 }

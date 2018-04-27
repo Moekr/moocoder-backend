@@ -36,6 +36,12 @@ public class NotifyServiceImpl implements NotifyService {
 	@Override
 	@Async
 	public void callback(int id, int buildNumber) {
+		try {
+			// 等待一点点时间，避免Jenkins控制台输出不完整
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 		BuildDetails buildDetails = null;
 		try {
 			buildDetails = jenkinsApi.fetchBuildDetails(id, buildNumber);

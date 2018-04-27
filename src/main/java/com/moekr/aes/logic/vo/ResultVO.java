@@ -1,5 +1,6 @@
 package com.moekr.aes.logic.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.moekr.aes.data.entity.Commit;
 import com.moekr.aes.data.entity.Exam;
@@ -20,13 +21,13 @@ public class ResultVO {
 	private boolean deleted;
 	private NestedExamVO exam;
 	private NestedUserVO owner;
-	private List<NestedCommitVO> commitList;
+	private List<NestedCommitVO> commits;
 
 	public ResultVO(Result result) {
 		BeanUtils.copyProperties(result, this);
 		this.exam = new NestedExamVO(result.getExam());
 		this.owner = new NestedUserVO(result.getOwner());
-		this.commitList = result.getCommitList().stream().map(NestedCommitVO::new).collect(Collectors.toList());
+		this.commits = result.getCommitList().stream().map(NestedCommitVO::new).collect(Collectors.toList());
 	}
 
 	@Data
@@ -54,6 +55,7 @@ public class ResultVO {
 		private Integer id;
 		private boolean finished;
 		private Integer score;
+		@JsonProperty("created_at")
 		@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 		private LocalDateTime createdAt;
 

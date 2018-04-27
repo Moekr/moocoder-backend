@@ -16,7 +16,7 @@ public interface ProblemService {
 
 	void delete(int userId, int problemId) throws ServiceException;
 
-	ProblemVO deprecate(int userId, int problemId) throws ServiceException;
+	void deprecate(int userId, int problemId) throws ServiceException;
 
 	ProblemVO create(ProblemDTO problemDTO, byte[] content) throws ServiceException;
 
@@ -28,5 +28,5 @@ public interface ProblemService {
 
 	void delete(int problemId) throws ServiceException;
 
-	ProblemVO deprecate(int problemId) throws ServiceException;
+	void deprecate(int problemId) throws ServiceException;
 }

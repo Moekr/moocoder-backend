@@ -23,10 +23,10 @@ public class JavaCoverageHelper extends AbstractJavaHelper {
 
 	@Override
 	public String runScript(String uniqueName) {
-		return "pushd /var/ws/code/" + uniqueName + "/\n"
+		return "pushd /var/ws/code/" + uniqueName + "/ &>/dev/null\n"
 				+ "mvn -fn clean cobertura:cobertura -Dcobertura.report.format=xml -Dmaven.repo.local=/var/ws/repository/\n"
-				+ "popd\n"
-				+ "mkdir -p ./coverage-reports/" + uniqueName + "/\n"
-				+ "cp /var/ws/code/" + uniqueName + "/target/site/cobertura/*.xml ./coverage-reports/" + uniqueName + "/ || :\n";
+				+ "popd &>/dev/null\n"
+				+ "mkdir -p ./coverage-reports/" + uniqueName + "/ &>/dev/null\n"
+				+ "cp /var/ws/code/" + uniqueName + "/target/site/cobertura/*.xml ./coverage-reports/" + uniqueName + "/ &>/dev/null || :\n";
 	}
 }

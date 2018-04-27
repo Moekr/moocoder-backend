@@ -1,6 +1,6 @@
 package com.moekr.aes.web.controller.api;
 
-import com.moekr.aes.logic.service.RecordService;
+import com.moekr.aes.logic.service.CommitService;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.response.ResourceResponse;
 import com.moekr.aes.web.response.Response;
@@ -14,21 +14,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
-public class RecordController extends AbstractApiController {
-	private final RecordService recordService;
+public class CommitController extends AbstractApiController {
+	private final CommitService commitService;
 
 	@Autowired
-	public RecordController(RecordService recordService) {
-		this.recordService = recordService;
+	public CommitController(CommitService commitService) {
+		this.commitService = commitService;
 	}
 
-	@GetMapping("/record/{recordId:\\d+}")
+	@GetMapping("/commit/{commitId:\\d+}")
 	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
-							 @PathVariable int recordId) throws ServiceException {
+							 @PathVariable int commitId) throws ServiceException {
 		if (userDetails.isAdmin()) {
-			return new ResourceResponse(recordService.retrieve(recordId));
+			return new ResourceResponse(commitService.retrieve(commitId));
 		} else {
-			return new ResourceResponse(recordService.retrieve(userDetails.getId(), recordId));
+			return new ResourceResponse(commitService.retrieve(userDetails.getId(), commitId));
 		}
 	}
 }

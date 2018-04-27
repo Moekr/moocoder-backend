@@ -1,34 +1,44 @@
 package com.moekr.aes.logic.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.moekr.aes.data.entity.Exam;
-import com.moekr.aes.data.entity.Problem;
 import com.moekr.aes.data.entity.User;
+import com.moekr.aes.util.enums.ExamStatus;
 import com.moekr.aes.util.serializer.TimestampLocalDateTimeSerializer;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Data
 public class ExamVO {
 	private Integer id;
 	private String name;
+	@JsonProperty("created_at")
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime createdAt;
+	@JsonProperty("start_at")
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime startAt;
+	@JsonProperty("end_at")
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime endAt;
+	private ExamStatus status;
 	private NestedUserVO creator;
-	private Set<NestedProblemVO> problems;
+	private boolean joined;
 
 	public ExamVO(Exam exam) {
 		BeanUtils.copyProperties(exam, this);
-		creator = new NestedUserVO(exam.getCreator());
-		problems = exam.getProblems().stream().map(NestedProblemVO::new).collect(Collectors.toSet());
+		this.creator = new NestedUserVO(exam.getCreator());
+		if (this.status == ExamStatus.AVAILABLE) {
+			LocalDateTime now = LocalDateTime.now();
+			if (now.isBefore(startAt)) {
+				this.status = ExamStatus.READY;
+			} else if (now.isAfter(endAt)) {
+				this.status = ExamStatus.FINISHED;
+			}
+		}
 	}
 
 	@Data
@@ -38,16 +48,6 @@ public class ExamVO {
 
 		NestedUserVO(User user) {
 			BeanUtils.copyProperties(user, this);
-		}
-	}
-
-	@Data
-	private static class NestedProblemVO {
-		private Integer id;
-		private String name;
-
-		NestedProblemVO(Problem problem) {
-			BeanUtils.copyProperties(problem, this);
 		}
 	}
 }

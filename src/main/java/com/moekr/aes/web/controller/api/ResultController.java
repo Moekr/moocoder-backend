@@ -35,7 +35,7 @@ public class ResultController extends AbstractApiController {
 
 	@GetMapping("/exam/{examId:\\d+}/result")
 	public Response retrieveByExamination(@AuthenticationPrincipal CustomUserDetails userDetails,
-							 @PathVariable int examId) throws ServiceException {
+										  @PathVariable int examId) throws ServiceException {
 		if (!userDetails.isAdmin()) {
 			return new ResourceResponse(resultService.retrieveByExamination(userDetails.getId(), examId));
 		}

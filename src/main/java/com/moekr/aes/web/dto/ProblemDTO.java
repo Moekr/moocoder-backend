@@ -1,5 +1,6 @@
 package com.moekr.aes.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.moekr.aes.util.enums.ProblemType;
 import lombok.Data;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,10 +19,13 @@ public class ProblemDTO {
 	private ProblemType type;
 	@NotNull(message = "题目描述不能为空！", groups = PostMapping.class)
 	private String description;
+	@JsonProperty("public_files")
 	@NotNull(message = "请提供可修改文件列表！", groups = PutMapping.class)
 	private Set<String> publicFiles;
+	@JsonProperty("protected_files")
 	@NotNull(message = "请提供不可修改文件列表！", groups = PutMapping.class)
 	private Set<String> protectedFiles;
+	@JsonProperty("private_files")
 	@NotNull(message = "请提供不可见文件列表！", groups = PutMapping.class)
 	private Set<String> privateFiles;
 }

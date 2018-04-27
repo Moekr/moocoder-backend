@@ -1,5 +1,6 @@
 package com.moekr.aes.logic.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.moekr.aes.data.entity.User;
 import com.moekr.aes.util.enums.UserRole;
@@ -15,6 +16,7 @@ public class UserVO {
 	private String username;
 	private String email;
 	private UserRole role;
+	@JsonProperty("created_at")
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime createdAt;
 

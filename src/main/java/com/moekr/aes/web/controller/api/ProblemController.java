@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/problem")
+@RequestMapping("/api")
 public class ProblemController extends AbstractApiController {
 	private final ProblemService problemService;
 
@@ -28,7 +28,7 @@ public class ProblemController extends AbstractApiController {
 		this.problemService = problemService;
 	}
 
-	@PostMapping
+	@PostMapping("/problem")
 	public Response create(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @RequestPart("meta") @Validated(PostMapping.class) ProblemDTO problemDTO, Errors errors,
 						   @RequestPart("data") MultipartFile file) throws ServiceException, IOException {
@@ -42,19 +42,19 @@ public class ProblemController extends AbstractApiController {
 		throw new AccessDeniedException();
 	}
 
-	@GetMapping
+	@GetMapping("/problem")
 	public Response retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
 								 @RequestParam(defaultValue = "1") int page,
 								 @RequestParam(defaultValue = "10") int limit) throws ServiceException {
 		if (userDetails.isTeacher()) {
-			return new PageResourceResponse(problemService.retrievePage(userDetails.getId(), page));
+			return new PageResourceResponse(problemService.retrievePage(userDetails.getId(), page, limit));
 		} else if (userDetails.isAdmin()) {
 			return new PageResourceResponse(problemService.retrievePage(page, limit));
 		}
 		throw new AccessDeniedException();
 	}
 
-	@GetMapping("/{problemId:\\d+}")
+	@GetMapping("/problem/{problemId:\\d+}")
 	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
 							 @PathVariable int problemId) throws ServiceException {
 		if (userDetails.isTeacher()) {
@@ -65,7 +65,7 @@ public class ProblemController extends AbstractApiController {
 		throw new AccessDeniedException();
 	}
 
-	@PutMapping("/{problemId:\\d+}")
+	@PutMapping("/problem/{problemId:\\d+}")
 	public Response update(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @PathVariable int problemId,
 						   @RequestBody @Validated(PutMapping.class) ProblemDTO problemDTO, Errors errors) throws ServiceException {
@@ -78,7 +78,7 @@ public class ProblemController extends AbstractApiController {
 		throw new AccessDeniedException();
 	}
 
-	@DeleteMapping("/{problemId:\\d+}")
+	@DeleteMapping("/problem/{problemId:\\d+}")
 	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @PathVariable int problemId) throws ServiceException {
 		if (userDetails.isTeacher()) {
@@ -87,6 +87,17 @@ public class ProblemController extends AbstractApiController {
 			problemService.delete(problemId);
 		} else {
 			throw new AccessDeniedException();
+		}
+		return new EmptyResponse();
+	}
+
+	@PostMapping("/problem/{problemId:\\d+}/deprecate")
+	public Response deprecate(@AuthenticationPrincipal CustomUserDetails userDetails,
+							  @PathVariable int problemId) throws ServiceException {
+		if (userDetails.isTeacher()) {
+			problemService.deprecate(userDetails.getId(), problemId);
+		} else if (userDetails.isAdmin()) {
+			problemService.deprecate(problemId);
 		}
 		return new EmptyResponse();
 	}

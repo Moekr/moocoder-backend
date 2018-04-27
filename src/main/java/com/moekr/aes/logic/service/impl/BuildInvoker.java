@@ -75,7 +75,7 @@ public class BuildInvoker {
 		commit.setScore(records.stream()
 				.map(Record::getScore)
 				.reduce((a, b) -> a + b)
-				.orElse(0) / Math.min(records.size(), 1));
+				.orElse(0) / Math.max(records.size(), 1));
 		commit.setFinished(true);
 		commit = commitDAO.save(commit);
 		Result result = commit.getResult();
@@ -95,10 +95,12 @@ public class BuildInvoker {
 		param.put("DOCKER_IMAGE", properties.getDocker().getRegistry() + "/" + problem.getImageName() + ":" + problem.getImageTag());
 		StringBuilder builder = new StringBuilder();
 		builder.append("#!/bin/bash\n");
+		builder.append("echo '==CONSOLE OUTPUT BEGIN=='\n");
 		for (String publicFile : problem.getPublicFiles()) {
-			builder.append("cp --parents ").append(problem.getUniqueName()).append(publicFile).append(" /var/ws/code/ || :\n");
+			builder.append("cp --parents ").append(problem.getUniqueName()).append(publicFile).append(" /var/ws/code/ &>/dev/null || :\n");
 		}
 		builder.append(problem.getType().getHelper().runScript(problem.getUniqueName()));
+		builder.append("echo '==CONSOLE OUTPUT END=='\n");
 		param.put("EXECUTE_SHELL", builder.toString());
 		return param;
 	}

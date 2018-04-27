@@ -13,9 +13,10 @@ import com.moekr.aes.logic.api.GitlabApi;
 import com.moekr.aes.logic.api.JenkinsApi;
 import com.moekr.aes.logic.service.ExamService;
 import com.moekr.aes.logic.vo.ExamVO;
+import com.moekr.aes.logic.vo.JoinedExamVO;
+import com.moekr.aes.util.AesProperties;
 import com.moekr.aes.util.ToolKit;
 import com.moekr.aes.util.enums.ExamStatus;
-import com.moekr.aes.util.enums.UserRole;
 import com.moekr.aes.util.exceptions.*;
 import com.moekr.aes.web.dto.ExamDTO;
 import lombok.extern.apachecommons.CommonsLog;
@@ -23,6 +24,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,10 +46,11 @@ public class ExamServiceImpl implements ExamService {
 	private final JenkinsApi jenkinsApi;
 	private final ExamPaperBuilder paperBuilder;
 	private final AsyncWrapper asyncWrapper;
+	private final AesProperties properties;
 
 	@Autowired
 	public ExamServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, ExamDAO examDAO, ResultDAO resultDAO,
-						   GitlabApi gitlabApi, JenkinsApi jenkinsApi, ExamPaperBuilder paperBuilder, AsyncWrapper asyncWrapper) {
+						   GitlabApi gitlabApi, JenkinsApi jenkinsApi, ExamPaperBuilder paperBuilder, AsyncWrapper asyncWrapper, AesProperties properties) {
 		this.userDAO = userDAO;
 		this.problemDAO = problemDAO;
 		this.examDAO = examDAO;
@@ -56,17 +59,18 @@ public class ExamServiceImpl implements ExamService {
 		this.jenkinsApi = jenkinsApi;
 		this.paperBuilder = paperBuilder;
 		this.asyncWrapper = asyncWrapper;
+		this.properties = properties;
 	}
 
 	@Override
 	@Transactional
 	public ExamVO create(int userId, ExamDTO examDTO) throws ServiceException {
 		User user = userDAO.findById(userId);
-		List<Problem> problemList = problemDAO.findAllById(examDTO.getProblemSet());
+		List<Problem> problemList = problemDAO.findAllById(examDTO.getProblems());
 		Set<Problem> problemSet = problemList.stream()
 				.filter(p -> p.getCreator() == null || p.getCreator().getId() == userId)
 				.collect(Collectors.toSet());
-		if (examDTO.getProblemSet().size() != problemSet.size()) {
+		if (examDTO.getProblems().size() != problemSet.size()) {
 			throw new InvalidRequestException("存在无效的题目！");
 		}
 		Exam exam = new Exam();
@@ -84,12 +88,30 @@ public class ExamServiceImpl implements ExamService {
 	}
 
 	@Override
-	public Page<ExamVO> retrievePage(int userId, int page, int limit) {
-		User user = userDAO.findById(userId);
-		if (user.getRole() == UserRole.TEACHER) {
-			return examDAO.findAllByCreator(user, PageRequest.of(page, limit, PAGE_SORT)).map(ExamVO::new);
+	public Page<ExamVO> retrievePage(int userId, int page, int limit, boolean joined, ExamStatus status) {
+		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
+		if (joined) {
+			return examDAO.findAllJoined(userId, pageable).map(e -> convert(userId, e));
+		} else if (status == null) {
+			return examDAO.findAll(pageable).map(e -> convert(userId, e));
+		} else if (status == ExamStatus.READY) {
+			return examDAO.findAllReady(pageable).map(e -> convert(userId, e));
+		} else if (status == ExamStatus.AVAILABLE) {
+			return examDAO.findAllAvailable(pageable).map(e -> convert(userId, e));
+		} else if (status == ExamStatus.FINISHED) {
+			return examDAO.findAllFinished(pageable).map(e -> convert(userId, e));
 		} else {
-			return resultDAO.findAllByOwner(user, PageRequest.of(page, limit, PAGE_SORT)).map(Result::getExam).map(ExamVO::new);
+			return examDAO.findAllByStatus(status, pageable).map(e -> convert(userId, e));
+		}
+	}
+
+	@Override
+	public Page<ExamVO> retrievePage(int userId, int page, int limit, ExamStatus status) {
+		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
+		if (status == null) {
+			return examDAO.findAllByCreator_Id(userId, pageable).map(e -> convert(userId, e));
+		} else {
+			return examDAO.findAllByCreator_IdAndStatus(userId, status, pageable).map(e -> convert(userId, e));
 		}
 	}
 
@@ -97,10 +119,17 @@ public class ExamServiceImpl implements ExamService {
 	public ExamVO retrieve(int userId, int examId) throws ServiceException {
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选考试不存在");
-		if (exam.getCreator().getId() != userId) {
+		return convert(userId, exam);
+	}
+
+	private ExamVO convert(int userId, Exam exam) {
+		if (exam.getCreator().getId() == userId) {
+			return new JoinedExamVO(exam);
+		} else {
 			Result result = resultDAO.findByOwner_IdAndExam(userId, exam);
-			if (result == null) {
-				throw new AccessDeniedException();
+			if (result != null) {
+				String url = properties.getGitlab().getProxy() + "/" + result.getOwner().getUsername() + "/" + exam.getUuid();
+				return new JoinedExamVO(exam, url);
 			}
 		}
 		return new ExamVO(exam);
@@ -131,7 +160,7 @@ public class ExamServiceImpl implements ExamService {
 
 	@Override
 	@Transactional
-	public void participate(int userId, int examId) throws ServiceException {
+	public void join(int userId, int examId) throws ServiceException {
 		User user = userDAO.findById(userId);
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选考试不存在");
@@ -155,8 +184,12 @@ public class ExamServiceImpl implements ExamService {
 	}
 
 	@Override
-	public Page<ExamVO> retrievePage(int page, int limit) {
-		return examDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(ExamVO::new);
+	public Page<ExamVO> retrievePage(int page, int limit, ExamStatus status) {
+		if (status != null) {
+			return examDAO.findAllByStatus(status, PageRequest.of(page, limit, PAGE_SORT)).map(ExamVO::new);
+		} else {
+			return examDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(ExamVO::new);
+		}
 	}
 
 	@Override

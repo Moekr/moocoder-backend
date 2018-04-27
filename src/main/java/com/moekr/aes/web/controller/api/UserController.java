@@ -16,7 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api")
 public class UserController extends AbstractApiController {
 	private final UserService userService;
 
@@ -25,7 +25,7 @@ public class UserController extends AbstractApiController {
 		this.userService = userService;
 	}
 
-	@PostMapping
+	@PostMapping("/user")
 	public Response create(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @RequestBody @Validated(PostMapping.class) UserDTO userDTO, Errors errors) throws ServiceException {
 		if (!userDetails.isAdmin()) {
@@ -35,7 +35,7 @@ public class UserController extends AbstractApiController {
 		return new ResourceResponse(userService.create(userDTO));
 	}
 
-	@GetMapping
+	@GetMapping("/user")
 	public Response retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
 								 @RequestParam(defaultValue = "1") int page,
 								 @RequestParam(defaultValue = "10") int limit) throws ServiceException {
@@ -45,7 +45,7 @@ public class UserController extends AbstractApiController {
 		throw new AccessDeniedException();
 	}
 
-	@GetMapping("/{userId:\\d+}")
+	@GetMapping("/user/{userId:\\d+}")
 	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
 							 @PathVariable int userId) throws ServiceException {
 		if (userDetails.isAdmin() || userDetails.getId() == userId) {
@@ -54,7 +54,7 @@ public class UserController extends AbstractApiController {
 		throw new AccessDeniedException();
 	}
 
-	@DeleteMapping("/{userId:\\d+}")
+	@DeleteMapping("/user/{userId:\\d+}")
 	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @PathVariable int userId) throws ServiceException {
 		if (userDetails.isAdmin()) {

@@ -23,7 +23,7 @@ public class BasicCoverageEvaluator extends BasicEvaluator {
 		if (details.getCoberturaResult() == null) {
 			return BuildStatus.FAILURE;
 		}
-		if (details.getBuildResult() == null) {
+		if (details.getTestResult() == null) {
 			return BuildStatus.SUCCESS;
 		}
 		return super.status(details);

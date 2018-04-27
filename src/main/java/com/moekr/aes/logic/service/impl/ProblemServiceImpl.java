@@ -93,14 +93,14 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
-	public ProblemVO deprecate(int userId, int problemId) throws ServiceException {
+	public void deprecate(int userId, int problemId) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
 		if (problem.getCreator().getId() != userId) {
 			throw new AccessDeniedException();
 		}
 		problem.setDeprecated(true);
-		return new ProblemVO(problemDAO.save(problem));
+		problemDAO.save(problem);
 	}
 
 	@Override
@@ -142,11 +142,11 @@ public class ProblemServiceImpl implements ProblemService {
 
 	@Override
 	@Transactional
-	public ProblemVO deprecate(int problemId) throws ServiceException {
+	public void deprecate(int problemId) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
 		problem.setDeprecated(true);
-		return new ProblemVO(problemDAO.save(problem));
+		problemDAO.save(problem);
 	}
 
 	private ProblemVO create(User user, ProblemDTO problemDTO, byte[] content) throws ServiceException {
