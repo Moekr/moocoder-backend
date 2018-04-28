@@ -27,6 +27,8 @@ public class JoinedExamVO extends ExamVO {
 		this(exam);
 		if (this.getStatus() == ExamStatus.AVAILABLE) {
 			this.url = url;
+		} else {
+			this.problems = null;
 		}
 	}
 

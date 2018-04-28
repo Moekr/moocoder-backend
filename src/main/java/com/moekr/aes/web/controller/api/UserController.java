@@ -54,6 +54,14 @@ public class UserController extends AbstractApiController {
 		throw new AccessDeniedException();
 	}
 
+	@GetMapping("/user/current")
+	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails) throws ServiceException {
+		if (userDetails.isAdmin()) {
+			throw new AccessDeniedException();
+		}
+		return new ResourceResponse(userService.retrieve(userDetails.getId()));
+	}
+
 	@DeleteMapping("/user/{userId:\\d+}")
 	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @PathVariable int userId) throws ServiceException {

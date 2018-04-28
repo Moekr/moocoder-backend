@@ -11,18 +11,16 @@ import org.springframework.web.bind.annotation.InitBinder;
 
 public abstract class AbstractApiController {
 	@InitBinder
-	public void initIntegerBinder(WebDataBinder binder) {
+	public void initBinder(WebDataBinder binder) {
+		switch (binder.getObjectName()) {
+			case "page":
+				binder.registerCustomEditor(int.class, new PageNumberEditor());
+				return;
+			case "limit":
+				binder.registerCustomEditor(int.class, new RangeNumberEditor(1, 100, 10));
+				return;
+		}
 		binder.registerCustomEditor(int.class, new DefaultNumberEditor(-1));
-	}
-
-	@InitBinder("page")
-	public void initPageBinder(WebDataBinder binder) {
-		binder.registerCustomEditor(int.class, new PageNumberEditor());
-	}
-
-	@InitBinder("limit")
-	public void initLimitBinder(WebDataBinder binder) {
-		binder.registerCustomEditor(int.class, new RangeNumberEditor(1, 100, 10));
 	}
 
 	protected void checkErrors(Errors errors) throws ServiceException {
