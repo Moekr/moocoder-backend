@@ -1,6 +1,7 @@
 package com.moekr.aes.web.controller.api;
 
 import com.moekr.aes.logic.service.ProblemService;
+import com.moekr.aes.util.enums.ProblemType;
 import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.dto.ProblemDTO;
@@ -45,11 +46,18 @@ public class ProblemController extends AbstractApiController {
 	@GetMapping("/problem")
 	public Response retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
 								 @RequestParam(defaultValue = "1") int page,
-								 @RequestParam(defaultValue = "10") int limit) throws ServiceException {
+								 @RequestParam(defaultValue = "10") int limit,
+								 @RequestParam(name = "type", defaultValue = "") String typeStr) throws ServiceException {
+		ProblemType type;
+		try {
+			type = ProblemType.valueOf(typeStr);
+		} catch (IllegalArgumentException e) {
+			type = null;
+		}
 		if (userDetails.isTeacher()) {
-			return new PageResourceResponse(problemService.retrievePage(userDetails.getId(), page, limit));
+			return new PageResourceResponse(problemService.retrievePage(userDetails.getId(), page, limit, type));
 		} else if (userDetails.isAdmin()) {
-			return new PageResourceResponse(problemService.retrievePage(page, limit));
+			return new PageResourceResponse(problemService.retrievePage(page, limit, type));
 		}
 		throw new AccessDeniedException();
 	}

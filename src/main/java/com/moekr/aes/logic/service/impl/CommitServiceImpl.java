@@ -25,7 +25,7 @@ public class CommitServiceImpl implements CommitService {
 		Asserts.notNull(commit, "所选的提交记录不存在");
 		if (commit.getResult().getOwner().getId() == userId) {
 			return new CommitVO(commit);
-		} else if (commit.getResult().getExam().getCreator().getId() == commitId) {
+		} else if (commit.getResult().getExam().getCreator().getId() == userId) {
 			return new CommitVO(commit);
 		}
 		throw new AccessDeniedException();

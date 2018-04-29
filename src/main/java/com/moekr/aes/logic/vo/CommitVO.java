@@ -2,10 +2,7 @@ package com.moekr.aes.logic.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.moekr.aes.data.entity.Commit;
-import com.moekr.aes.data.entity.Exam;
-import com.moekr.aes.data.entity.Problem;
-import com.moekr.aes.data.entity.Record;
+import com.moekr.aes.data.entity.*;
 import com.moekr.aes.util.enums.BuildStatus;
 import com.moekr.aes.util.serializer.TimestampLocalDateTimeSerializer;
 import lombok.Data;
@@ -24,13 +21,13 @@ public class CommitVO {
 	@JsonProperty("created_at")
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime createdAt;
+	private NestedResultVO result;
 	private Set<NestedRecordVO> records;
-	private NestedExamVO exam;
 
 	public CommitVO(Commit commit) {
 		BeanUtils.copyProperties(commit, this);
+		this.result = new NestedResultVO(commit.getResult());
 		this.records = commit.getRecords().stream().map(NestedRecordVO::new).collect(Collectors.toSet());
-		this.exam = new NestedExamVO(commit.getResult().getExam());
 	}
 
 	@Data
@@ -57,12 +54,24 @@ public class CommitVO {
 	}
 
 	@Data
-	private static class NestedExamVO {
+	private static class NestedResultVO {
 		private Integer id;
-		private String name;
+		private Integer score;
+		private NestedExamVO exam;
 
-		NestedExamVO(Exam exam) {
-			BeanUtils.copyProperties(exam, this);
+		NestedResultVO(Result result) {
+			BeanUtils.copyProperties(result, this);
+			this.exam = new NestedExamVO(result.getExam());
+		}
+
+		@Data
+		private static class NestedExamVO {
+			private Integer id;
+			private String name;
+
+			NestedExamVO(Exam exam) {
+				BeanUtils.copyProperties(exam, this);
+			}
 		}
 	}
 }

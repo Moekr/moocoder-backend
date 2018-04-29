@@ -90,19 +90,21 @@ public class ExamServiceImpl implements ExamService {
 	@Override
 	public Page<ExamVO> retrievePage(int userId, int page, int limit, boolean joined, ExamStatus status) {
 		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
+		Page<Exam> pageResult;
 		if (joined) {
-			return examDAO.findAllJoined(userId, pageable).map(e -> convert(userId, e));
+			pageResult = examDAO.findAllJoined(userId, pageable);
 		} else if (status == null) {
-			return examDAO.findAll(pageable).map(e -> convert(userId, e));
+			pageResult = examDAO.findAll(pageable);
 		} else if (status == ExamStatus.READY) {
-			return examDAO.findAllReady(pageable).map(e -> convert(userId, e));
+			pageResult = examDAO.findAllReady(pageable);
 		} else if (status == ExamStatus.AVAILABLE) {
-			return examDAO.findAllAvailable(pageable).map(e -> convert(userId, e));
+			pageResult = examDAO.findAllAvailable(pageable);
 		} else if (status == ExamStatus.FINISHED) {
-			return examDAO.findAllFinished(pageable).map(e -> convert(userId, e));
+			pageResult = examDAO.findAllFinished(pageable);
 		} else {
-			return examDAO.findAllByStatus(status, pageable).map(e -> convert(userId, e));
+			pageResult = examDAO.findAllByStatus(status, pageable);
 		}
+		return pageResult.map(e -> convert(userId, e));
 	}
 
 	@Override
@@ -123,16 +125,16 @@ public class ExamServiceImpl implements ExamService {
 	}
 
 	private ExamVO convert(int userId, Exam exam) {
-		if (exam.getCreator().getId() == userId) {
+		User user = userDAO.findById(userId);
+		Result result = resultDAO.findByOwnerAndExam(user, exam);
+		if (result != null) {
+			String url = properties.getGitlab().getProxy() + "/" + result.getOwner().getUsername() + "/" + exam.getUuid();
+			return new JoinedExamVO(exam, url, result);
+		} else if (exam.getCreator().getId() == userId) {
 			return new JoinedExamVO(exam);
 		} else {
-			Result result = resultDAO.findByOwner_IdAndExam(userId, exam);
-			if (result != null) {
-				String url = properties.getGitlab().getProxy() + "/" + result.getOwner().getUsername() + "/" + exam.getUuid();
-				return new JoinedExamVO(exam, url);
-			}
+			return new ExamVO(exam);
 		}
-		return new ExamVO(exam);
 	}
 
 	@Override
@@ -214,7 +216,29 @@ public class ExamServiceImpl implements ExamService {
 		Asserts.notNull(exam, "所选考试不存在");
 		delete(exam);
 	}
-	
+
+	@Override
+	@Transactional
+	public void join(int examId) throws ServiceException {
+		Exam exam = examDAO.findById(examId);
+		Asserts.notNull(exam, "所选考试不存在");
+		User creator = exam.getCreator();
+		Result result = resultDAO.findByOwnerAndExam(creator, exam);
+		if (result != null) {
+			throw new AlreadyInExaminationException();
+		}
+		result = new Result();
+		try {
+			result.setId(gitlabApi.forkProject(creator.getId(), examId, creator.getNamespace()));
+			jenkinsApi.createJob(result.getId());
+		} catch (Exception e) {
+			throw new ServiceException("复制试卷时发生异常[" + e.getMessage() + "]");
+		}
+		result.setOwner(creator);
+		result.setExam(exam);
+		resultDAO.save(result);
+	}
+
 	private void delete(Exam exam) {
 		for (Result result : exam.getResults()) {
 			try {

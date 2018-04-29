@@ -97,8 +97,11 @@ public class ExamController extends AbstractApiController {
 						 @PathVariable int examId) throws ServiceException {
 		if (userDetails.isStudent()) {
 			examService.join(userDetails.getId(), examId);
-			return new EmptyResponse();
+		} else if (userDetails.isTeacher()) {
+			examService.join(examId);
+		} else {
+			throw new AccessDeniedException();
 		}
-		throw new AccessDeniedException();
+		return new EmptyResponse();
 	}
 }

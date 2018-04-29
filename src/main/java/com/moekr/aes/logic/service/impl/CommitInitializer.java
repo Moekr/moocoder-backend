@@ -29,7 +29,8 @@ public class CommitInitializer {
 	@Transactional
 	public boolean initializeCommit(int resultId, String commitHash) {
 		Result result = resultDAO.findById(resultId);
-		if (result != null && result.getExam().getEndAt().isAfter(LocalDateTime.now())) {
+		LocalDateTime now = LocalDateTime.now();
+		if (result != null && result.getExam().getEndAt().isAfter(now)) {
 			Commit commit = new Commit();
 			commit.setHash(commitHash);
 			commit.setResult(result);
@@ -41,6 +42,8 @@ public class CommitInitializer {
 				record.setProblem(problem);
 				recordDAO.save(record);
 			}
+			result.setLastCommitAt(now);
+			resultDAO.save(result);
 			return true;
 		}
 		return false;

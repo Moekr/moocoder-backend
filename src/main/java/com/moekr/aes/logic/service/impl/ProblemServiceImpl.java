@@ -8,6 +8,7 @@ import com.moekr.aes.logic.AsyncWrapper;
 import com.moekr.aes.logic.service.ProblemService;
 import com.moekr.aes.logic.storage.StorageProvider;
 import com.moekr.aes.logic.vo.ProblemVO;
+import com.moekr.aes.util.enums.ProblemType;
 import com.moekr.aes.util.exceptions.*;
 import com.moekr.aes.web.dto.ProblemDTO;
 import lombok.extern.apachecommons.CommonsLog;
@@ -15,6 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,9 +55,16 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
-	public Page<ProblemVO> retrievePage(int userId, int page, int limit) {
+	public Page<ProblemVO> retrievePage(int userId, int page, int limit, ProblemType type) {
 		User user = userDAO.findById(userId);
-		return problemDAO.findAllByCreator(user, PageRequest.of(page, limit, PAGE_SORT)).map(ProblemVO::new);
+		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
+		Page<Problem> pageResult;
+		if (type == null) {
+			pageResult = problemDAO.findAllByCreator(user, pageable);
+		} else {
+			pageResult = problemDAO.findAllByCreatorAndType(user, type, pageable);
+		}
+		return pageResult.map(ProblemVO::new);
 	}
 
 	@Override
@@ -110,8 +119,15 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
-	public Page<ProblemVO> retrievePage(int page, int limit) {
-		return problemDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(ProblemVO::new);
+	public Page<ProblemVO> retrievePage(int page, int limit, ProblemType type) {
+		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
+		Page<Problem> pageResult;
+		if (type == null) {
+			pageResult = problemDAO.findAll(pageable);
+		} else {
+			pageResult = problemDAO.findAllByType(type, pageable);
+		}
+		return pageResult.map(ProblemVO::new);
 	}
 
 	@Override

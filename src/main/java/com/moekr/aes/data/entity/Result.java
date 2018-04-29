@@ -7,6 +7,7 @@ import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,10 @@ public class Result {
 	@Basic
 	@Column(name = "score", columnDefinition = "INT(11) NOT NULL DEFAULT 0")
 	private Integer score = 0;
+
+	@Basic
+	@Column(name = "last_commit_at")
+	private LocalDateTime lastCommitAt;
 
 	@Basic
 	@Column(name = "deleted", columnDefinition = "BIT(1) NOT NULL DEFAULT 0")

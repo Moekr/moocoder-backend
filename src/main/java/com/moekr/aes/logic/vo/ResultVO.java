@@ -18,16 +18,21 @@ import java.util.stream.Collectors;
 public class ResultVO {
 	private Integer id;
 	private Integer score;
+	@JsonProperty("last_commit_at")
+	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
+	private LocalDateTime lastCommitAt;
 	private boolean deleted;
 	private NestedExamVO exam;
 	private NestedUserVO owner;
 	private List<NestedCommitVO> commits;
 
-	public ResultVO(Result result) {
+	public ResultVO(Result result, boolean withCommits) {
 		BeanUtils.copyProperties(result, this);
 		this.exam = new NestedExamVO(result.getExam());
 		this.owner = new NestedUserVO(result.getOwner());
-		this.commits = result.getCommitList().stream().map(NestedCommitVO::new).collect(Collectors.toList());
+		if (withCommits) {
+			this.commits = result.getCommitList().stream().map(NestedCommitVO::new).collect(Collectors.toList());
+		}
 	}
 
 	@Data

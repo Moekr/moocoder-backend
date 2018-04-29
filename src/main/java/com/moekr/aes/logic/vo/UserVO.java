@@ -20,7 +20,14 @@ public class UserVO {
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime createdAt;
 
+	private UserVO() {
+		this.id = 0;
+		this.username = "管理员";
+	}
+
 	public UserVO(User user) {
 		BeanUtils.copyProperties(user, this);
 	}
+
+	public static final UserVO ADMIN = new UserVO();
 }

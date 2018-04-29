@@ -2,7 +2,7 @@ package com.moekr.aes.web.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.moekr.aes.util.serializer.CustomLocalDateTimeDeserializer;
+import com.moekr.aes.util.serializer.TimestampLocalDateDeserializer;
 import com.moekr.aes.util.validate.FieldCompare;
 import lombok.Data;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,11 +23,11 @@ public class ExamDTO {
 	@NotBlank(message = "请填写考试名称！", groups = {PostMapping.class, PutMapping.class})
 	private String name;
 	@JsonProperty("start_at")
-	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+	@JsonDeserialize(using = TimestampLocalDateDeserializer.class)
 	@NotNull(message = "请填写考试开始时间！", groups = {PostMapping.class, PutMapping.class})
 	private LocalDateTime startAt;
 	@JsonProperty("end_at")
-	@JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
+	@JsonDeserialize(using = TimestampLocalDateDeserializer.class)
 	@NotNull(message = "请填写考试结束时间！", groups = {PostMapping.class, PutMapping.class})
 	private LocalDateTime endAt;
 	@NotEmpty(message = "请提供题目列表！", groups = PostMapping.class)

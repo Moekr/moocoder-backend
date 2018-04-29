@@ -1,6 +1,7 @@
 package com.moekr.aes.web.controller.api;
 
 import com.moekr.aes.logic.service.UserService;
+import com.moekr.aes.logic.vo.UserVO;
 import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.dto.UserDTO;
@@ -57,7 +58,7 @@ public class UserController extends AbstractApiController {
 	@GetMapping("/user/current")
 	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails) throws ServiceException {
 		if (userDetails.isAdmin()) {
-			throw new AccessDeniedException();
+			return new ResourceResponse(UserVO.ADMIN);
 		}
 		return new ResourceResponse(userService.retrieve(userDetails.getId()));
 	}
