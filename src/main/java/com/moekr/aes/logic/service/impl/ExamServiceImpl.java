@@ -198,7 +198,7 @@ public class ExamServiceImpl implements ExamService {
 	public ExamVO retrieve(int examId) throws ServiceException {
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选考试不存在");
-		return new ExamVO(exam);
+		return new JoinedExamVO(exam);
 	}
 
 	@Override

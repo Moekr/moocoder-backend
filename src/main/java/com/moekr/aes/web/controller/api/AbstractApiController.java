@@ -24,8 +24,11 @@ public abstract class AbstractApiController {
 	}
 
 	protected void checkErrors(Errors errors) throws ServiceException {
-		if (errors.hasErrors()) {
+		if (errors.hasGlobalErrors()) {
 			throw new InvalidRequestException(errors.getGlobalError().getDefaultMessage());
+		}
+		if (errors.hasFieldErrors()) {
+			throw new InvalidRequestException(errors.getFieldError().getDefaultMessage());
 		}
 	}
 }

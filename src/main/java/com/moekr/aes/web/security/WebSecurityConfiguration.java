@@ -46,11 +46,7 @@ public class WebSecurityConfiguration {
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			http.authorizeRequests()
-					.antMatchers("/register.html", "/internal/**", "/upload/**", "/js/**", "/css/**", "/fonts/**", "/img/**", "/favicon.ico").permitAll()
-					.antMatchers("/password.html").hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), STUDENT_AUTHORITY.getAuthority())
-					.antMatchers("/dashboard/**").hasAuthority(ADMIN_AUTHORITY.getAuthority())
-					.antMatchers("/t/**").hasAuthority(TEACHER_AUTHORITY.getAuthority())
-					.antMatchers("/s/**").hasAuthority(STUDENT_AUTHORITY.getAuthority())
+					.antMatchers("/register.html", "/internal/**", "/js/**", "/css/**", "/fonts/**", "/favicon.ico").permitAll()
 					.anyRequest().authenticated()
 					.and()
 					.formLogin().loginPage("/login.html").defaultSuccessUrl("/").failureUrl("/login.html?from=login").permitAll()

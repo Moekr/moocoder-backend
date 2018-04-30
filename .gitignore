@@ -2,3 +2,13 @@
 target
 *.iml
 config-dev.yml
+
+index.html
+
+app.*.css
+
+element-icons.*.ttf
+
+app.*.js
+manifest.*.js
+vendor.*.js

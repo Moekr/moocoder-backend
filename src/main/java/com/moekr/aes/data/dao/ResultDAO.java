@@ -12,5 +12,7 @@ public interface ResultDAO extends JpaRepository<Result, Integer> {
 
 	Result findByOwnerAndExam(User owner, Exam exam);
 
+	List<Result> findAllByExam(Exam exam);
+
 	List<Result> findAllByExamAndOwnerIsNot(Exam exam, User owner);
 }

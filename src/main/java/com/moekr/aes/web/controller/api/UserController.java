@@ -39,9 +39,10 @@ public class UserController extends AbstractApiController {
 	@GetMapping("/user")
 	public Response retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
 								 @RequestParam(defaultValue = "1") int page,
-								 @RequestParam(defaultValue = "10") int limit) throws ServiceException {
+								 @RequestParam(defaultValue = "10") int limit,
+								 @RequestParam(defaultValue = "") String search) throws ServiceException {
 		if (userDetails.isAdmin()) {
-			return new PageResourceResponse(userService.retrievePage(page, limit));
+			return new PageResourceResponse(userService.retrievePage(page, limit, search));
 		}
 		throw new AccessDeniedException();
 	}

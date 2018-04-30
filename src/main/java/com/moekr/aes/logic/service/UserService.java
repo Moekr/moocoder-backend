@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 public interface UserService {
 	UserVO create(UserDTO userDTO) throws ServiceException;
 
-	Page<UserVO> retrievePage(int page, int limit) throws ServiceException;
+	Page<UserVO> retrievePage(int page, int limit, String search) throws ServiceException;
 
 	UserVO retrieve(int userId) throws ServiceException;
 

@@ -60,9 +60,9 @@ public class ProblemServiceImpl implements ProblemService {
 		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
 		Page<Problem> pageResult;
 		if (type == null) {
-			pageResult = problemDAO.findAllByCreator(user, pageable);
+			pageResult = problemDAO.findAllByCreatorIsNullOrCreator(user, pageable);
 		} else {
-			pageResult = problemDAO.findAllByCreatorAndType(user, type, pageable);
+			pageResult = problemDAO.findAllByCreatorIsNullOrCreatorAndType(user, type, pageable);
 		}
 		return pageResult.map(ProblemVO::new);
 	}
@@ -71,7 +71,7 @@ public class ProblemServiceImpl implements ProblemService {
 	public ProblemVO retrieve(int userId, int problemId) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
-		if (problem.getCreator().getId() != userId) {
+		if (problem.getCreator() != null && problem.getCreator().getId() != userId) {
 			throw new AccessDeniedException();
 		}
 		return new ProblemVO(problem);
@@ -96,20 +96,11 @@ public class ProblemServiceImpl implements ProblemService {
 			throw new AccessDeniedException();
 		}
 		if (!problem.getExamSet().isEmpty()) {
-			throw new EntityNotAvailableException("题目已被使用至少一次，无法删除");
+			problem.setDeprecated(true);
+			problemDAO.save(problem);
+		} else {
+			problemDAO.delete(problem);
 		}
-		problemDAO.delete(problem);
-	}
-
-	@Override
-	public void deprecate(int userId, int problemId) throws ServiceException {
-		Problem problem = problemDAO.findById(problemId);
-		Asserts.notNull(problem, "所选题目不存在");
-		if (problem.getCreator().getId() != userId) {
-			throw new AccessDeniedException();
-		}
-		problem.setDeprecated(true);
-		problemDAO.save(problem);
 	}
 
 	@Override
@@ -151,18 +142,11 @@ public class ProblemServiceImpl implements ProblemService {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
 		if (!problem.getExamSet().isEmpty()) {
-			throw new EntityNotAvailableException("题目已被使用至少一次，无法删除");
+			problem.setDeprecated(true);
+			problemDAO.save(problem);
+		} else {
+			problemDAO.delete(problem);
 		}
-		problemDAO.delete(problem);
-	}
-
-	@Override
-	@Transactional
-	public void deprecate(int problemId) throws ServiceException {
-		Problem problem = problemDAO.findById(problemId);
-		Asserts.notNull(problem, "所选题目不存在");
-		problem.setDeprecated(true);
-		problemDAO.save(problem);
 	}
 
 	private ProblemVO create(User user, ProblemDTO problemDTO, byte[] content) throws ServiceException {

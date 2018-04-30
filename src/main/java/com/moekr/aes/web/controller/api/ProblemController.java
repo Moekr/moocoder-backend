@@ -98,15 +98,4 @@ public class ProblemController extends AbstractApiController {
 		}
 		return new EmptyResponse();
 	}
-
-	@PostMapping("/problem/{problemId:\\d+}/deprecate")
-	public Response deprecate(@AuthenticationPrincipal CustomUserDetails userDetails,
-							  @PathVariable int problemId) throws ServiceException {
-		if (userDetails.isTeacher()) {
-			problemService.deprecate(userDetails.getId(), problemId);
-		} else if (userDetails.isAdmin()) {
-			problemService.deprecate(problemId);
-		}
-		return new EmptyResponse();
-	}
 }

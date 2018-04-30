@@ -21,6 +21,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +31,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 @Service
 public class UserServiceImpl implements UserService {
-	private static final Sort PAGE_SORT = Sort.by(Sort.Direction.DESC, "id");
+	private static final Sort PAGE_SORT = Sort.by(Sort.Direction.ASC, "id");
 
 	private final UserDAO userDAO;
 	private final MailService mailService;
@@ -71,8 +72,15 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public Page<UserVO> retrievePage(int page, int limit) {
-		return userDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(UserVO::new);
+	public Page<UserVO> retrievePage(int page, int limit, String search) {
+		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
+		Page<User> pageResult;
+		if (search == null || search.isEmpty()) {
+			pageResult = userDAO.findAll(pageable);
+		} else {
+			pageResult = userDAO.findAllByUsernameLike("%" + search + "%", pageable);
+		}
+		return pageResult.map(UserVO::new);
 	}
 
 	@Override

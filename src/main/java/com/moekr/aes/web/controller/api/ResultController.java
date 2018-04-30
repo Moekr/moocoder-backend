@@ -38,7 +38,10 @@ public class ResultController extends AbstractApiController {
 										  @PathVariable int examId) throws ServiceException {
 		if (userDetails.isStudent()) {
 			throw new AccessDeniedException();
+		} else if (userDetails.isTeacher()) {
+			return new ResourceResponse(resultService.retrieveByExam(userDetails.getId(), examId));
+		} else {
+			return new ResourceResponse(resultService.retrieveByExam(examId));
 		}
-		return new ResourceResponse(resultService.retrieveByExam(userDetails.getId(), examId));
 	}
 }

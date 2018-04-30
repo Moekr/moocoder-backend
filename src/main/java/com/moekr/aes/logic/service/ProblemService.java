@@ -17,8 +17,6 @@ public interface ProblemService {
 
 	void delete(int userId, int problemId) throws ServiceException;
 
-	void deprecate(int userId, int problemId) throws ServiceException;
-
 	ProblemVO create(ProblemDTO problemDTO, byte[] content) throws ServiceException;
 
 	Page<ProblemVO> retrievePage(int page, int limit, ProblemType type) throws ServiceException;
@@ -28,6 +26,4 @@ public interface ProblemService {
 	ProblemVO update(int problemId, ProblemDTO problemDTO) throws ServiceException;
 
 	void delete(int problemId) throws ServiceException;
-
-	void deprecate(int problemId) throws ServiceException;
 }
