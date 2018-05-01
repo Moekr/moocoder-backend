@@ -44,7 +44,7 @@ public class RecordVO {
 		} else {
 			begin = begin + beginIndicator.length() + 2;
 		}
-		int end = consoleOutput.indexOf(endIndicator);
+		int end = consoleOutput.lastIndexOf(endIndicator);
 		if (end == -1) {
 			end = consoleOutput.length();
 		}

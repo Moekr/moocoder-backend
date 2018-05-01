@@ -39,7 +39,7 @@ pipeline {
     stages {
         stage(&apos;Clean&apos;) {
             steps {
-                sh &apos;rm -rf ${WORKSPACE}/*&apos;
+                sh &apos;rm -rf ${WORKSPACE}/* ${WORKSPACE}/.[!.]*&apos;
             }
         }
         stage(&apos;Pull&apos;) {
@@ -61,11 +61,13 @@ pipeline {
                 }
             }
             steps {
+                echo &apos;==CONSOLE OUTPUT BEGIN==&apos;
                 catchError {
                     timeout(1) {
                         sh &quot;${EXECUTE_SHELL}&quot;
                     }
                 }
+                echo &apos;==CONSOLE OUTPUT END==&apos;
             }
         }
     }
@@ -73,7 +75,7 @@ pipeline {
         always {
             junit allowEmptyResults: true, testResults: &apos;test-reports/*/*.xml&apos;
             cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: &apos;coverage-reports/*/*.xml&apos;, conditionalCoverageTargets: &apos;70, 0, 0&apos;, failNoReports: false, failUnhealthy: false, failUnstable: false, lineCoverageTargets: &apos;80, 0, 0&apos;, maxNumberOfBuilds: 0, methodCoverageTargets: &apos;80, 0, 0&apos;, onlyStable: false, sourceEncoding: &apos;ASCII&apos;, zoomCoverageChart: false
-            sh &apos;curl -X POST &quot;${AES_HOST}/internal/notify/callback/${JOB_NAME}/${BUILD_NUMBER}?secret=${AES_SECRET}&quot;&apos;
+            sh &apos;curl -o /dev/null -s -X POST -H &quot;X-Moocoder-Secret: ${AES_SECRET}&quot; &quot;${AES_HOST}/internal/notify/callback/${JOB_NAME}/${BUILD_NUMBER}&quot;&apos;
         }
     }
 }

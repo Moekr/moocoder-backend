@@ -128,7 +128,7 @@ public class ExamServiceImpl implements ExamService {
 		User user = userDAO.findById(userId);
 		Result result = resultDAO.findByOwnerAndExam(user, exam);
 		if (result != null) {
-			String url = properties.getGitlab().getProxy() + "/" + result.getOwner().getUsername() + "/" + exam.getUuid();
+			String url = properties.getGitlab().getGitProxy() + "/" + result.getOwner().getUsername() + "/" + exam.getUuid();
 			return new JoinedExamVO(exam, url, result);
 		} else if (exam.getCreator().getId() == userId) {
 			return new JoinedExamVO(exam);

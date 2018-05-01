@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping(GlobalErrorController.ERROR_PATH)
-public class APIErrorController {
+public class ApiErrorController {
 	@RequestMapping
 	public Response error(HttpServletRequest request) {
 		HttpStatus httpStatus = ToolKit.httpStatus(request);

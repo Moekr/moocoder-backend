@@ -38,14 +38,17 @@ public class AesProperties {
 		@URL
 		@NotEmpty
 		private String host;
-		private String proxy;
+		private String gitProxy;
+		@URL
+		@NotEmpty
+		private String webHookProxy = "http://localhost:3000";
 		@NotEmpty
 		private String username = "root";
 		@NotEmpty
 		private String token;
 
-		public String getProxy() {
-			return StringUtils.defaultString(proxy, host);
+		public String getGitProxy() {
+			return StringUtils.defaultString(gitProxy, host);
 		}
 	}
 

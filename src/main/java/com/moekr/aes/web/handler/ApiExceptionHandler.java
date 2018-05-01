@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletResponse;
 
-@RestControllerAdvice("com.moekr.aes.web.controller.api")
-public class APIExceptionHandler {
+@RestControllerAdvice({"com.moekr.aes.web.controller.api", "com.moekr.aes.web.controller.internal"})
+public class ApiExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	@ResponseBody
 	public Response handle(HttpServletResponse response, Exception exception) {

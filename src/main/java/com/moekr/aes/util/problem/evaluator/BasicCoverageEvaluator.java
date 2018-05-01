@@ -5,11 +5,12 @@ import com.moekr.aes.logic.api.vo.BuildDetails;
 import com.moekr.aes.logic.api.vo.CoberturaElement;
 import com.moekr.aes.logic.api.vo.CoberturaResult;
 import com.moekr.aes.util.enums.BuildStatus;
+import com.offbytwo.jenkins.model.BuildResult;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
 
-public class BasicCoverageEvaluator extends BasicEvaluator {
+public class BasicCoverageEvaluator extends AbstractEvaluator {
 	public BasicCoverageEvaluator() {
 		super();
 	}
@@ -21,10 +22,7 @@ public class BasicCoverageEvaluator extends BasicEvaluator {
 	@Override
 	protected BuildStatus status(BuildDetails details) {
 		if (details.getCoberturaResult() == null) {
-			return BuildStatus.FAILURE;
-		}
-		if (details.getTestResult() == null) {
-			return BuildStatus.SUCCESS;
+			details.setBuildResult(BuildResult.FAILURE);
 		}
 		return super.status(details);
 	}

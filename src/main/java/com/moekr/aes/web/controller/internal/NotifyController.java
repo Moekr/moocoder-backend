@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/internal/notify")
+@RequestMapping(value = "/internal/notify", headers = "X-Moocoder-Secret")
 public class NotifyController {
 	private final String secret;
 	private final NotifyService notifyService;
@@ -22,8 +22,10 @@ public class NotifyController {
 		this.notifyService = notifyService;
 	}
 
-	@PostMapping(value = "/webhook/{id:\\d+}", params = "secret")
-	public Response webHook(@PathVariable int id, @RequestParam String secret, @RequestBody WebHookDTO webHookDTO) throws ServiceException {
+	@PostMapping("/webhook/{id:\\d+}")
+	public Response webHook(@PathVariable int id,
+							@RequestHeader("X-Moocoder-Secret") String secret,
+							@RequestBody WebHookDTO webHookDTO) throws ServiceException {
 		if (!this.secret.equals(secret)) {
 			throw new AccessDeniedException();
 		}
@@ -31,8 +33,10 @@ public class NotifyController {
 		return new EmptyResponse();
 	}
 
-	@PostMapping(value = "/callback/{id:\\d+}/{buildNumber:\\d+}", params = "secret")
-	public Response callback(@PathVariable int id, @PathVariable int buildNumber, @RequestParam String secret) throws ServiceException {
+	@PostMapping("/callback/{id:\\d+}/{buildNumber:\\d+}")
+	public Response callback(@PathVariable int id,
+							 @PathVariable int buildNumber,
+							 @RequestHeader("X-Moocoder-Secret") String secret) throws ServiceException {
 		if (!this.secret.equals(secret)) {
 			throw new AccessDeniedException();
 		}

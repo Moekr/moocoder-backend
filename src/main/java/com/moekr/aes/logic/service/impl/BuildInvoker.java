@@ -95,12 +95,10 @@ public class BuildInvoker {
 		param.put("DOCKER_IMAGE", properties.getDocker().getRegistry() + "/" + problem.getImageName() + ":" + problem.getImageTag());
 		StringBuilder builder = new StringBuilder();
 		builder.append("#!/bin/bash\n");
-		builder.append("echo '==CONSOLE OUTPUT BEGIN=='\n");
 		for (String publicFile : problem.getPublicFiles()) {
 			builder.append("cp --parents ").append(problem.getUniqueName()).append(publicFile).append(" /var/ws/code/ &>/dev/null || :\n");
 		}
 		builder.append(problem.getType().getHelper().runScript(problem.getUniqueName()));
-		builder.append("echo '==CONSOLE OUTPUT END=='\n");
 		param.put("EXECUTE_SHELL", builder.toString());
 		return param;
 	}

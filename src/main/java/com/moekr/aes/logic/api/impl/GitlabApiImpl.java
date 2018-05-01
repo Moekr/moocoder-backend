@@ -14,13 +14,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class GitlabApiImpl implements GitlabApi {
-	private final AesProperties properties;
+	private final Gitlab gitlab;
+
 	private final GitLabApi server;
 
 	@Autowired
 	public GitlabApiImpl(AesProperties properties) {
-		this.properties = properties;
-		Gitlab gitlab = properties.getGitlab();
+		gitlab = properties.getGitlab();
 		this.server = new GitLabApi(gitlab.getHost(), gitlab.getToken());
 	}
 
@@ -83,7 +83,7 @@ public class GitlabApiImpl implements GitlabApi {
 	}
 
 	private void createWebHook(int id) throws GitLabApiException {
-		String url = "http://localhost:3000/internal/notify/webhook/" + id + "?secret=" + properties.getSecret();
+		String url = gitlab.getWebHookProxy() + "/internal/notify/webhook/" + id;
 		server.getProjectApi().addHook(id, url, true, false, false);
 	}
 
