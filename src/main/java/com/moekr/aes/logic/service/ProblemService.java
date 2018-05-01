@@ -15,6 +15,8 @@ public interface ProblemService {
 
 	ProblemVO update(int userId, int problemId, ProblemDTO problemDTO) throws ServiceException;
 
+	void update(int userId, int problemId, String path, byte[] content) throws ServiceException;
+
 	void delete(int userId, int problemId) throws ServiceException;
 
 	ProblemVO create(ProblemDTO problemDTO, byte[] content) throws ServiceException;
@@ -24,6 +26,8 @@ public interface ProblemService {
 	ProblemVO retrieve(int problemId) throws ServiceException;
 
 	ProblemVO update(int problemId, ProblemDTO problemDTO) throws ServiceException;
+
+	void update(int problemId, String path, byte[] content) throws ServiceException;
 
 	void delete(int problemId) throws ServiceException;
 }

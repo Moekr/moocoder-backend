@@ -86,6 +86,22 @@ public class ProblemController extends AbstractApiController {
 		throw new AccessDeniedException();
 	}
 
+	@PatchMapping("/problem/{problemId:\\d+}")
+	public Response update(@AuthenticationPrincipal CustomUserDetails userDetails,
+						  @PathVariable int problemId,
+						  @RequestPart String path,
+						  @RequestPart MultipartFile file) throws ServiceException, IOException {
+		byte[] content = file.getBytes();
+		if (userDetails.isTeacher()) {
+			problemService.update(userDetails.getId(), problemId, path, content);
+		} else if (userDetails.isAdmin()) {
+			problemService.update(problemId, path, content);
+		} else {
+			throw new AccessDeniedException();
+		}
+		return new EmptyResponse();
+	}
+
 	@DeleteMapping("/problem/{problemId:\\d+}")
 	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @PathVariable int problemId) throws ServiceException {

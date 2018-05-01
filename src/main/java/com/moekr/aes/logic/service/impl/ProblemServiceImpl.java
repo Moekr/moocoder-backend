@@ -8,6 +8,7 @@ import com.moekr.aes.logic.AsyncWrapper;
 import com.moekr.aes.logic.service.ProblemService;
 import com.moekr.aes.logic.storage.StorageProvider;
 import com.moekr.aes.logic.vo.ProblemVO;
+import com.moekr.aes.util.ToolKit;
 import com.moekr.aes.util.enums.ProblemType;
 import com.moekr.aes.util.exceptions.*;
 import com.moekr.aes.web.dto.ProblemDTO;
@@ -37,6 +38,7 @@ public class ProblemServiceImpl implements ProblemService {
 	private final AsyncWrapper asyncWrapper;
 
 	private final ProblemFormatter formatter = new ProblemFormatter();
+	private final ProblemUpdater updater = new ProblemUpdater();
 
 	@Autowired
 	public ProblemServiceImpl(UserDAO userDAO, ProblemDAO problemDAO, DockerImageBuilder builder, StorageProvider provider, AsyncWrapper asyncWrapper) {
@@ -78,6 +80,7 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
+	@Transactional
 	public ProblemVO update(int userId, int problemId, ProblemDTO problemDTO) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
@@ -85,6 +88,17 @@ public class ProblemServiceImpl implements ProblemService {
 			throw new AccessDeniedException();
 		}
 		return update(problem, problemDTO);
+	}
+
+	@Override
+	public void update(int userId, int problemId, String path, byte[] content) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		if (problem.getCreator().getId() == userId) {
+			update(problem, path, content);
+		} else {
+			throw new AccessDeniedException();
+		}
 	}
 
 	@Override
@@ -137,6 +151,13 @@ public class ProblemServiceImpl implements ProblemService {
 	}
 
 	@Override
+	public void update(int problemId, String path, byte[] content) throws ServiceException {
+		Problem problem = problemDAO.findById(problemId);
+		Asserts.notNull(problem, "所选题目不存在");
+		update(problem, path, content);
+	}
+
+	@Override
 	@Transactional
 	public void delete(int problemId) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
@@ -183,5 +204,23 @@ public class ProblemServiceImpl implements ProblemService {
 		}
 		BeanUtils.copyProperties(problemDTO, problem);
 		return new ProblemVO(problemDAO.save(problem));
+	}
+
+	private void update(Problem problem, String path, byte[] content) throws ServiceException {
+		Set<String> files = new HashSet<>();
+		files.addAll(problem.getPublicFiles());
+		files.addAll(problem.getProtectedFiles());
+		files.addAll(problem.getPrivateFiles());
+		if (files.contains(path)) {
+			try {
+				byte[] origin = provider.fetch(problem.getUniqueName() + ".zip");
+				provider.save(updater.update(origin, path, content), problem.getUniqueName() + ".zip");
+				asyncWrapper.asyncInvoke(() -> builder.buildDockerImage(problem.getId()));
+			} catch (IOException e) {
+				throw new ServiceException("更新题目文件时发生异常" + ToolKit.format(e));
+			}
+		} else {
+			throw new InvalidRequestException("所选题目中没有该文件");
+		}
 	}
 }
