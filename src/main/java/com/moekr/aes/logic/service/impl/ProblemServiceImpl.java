@@ -94,7 +94,7 @@ public class ProblemServiceImpl implements ProblemService {
 	public void update(int userId, int problemId, String path, byte[] content) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
-		if (problem.getCreator().getId() == userId) {
+		if (problem.getCreator() != null && problem.getCreator().getId() == userId) {
 			update(problem, path, content);
 		} else {
 			throw new AccessDeniedException();

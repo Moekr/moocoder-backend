@@ -58,10 +58,12 @@ public class CommitVO {
 		private Integer id;
 		private Integer score;
 		private NestedExamVO exam;
+		private NestedUserVO owner;
 
 		NestedResultVO(Result result) {
 			BeanUtils.copyProperties(result, this);
 			this.exam = new NestedExamVO(result.getExam());
+			this.owner = new NestedUserVO(result.getOwner());
 		}
 
 		@Data
@@ -71,6 +73,16 @@ public class CommitVO {
 
 			NestedExamVO(Exam exam) {
 				BeanUtils.copyProperties(exam, this);
+			}
+		}
+
+		@Data
+		private static class NestedUserVO {
+			private Integer id;
+			private String username;
+
+			NestedUserVO(User user) {
+				BeanUtils.copyProperties(user, this);
 			}
 		}
 	}

@@ -145,7 +145,7 @@ public class ExamServiceImpl implements ExamService {
 		if (exam.getCreator().getId() != userId) {
 			throw new AccessDeniedException();
 		}
-		BeanUtils.copyProperties(examDTO, exam);
+		BeanUtils.copyProperties(examDTO, exam, "name");
 		return new ExamVO(examDAO.save(exam));
 	}
 
@@ -205,7 +205,7 @@ public class ExamServiceImpl implements ExamService {
 	public ExamVO update(int examId, ExamDTO examDTO) throws ServiceException {
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选考试不存在");
-		BeanUtils.copyProperties(examDTO, exam);
+		BeanUtils.copyProperties(examDTO, exam, "name");
 		return new ExamVO(examDAO.save(exam));
 	}
 
