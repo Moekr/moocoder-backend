@@ -57,7 +57,7 @@ public class WebSecurityConfiguration {
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			http.authorizeRequests()
-					.antMatchers("/register.html", "/internal/**", "/js/**", "/css/**", "/fonts/**", "/favicon.ico").permitAll()
+					.antMatchers("/register.html", "/internal/**", "/webjars/**", "/js/**", "/css/**", "/fonts/**", "/favicon.ico").permitAll()
 					.antMatchers("/file/**").hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), ADMIN_AUTHORITY.getAuthority())
 					.anyRequest().authenticated()
 					.and()
