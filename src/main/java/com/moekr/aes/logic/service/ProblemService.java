@@ -11,23 +11,11 @@ public interface ProblemService {
 
 	Page<ProblemVO> retrievePage(int userId, int page, int limit, ProblemType type) throws ServiceException;
 
-	ProblemVO retrieve(int userId, int problemId) throws ServiceException;
+	Page<ProblemVO> retrievePage(int page, int limit, ProblemType type) throws ServiceException;
 
-	ProblemVO update(int userId, int problemId, ProblemDTO problemDTO) throws ServiceException;
+	ProblemVO retrieve(int userId, int problemId) throws ServiceException;
 
 	void update(int userId, int problemId, String path, byte[] content) throws ServiceException;
 
 	void delete(int userId, int problemId) throws ServiceException;
-
-	ProblemVO create(ProblemDTO problemDTO, byte[] content) throws ServiceException;
-
-	Page<ProblemVO> retrievePage(int page, int limit, ProblemType type) throws ServiceException;
-
-	ProblemVO retrieve(int problemId) throws ServiceException;
-
-	ProblemVO update(int problemId, ProblemDTO problemDTO) throws ServiceException;
-
-	void update(int problemId, String path, byte[] content) throws ServiceException;
-
-	void delete(int problemId) throws ServiceException;
 }

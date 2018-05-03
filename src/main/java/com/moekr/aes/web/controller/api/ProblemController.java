@@ -35,12 +35,7 @@ public class ProblemController extends AbstractApiController {
 						   @RequestPart("data") MultipartFile file) throws ServiceException, IOException {
 		checkErrors(errors);
 		byte[] content = file.getBytes();
-		if (userDetails.isTeacher()) {
-			return new ResourceResponse(problemService.create(userDetails.getId(), problemDTO, content));
-		} else if (userDetails.isAdmin()) {
-			return new ResourceResponse(problemService.create(problemDTO, content));
-		}
-		throw new AccessDeniedException();
+		return new ResourceResponse(problemService.create(userDetails.getId(), problemDTO, content));
 	}
 
 	@GetMapping("/problem")
@@ -65,53 +60,27 @@ public class ProblemController extends AbstractApiController {
 	@GetMapping("/problem/{problemId:\\d+}")
 	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
 							 @PathVariable int problemId) throws ServiceException {
-		if (userDetails.isTeacher()) {
+		if (userDetails.isStudent()) {
+			throw new AccessDeniedException();
+		} else {
 			return new ResourceResponse(problemService.retrieve(userDetails.getId(), problemId));
-		} else if (userDetails.isAdmin()) {
-			return new ResourceResponse(problemService.retrieve(problemId));
 		}
-		throw new AccessDeniedException();
 	}
 
 	@PutMapping("/problem/{problemId:\\d+}")
-	public Response update(@AuthenticationPrincipal CustomUserDetails userDetails,
-						   @PathVariable int problemId,
-						   @RequestBody @Validated(PutMapping.class) ProblemDTO problemDTO, Errors errors) throws ServiceException {
-		checkErrors(errors);
-		if (userDetails.isTeacher()) {
-			return new ResourceResponse(problemService.update(userDetails.getId(), problemId, problemDTO));
-		} else if (userDetails.isAdmin()) {
-			return new ResourceResponse(problemService.update(problemId, problemDTO));
-		}
-		throw new AccessDeniedException();
-	}
-
-	@PatchMapping("/problem/{problemId:\\d+}")
 	public Response update(@AuthenticationPrincipal CustomUserDetails userDetails,
 						  @PathVariable int problemId,
 						  @RequestPart String path,
 						  @RequestPart MultipartFile file) throws ServiceException, IOException {
 		byte[] content = file.getBytes();
-		if (userDetails.isTeacher()) {
-			problemService.update(userDetails.getId(), problemId, path, content);
-		} else if (userDetails.isAdmin()) {
-			problemService.update(problemId, path, content);
-		} else {
-			throw new AccessDeniedException();
-		}
+		problemService.update(userDetails.getId(), problemId, path, content);
 		return new EmptyResponse();
 	}
 
 	@DeleteMapping("/problem/{problemId:\\d+}")
 	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @PathVariable int problemId) throws ServiceException {
-		if (userDetails.isTeacher()) {
-			problemService.delete(userDetails.getId(), problemId);
-		} else if (userDetails.isAdmin()) {
-			problemService.delete(problemId);
-		} else {
-			throw new AccessDeniedException();
-		}
+		problemService.delete(userDetails.getId(), problemId);
 		return new EmptyResponse();
 	}
 }

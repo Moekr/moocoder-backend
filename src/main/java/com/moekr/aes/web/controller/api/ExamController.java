@@ -2,7 +2,6 @@ package com.moekr.aes.web.controller.api;
 
 import com.moekr.aes.logic.service.ExamService;
 import com.moekr.aes.util.enums.ExamStatus;
-import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.dto.ExamDTO;
 import com.moekr.aes.web.response.EmptyResponse;
@@ -29,11 +28,8 @@ public class ExamController extends AbstractApiController {
 	@PostMapping("/exam")
 	public Response create(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @RequestBody @Validated(PostMapping.class) ExamDTO examDTO, Errors errors) throws ServiceException {
-		if (userDetails.isTeacher()) {
-			checkErrors(errors);
-			return new ResourceResponse(examService.create(userDetails.getId(), examDTO));
-		}
-		throw new AccessDeniedException();
+		checkErrors(errors);
+		return new ResourceResponse(examService.create(userDetails.getId(), examDTO));
 	}
 
 	@GetMapping("/exam")
@@ -71,37 +67,20 @@ public class ExamController extends AbstractApiController {
 						   @PathVariable int examId,
 						   @RequestBody @Validated(PutMapping.class) ExamDTO examDTO, Errors errors) throws ServiceException {
 		checkErrors(errors);
-		if (userDetails.isTeacher()) {
-			return new ResourceResponse(examService.update(userDetails.getId(), examId, examDTO));
-		} else if (userDetails.isAdmin()) {
-			return new ResourceResponse(examService.update(examId, examDTO));
-		}
-		throw new AccessDeniedException();
+		return new ResourceResponse(examService.update(userDetails.getId(), examId, examDTO));
 	}
 
 	@DeleteMapping("/exam/{examId:\\d+}")
 	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @PathVariable int examId) throws ServiceException {
-		if (userDetails.isTeacher()) {
-			examService.delete(userDetails.getId(), examId);
-		} else if (userDetails.isAdmin()) {
-			examService.delete(examId);
-		} else {
-			throw new AccessDeniedException();
-		}
+		examService.delete(userDetails.getId(), examId);
 		return new EmptyResponse();
 	}
 
 	@PostMapping("/exam/{examId:\\d+}/join")
 	public Response join(@AuthenticationPrincipal CustomUserDetails userDetails,
 						 @PathVariable int examId) throws ServiceException {
-		if (userDetails.isStudent()) {
-			examService.join(userDetails.getId(), examId);
-		} else if (userDetails.isTeacher()) {
-			examService.join(examId);
-		} else {
-			throw new AccessDeniedException();
-		}
+		examService.join(userDetails.getId(), examId);
 		return new EmptyResponse();
 	}
 }

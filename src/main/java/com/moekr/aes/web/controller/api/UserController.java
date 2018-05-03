@@ -2,7 +2,6 @@ package com.moekr.aes.web.controller.api;
 
 import com.moekr.aes.logic.service.UserService;
 import com.moekr.aes.logic.vo.UserVO;
-import com.moekr.aes.util.exceptions.AccessDeniedException;
 import com.moekr.aes.util.exceptions.ServiceException;
 import com.moekr.aes.web.dto.UserDTO;
 import com.moekr.aes.web.response.EmptyResponse;
@@ -27,33 +26,21 @@ public class UserController extends AbstractApiController {
 	}
 
 	@PostMapping("/user")
-	public Response create(@AuthenticationPrincipal CustomUserDetails userDetails,
-						   @RequestBody @Validated(PostMapping.class) UserDTO userDTO, Errors errors) throws ServiceException {
-		if (!userDetails.isAdmin()) {
-			throw new AccessDeniedException();
-		}
+	public Response create(@RequestBody @Validated(PostMapping.class) UserDTO userDTO, Errors errors) throws ServiceException {
 		checkErrors(errors);
 		return new ResourceResponse(userService.create(userDTO));
 	}
 
 	@GetMapping("/user")
-	public Response retrievePage(@AuthenticationPrincipal CustomUserDetails userDetails,
-								 @RequestParam(defaultValue = "1") int page,
+	public Response retrievePage(@RequestParam(defaultValue = "1") int page,
 								 @RequestParam(defaultValue = "10") int limit,
 								 @RequestParam(defaultValue = "") String search) throws ServiceException {
-		if (userDetails.isAdmin()) {
-			return new PageResourceResponse(userService.retrievePage(page, limit, search));
-		}
-		throw new AccessDeniedException();
+		return new PageResourceResponse(userService.retrievePage(page, limit, search));
 	}
 
 	@GetMapping("/user/{userId:\\d+}")
-	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
-							 @PathVariable int userId) throws ServiceException {
-		if (userDetails.isAdmin() || userDetails.getId() == userId) {
-			return new ResourceResponse(userService.retrieve(userId));
-		}
-		throw new AccessDeniedException();
+	public Response retrieve(@PathVariable int userId) throws ServiceException {
+		return new ResourceResponse(userService.retrieve(userId));
 	}
 
 	@GetMapping("/user/current")
@@ -65,13 +52,8 @@ public class UserController extends AbstractApiController {
 	}
 
 	@DeleteMapping("/user/{userId:\\d+}")
-	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
-						   @PathVariable int userId) throws ServiceException {
-		if (userDetails.isAdmin()) {
-			userService.delete(userId);
-			return new EmptyResponse();
-		} else {
-			throw new AccessDeniedException();
-		}
+	public Response delete(@PathVariable int userId) throws ServiceException {
+		userService.delete(userId);
+		return new EmptyResponse();
 	}
 }

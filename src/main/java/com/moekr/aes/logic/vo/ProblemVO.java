@@ -35,6 +35,10 @@ public class ProblemVO {
 		this.creator = problem.getCreator() == null ? null : new NestedUserVO(problem.getCreator());
 	}
 
+	public String getUniqueName() {
+		return (id + "-" + name).toLowerCase();
+	}
+
 	@Data
 	private static class NestedUserVO {
 		private Integer id;

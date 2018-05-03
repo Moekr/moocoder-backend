@@ -35,6 +35,11 @@ public class ResultVO {
 		}
 	}
 
+	// 提供给ResultFileController获取内部用户名
+	public String getUsername() {
+		return owner.username;
+	}
+
 	@Data
 	private static class NestedExamVO {
 		private Integer id;

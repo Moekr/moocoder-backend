@@ -17,6 +17,7 @@ import com.moekr.aes.logic.vo.JoinedExamVO;
 import com.moekr.aes.util.AesProperties;
 import com.moekr.aes.util.ToolKit;
 import com.moekr.aes.util.enums.ExamStatus;
+import com.moekr.aes.util.enums.UserRole;
 import com.moekr.aes.util.exceptions.*;
 import com.moekr.aes.web.dto.ExamDTO;
 import lombok.extern.apachecommons.CommonsLog;
@@ -109,12 +110,27 @@ public class ExamServiceImpl implements ExamService {
 
 	@Override
 	public Page<ExamVO> retrievePage(int userId, int page, int limit, ExamStatus status) {
+		User user = userDAO.findById(userId);
 		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
+		Page<Exam> pageResult;
 		if (status == null) {
-			return examDAO.findAllByCreator_Id(userId, pageable).map(e -> convert(userId, e));
+			pageResult = examDAO.findAllByCreator(user, pageable);
 		} else {
-			return examDAO.findAllByCreator_IdAndStatus(userId, status, pageable).map(e -> convert(userId, e));
+			pageResult = examDAO.findAllByCreatorAndStatus(user, status, pageable);
 		}
+		return pageResult.map(e -> convert(user, e));
+	}
+
+	@Override
+	public Page<ExamVO> retrievePage(int page, int limit, ExamStatus status) {
+		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
+		Page<Exam> pageResult;
+		if (status != null) {
+			pageResult = examDAO.findAllByStatus(status, pageable);
+		} else {
+			pageResult = examDAO.findAll(pageable);
+		}
+		return pageResult.map(JoinedExamVO::new);
 	}
 
 	@Override
@@ -124,13 +140,23 @@ public class ExamServiceImpl implements ExamService {
 		return convert(userId, exam);
 	}
 
+	@Override
+	public ExamVO retrieve(int examId) throws ServiceException {
+		Exam exam = examDAO.findById(examId);
+		Asserts.notNull(exam, "所选考试不存在");
+		return new JoinedExamVO(exam);
+	}
+
 	private ExamVO convert(int userId, Exam exam) {
-		User user = userDAO.findById(userId);
+		return convert(userDAO.findById(userId), exam);
+	}
+
+	private ExamVO convert(User user, Exam exam) {
 		Result result = resultDAO.findByOwnerAndExam(user, exam);
 		if (result != null) {
 			String url = properties.getGitlab().getGitProxy() + "/" + result.getOwner().getUsername() + "/" + exam.getUuid();
 			return new JoinedExamVO(exam, url, result);
-		} else if (exam.getCreator().getId() == userId) {
+		} else if (exam.getCreator().getId().equals(user.getId())) {
 			return new JoinedExamVO(exam);
 		} else {
 			return new ExamVO(exam);
@@ -142,9 +168,7 @@ public class ExamServiceImpl implements ExamService {
 	public ExamVO update(int userId, int examId, ExamDTO examDTO) throws ServiceException {
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选考试不存在");
-		if (exam.getCreator().getId() != userId) {
-			throw new AccessDeniedException();
-		}
+		checkAccess(userId, exam);
 		BeanUtils.copyProperties(examDTO, exam, "name");
 		return new ExamVO(examDAO.save(exam));
 	}
@@ -154,10 +178,23 @@ public class ExamServiceImpl implements ExamService {
 	public void delete(int userId, int examId) throws ServiceException {
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选考试不存在");
-		if (exam.getCreator().getId() != userId) {
-			throw new AccessDeniedException();
+		checkAccess(userId, exam);
+		for (Result result : exam.getResults()) {
+			try {
+				gitlabApi.deleteProject(result.getId());
+				if (!result.isDeleted()) {
+					jenkinsApi.deleteJob(result.getId());
+				}
+			} catch (Exception e) {
+				log.error("删除试卷" + result.getId() + "时发生异常" + ToolKit.format(e));
+			}
 		}
-		delete(exam);
+		try {
+			gitlabApi.deleteProject(exam.getId());
+		} catch (Exception e) {
+			log.error("删除试题" + exam.getId() + "时发生异常" + ToolKit.format(e));
+		}
+		examDAO.delete(exam);
 	}
 
 	@Override
@@ -166,8 +203,10 @@ public class ExamServiceImpl implements ExamService {
 		User user = userDAO.findById(userId);
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选考试不存在");
-		if (exam.getResults().stream().anyMatch(r -> r.getOwner().getId() == userId)) {
+		if (resultDAO.findByOwnerAndExam(user, exam) != null) {
 			throw new AlreadyInExaminationException();
+		} else if (user.getRole() == UserRole.TEACHER && !user.equals(exam.getCreator())) {
+			throw new AccessDeniedException();
 		} else if (exam.getStatus() == ExamStatus.PREPARING) {
 			throw new EntityNotAvailableException("考试正在准备中！");
 		} else if (exam.getStatus() == ExamStatus.CLOSED) {
@@ -178,83 +217,22 @@ public class ExamServiceImpl implements ExamService {
 			result.setId(gitlabApi.forkProject(userId, examId, user.getNamespace()));
 			jenkinsApi.createJob(result.getId());
 		} catch (Exception e) {
-			throw new ServiceException("复制试卷时发生异常[" + e.getMessage() + "]");
+			throw new ServiceException("复制试卷时发生异常" + ToolKit.format(e));
 		}
 		result.setOwner(user);
 		result.setExam(exam);
 		resultDAO.save(result);
 	}
 
-	@Override
-	public Page<ExamVO> retrievePage(int page, int limit, ExamStatus status) {
-		if (status != null) {
-			return examDAO.findAllByStatus(status, PageRequest.of(page, limit, PAGE_SORT)).map(ExamVO::new);
-		} else {
-			return examDAO.findAll(PageRequest.of(page, limit, PAGE_SORT)).map(ExamVO::new);
+	private void checkAccess(int userId, Exam exam) throws AccessDeniedException {
+		if (userId != 0) {
+			checkAccess(userDAO.findById(userId), exam);
 		}
 	}
 
-	@Override
-	public ExamVO retrieve(int examId) throws ServiceException {
-		Exam exam = examDAO.findById(examId);
-		Asserts.notNull(exam, "所选考试不存在");
-		return new JoinedExamVO(exam);
-	}
-
-	@Override
-	public ExamVO update(int examId, ExamDTO examDTO) throws ServiceException {
-		Exam exam = examDAO.findById(examId);
-		Asserts.notNull(exam, "所选考试不存在");
-		BeanUtils.copyProperties(examDTO, exam, "name");
-		return new ExamVO(examDAO.save(exam));
-	}
-
-	@Override
-	@Transactional
-	public void delete(int examId) throws ServiceException {
-		Exam exam = examDAO.findById(examId);
-		Asserts.notNull(exam, "所选考试不存在");
-		delete(exam);
-	}
-
-	@Override
-	@Transactional
-	public void join(int examId) throws ServiceException {
-		Exam exam = examDAO.findById(examId);
-		Asserts.notNull(exam, "所选考试不存在");
-		User creator = exam.getCreator();
-		Result result = resultDAO.findByOwnerAndExam(creator, exam);
-		if (result != null) {
-			throw new AlreadyInExaminationException();
+	private void checkAccess(User user, Exam exam) throws AccessDeniedException {
+		if (user != null && !exam.getCreator().equals(user)) {
+			throw new AccessDeniedException();
 		}
-		result = new Result();
-		try {
-			result.setId(gitlabApi.forkProject(creator.getId(), examId, creator.getNamespace()));
-			jenkinsApi.createJob(result.getId());
-		} catch (Exception e) {
-			throw new ServiceException("复制试卷时发生异常[" + e.getMessage() + "]");
-		}
-		result.setOwner(creator);
-		result.setExam(exam);
-		resultDAO.save(result);
-	}
-
-	private void delete(Exam exam) {
-		for (Result result : exam.getResults()) {
-			try {
-				gitlabApi.deleteProject(result.getId());
-				if (!result.isDeleted()) {
-					jenkinsApi.deleteJob(result.getId());
-				}
-			} catch (Exception e) {
-				log.error("删除试卷#" + result.getId() + "时发生异常[" + e.getClass() + "]: " + e.getMessage());
-			}
-		}
-		try {
-			gitlabApi.deleteProject(exam.getId());
-		} catch (Exception e) {
-			log.error("删除试题#" + exam.getId() + "时发生异常[" + e.getClass() + "]: " + e.getMessage());
-		}
-		examDAO.delete(exam);
 	}
 }

@@ -1,6 +1,7 @@
 package com.moekr.aes.data.dao;
 
 import com.moekr.aes.data.entity.Exam;
+import com.moekr.aes.data.entity.User;
 import com.moekr.aes.util.enums.ExamStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -18,9 +19,9 @@ public interface ExamDAO extends JpaRepository<Exam, Integer> {
 
 	Page<Exam> findAllByStatus(ExamStatus status, Pageable pageable);
 
-	Page<Exam> findAllByCreator_Id(int creatorId, Pageable pageable);
+	Page<Exam> findAllByCreator(User creator, Pageable pageable);
 
-	Page<Exam> findAllByCreator_IdAndStatus(int creatorId, ExamStatus status, Pageable pageable);
+	Page<Exam> findAllByCreatorAndStatus(User creator, ExamStatus status, Pageable pageable);
 
 	@Query(value = "SELECT * FROM ENTITY_EXAM AS e WHERE e.id IN (SELECT r.exam FROM ENTITY_RESULT AS r WHERE r.owner = ?1) ORDER BY e.id DESC LIMIT ?2,?3", nativeQuery = true)
 	List<Exam> findAllJoined(int userId, long offset, int limit);

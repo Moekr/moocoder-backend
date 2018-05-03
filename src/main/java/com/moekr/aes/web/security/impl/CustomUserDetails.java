@@ -38,6 +38,7 @@ public class CustomUserDetails implements UserDetails {
 	}
 
 	CustomUserDetails(String username, String password) {
+		this.id = 0;
 		this.username = username;
 		this.password = DigestUtils.sha256Hex(password);
 		this.authorities = Collections.singleton(WebSecurityConfiguration.ADMIN_AUTHORITY);

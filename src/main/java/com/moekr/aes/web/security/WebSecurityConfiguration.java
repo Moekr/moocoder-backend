@@ -1,10 +1,12 @@
 package com.moekr.aes.web.security;
 
+import com.moekr.aes.web.handler.LoginRedirectHandler;
 import com.moekr.aes.web.security.impl.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -25,6 +27,13 @@ public class WebSecurityConfiguration {
 		protected void configure(HttpSecurity http) throws Exception {
 			http.antMatcher("/api/**")
 					.authorizeRequests()
+					.antMatchers(HttpMethod.POST, "/api/exam").hasAnyAuthority(TEACHER_AUTHORITY.getAuthority())
+					.antMatchers(HttpMethod.POST, "/api/exam/*/join").hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), STUDENT_AUTHORITY.getAuthority())
+					.antMatchers(HttpMethod.GET, "/api/user/current").authenticated()
+					.antMatchers("/api/user", "/api/user/**").hasAuthority(ADMIN_AUTHORITY.getAuthority())
+					.antMatchers(HttpMethod.POST).hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), ADMIN_AUTHORITY.getAuthority())
+					.antMatchers(HttpMethod.PUT).hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), ADMIN_AUTHORITY.getAuthority())
+					.antMatchers(HttpMethod.DELETE).hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), ADMIN_AUTHORITY.getAuthority())
 					.anyRequest().authenticated()
 					.and()
 					.httpBasic()
@@ -37,21 +46,24 @@ public class WebSecurityConfiguration {
 	@Configuration
 	public static class DefaultWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		private final UserDetailsService userDetailsService;
+		private final LoginRedirectHandler loginRedirectHandler;
 
 		@Autowired
-		public DefaultWebSecurityConfiguration(UserDetailsServiceImpl userDetailsService) {
+		public DefaultWebSecurityConfiguration(UserDetailsServiceImpl userDetailsService, LoginRedirectHandler loginRedirectHandler) {
 			this.userDetailsService = userDetailsService;
+			this.loginRedirectHandler = loginRedirectHandler;
 		}
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
 			http.authorizeRequests()
 					.antMatchers("/register.html", "/internal/**", "/js/**", "/css/**", "/fonts/**", "/favicon.ico").permitAll()
+					.antMatchers("/file/**").hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), ADMIN_AUTHORITY.getAuthority())
 					.anyRequest().authenticated()
 					.and()
-					.formLogin().loginPage("/login.html").defaultSuccessUrl("/").failureUrl("/login.html?from=login").permitAll()
+					.formLogin().loginPage("/login.html").defaultSuccessUrl("/").failureHandler(loginRedirectHandler).permitAll()
 					.and()
-					.logout().logoutUrl("/logout.html").logoutSuccessUrl("/login.html?from=logout").permitAll()
+					.logout().logoutUrl("/logout.html").logoutSuccessHandler(loginRedirectHandler).permitAll()
 					.and()
 					.rememberMe().rememberMeParameter("remember").rememberMeCookieName("REMEMBER").userDetailsService(userDetailsService)
 					.and()

@@ -13,21 +13,15 @@ public interface ExamService {
 
 	Page<ExamVO> retrievePage(int userId, int page, int limit, ExamStatus status) throws ServiceException;
 
+	Page<ExamVO> retrievePage(int page, int limit, ExamStatus status) throws ServiceException;
+
 	ExamVO retrieve(int userId, int examId) throws ServiceException;
+
+	ExamVO retrieve(int examId) throws ServiceException;
 
 	ExamVO update(int userId, int examId, ExamDTO examDTO) throws ServiceException;
 
 	void delete(int userId, int examId) throws ServiceException;
 
 	void join(int userId, int examId) throws ServiceException;
-
-	Page<ExamVO> retrievePage(int page, int limit, ExamStatus status) throws ServiceException;
-
-	ExamVO retrieve(int examId) throws ServiceException;
-
-	ExamVO update(int examId, ExamDTO examDTO) throws ServiceException;
-
-	void delete(int examId) throws ServiceException;
-
-	void join(int examId) throws ServiceException;
 }
