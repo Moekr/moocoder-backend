@@ -1,7 +1,7 @@
 package com.moekr.aes.util.validate.validator;
 
 import com.moekr.aes.util.validate.FieldEquals;
-import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.BeanUtils;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -20,8 +20,8 @@ public class FieldEqualsValidator implements ConstraintValidator<FieldEquals, Ob
 	@Override
 	public boolean isValid(Object value, ConstraintValidatorContext context) {
 		try {
-			Object firstObject = BeanUtils.getProperty(value, firstField);
-			Object secondObject = BeanUtils.getProperty(value, secondField);
+			Object firstObject = BeanUtils.getPropertyDescriptor(value.getClass(), firstField).getReadMethod().invoke(value);
+			Object secondObject = BeanUtils.getPropertyDescriptor(value.getClass(), secondField).getReadMethod().invoke(value);
 			return Objects.equals(firstObject, secondObject);
 		} catch (Exception e) {
 			return false;

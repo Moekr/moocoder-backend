@@ -3,6 +3,7 @@ package com.moekr.aes.web.handler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -14,7 +15,7 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -30,12 +31,18 @@ public class LoginRedirectHandler implements AuthenticationFailureHandler, Logou
 
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
-		onRedirect(request, response, Collections.singletonMap("from", "login"));
+		Map<String, Object> flashParam = new HashMap<>();
+		flashParam.put("from", "login");
+		flashParam.put("username", request.getParameter("username"));
+		onRedirect(request, response, flashParam);
 	}
 
 	@Override
 	public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
-		onRedirect(request, response, Collections.singletonMap("from", "logout"));
+		Map<String, Object> flashParam = new HashMap<>();
+		flashParam.put("from", "logout");
+		flashParam.put("username", ((UserDetails) authentication.getPrincipal()).getUsername());
+		onRedirect(request, response, flashParam);
 	}
 
 	private void onRedirect(HttpServletRequest request, HttpServletResponse response, Map<String, Object> flashParam) throws IOException {

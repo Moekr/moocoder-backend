@@ -18,7 +18,7 @@
                 <div class="alert alert-success text-center" th:if="${success}" th:text="${success}"></div>
                 <div class="alert alert-danger text-center" th:if="${error}" th:text="${error}"></div>
                 <div class="form-group">
-                    <input class="form-control" name="username" id="username-input" placeholder="用户名">
+                    <input class="form-control" name="username" id="username-input" placeholder="用户名" th:value="${username}">
                     <i class="fa fa-user"></i>
                 </div>
                 <div class="form-group">
