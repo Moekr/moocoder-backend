@@ -44,7 +44,7 @@ pipeline {
         }
         stage(&apos;Pull&apos;) {
             steps {
-                git credentialsId: &quot;AES&quot;, url: &quot;${GIT_URL}&quot;
+                git credentialsId: &quot;MOOCODER&quot;, url: &quot;${GIT_URL}&quot;
             }
         }
         stage(&apos;Reset&apos;) {
@@ -75,7 +75,7 @@ pipeline {
         always {
             junit allowEmptyResults: true, testResults: &apos;test-reports/*/*.xml&apos;
             cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: &apos;coverage-reports/*/*.xml&apos;, conditionalCoverageTargets: &apos;70, 0, 0&apos;, failNoReports: false, failUnhealthy: false, failUnstable: false, lineCoverageTargets: &apos;80, 0, 0&apos;, maxNumberOfBuilds: 0, methodCoverageTargets: &apos;80, 0, 0&apos;, onlyStable: false, sourceEncoding: &apos;ASCII&apos;, zoomCoverageChart: false
-            sh &apos;curl -o /dev/null -s -X POST -H &quot;X-Moocoder-Secret: ${AES_SECRET}&quot; &quot;${AES_HOST}/internal/notify/callback/${JOB_NAME}/${BUILD_NUMBER}&quot;&apos;
+            sh &apos;curl -o /dev/null -s -X POST -H &quot;X-Moocoder-Secret: ${MOOCODER_SECRET}&quot; &quot;${MOOCODER_HOST}/internal/notify/callback/${JOB_NAME}/${BUILD_NUMBER}&quot;&apos;
         }
     }
 }

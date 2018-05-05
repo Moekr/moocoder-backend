@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # Application root directory.
-path=/srv/aes
+path=/srv/moocoder
 # Application username.
-name=automated-examination-system
+name=moocoder-backend
 # Application version.
-version=0.4.0-SNAPSHOT
+version=0.4.0
 
 # Application config file. Default config.yml
 config_file=${path}/config.yml
@@ -38,7 +38,7 @@ function start {
         then
             mkdir ${log_dir}
         fi
-        java -server -jar ${path}/${name}-${version}.jar --spring.config.additional-location=${config_file} -Duser.timezone=${time_zone} 2>&1 >${log_dir}/$(date +${log_name}) &
+        java -server -jar ${path}/${name}-${version}.jar --spring.config.additional-location=${config_file} -Duser.timezone=${time_zone} &>${log_dir}/$(date +${log_name}) &
         local pid=$(echo -e "$!\c")
         echo -e "${pid}\c" > ${pid_file}
         echo "Start application ${name} successfully! (Version:${version} PID:${pid})"

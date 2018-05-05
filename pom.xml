@@ -3,8 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.moekr</groupId>
-    <artifactId>automated-examination-system</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <artifactId>moocoder-backend</artifactId>
+    <version>0.4.0</version>
 
     <packaging>jar</packaging>
 

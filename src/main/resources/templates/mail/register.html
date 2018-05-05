@@ -4,15 +4,37 @@
     <meta charset='utf-8'/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
     <meta name="theme-color" content="#C8C8C8"/>
-    <title>注册成功</title>
+    <title>注册成功 | MOOCODER</title>
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            white-space: nowrap;
+            margin: 0 auto;
+            width: 100%;
+            background-color: white;
+            text-align: center;
+            color: #767676;
+            padding-bottom: 100px;
+        }
+        h1 {
+            font-size: 10em;
+            margin-bottom: 0;
+        }
+    </style>
 </head>
-<body>
+<body style="text-align: center">
 <div>
-    <h2>Automated Examination System</h2>
-    <h2>注册成功！</h2>
-    <h2>用户名：<span th:text="${username}"></span></h2>
-    <h2>密码：<span th:text="${password}"></span></h2>
-    <h2>用户身份：<span th:text="${role}"></span></h2>
+    <h2>注册成功 | MOOCODER</h2>
+    <p>感谢您注册MOOCODER账户，以下为您的账户信息</p>
+    <h3>用户名：<span th:text="${username}"></span></h3>
+    <h3 th:if="${password}">密码：<span th:text="${password}"></span></h3>
+    <h3>用户身份：<span th:text="${role}"></span></h3>
+    <p>================注意================</p>
+    <p th:if="${password}">您的密码为系统自动生成，请尽快进行更改</p>
+    <p>请妥善保存您的密码，如遇密码遗失请联系管理员</p>
+    <p>如果您没有进行过注册，请忽略该邮件</p>
 </div>
+<footer >©2018 Powered by MOOCODER</footer>
 </body>
 </html>

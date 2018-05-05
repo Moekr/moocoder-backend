@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:with="ToolKit=${T(com.moekr.aes.util.ToolKit)},StringUtils=${T(org.apache.commons.lang3.StringUtils)}">
+<html xmlns:th="http://www.thymeleaf.org" th:with="ToolKit=${T(com.moekr.moocoder.util.ToolKit)}">
 <head>
     <meta charset='utf-8'/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1"/>
     <meta name="theme-color" content="#C8C8C8"/>
-    <title>用户登录 | Automated Examination System</title>
-    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="/webjars/font-awesome/css/font-awesome.min.css" />
+    <title>登录 | MOOCODER</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/font-awesome/css/font-awesome.min.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/common.css}" />
 </head>
 <body>
@@ -14,7 +14,7 @@
     <div class="row">
         <div class="col-md-offset-3 col-md-6">
             <form class="form-horizontal" method="post" onsubmit="return checkInput();">
-                <span class="heading">用户登录</span>
+                <span class="heading">登录 | MOOCODER</span>
                 <div class="alert alert-success text-center" th:if="${success}" th:text="${success}"></div>
                 <div class="alert alert-danger text-center" th:if="${error}" th:text="${error}"></div>
                 <div class="form-group">
@@ -42,11 +42,11 @@
 </div>
 <footer class="footer">
     <div class="container">
-        <p class="text-center">©2018 Powered by <span th:text="${ToolKit.BANNER}"></span> ver <span th:text="${ToolKit.VERSION}"></span></p>
+        <p class="text-center">©2018 Powered by MOOCODER ver <span th:text="${ToolKit.VERSION}"></span></p>
     </div>
 </footer>
-<script src="/webjars/jquery/jquery.min.js"></script>
-<script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
-<script th:src="@{/js/bundle.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/bundle.js}"></script>
 </body>
 </html>

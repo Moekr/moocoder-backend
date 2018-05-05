@@ -13,6 +13,15 @@ spring:
           starttls:
             enable: true
             required: true
+  resources:
+    chain:
+      strategy:
+        content:
+          enabled: true
+          paths:
+            - /moocoder-frontend/**
+            - /js/**
+            - /css/**
   servlet:
     multipart:
       max-file-size: 16MB
