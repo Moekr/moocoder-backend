@@ -38,7 +38,7 @@ public class NotifyServiceImpl implements NotifyService {
 	public void callback(int id, int buildNumber) {
 		try {
 			// 等待一点点时间，避免Jenkins控制台输出不完整
-			Thread.sleep(500);
+			Thread.sleep(3000);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}

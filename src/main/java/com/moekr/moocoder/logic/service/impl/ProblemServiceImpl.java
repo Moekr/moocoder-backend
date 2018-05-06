@@ -101,7 +101,9 @@ public class ProblemServiceImpl implements ProblemService {
 	public ProblemVO retrieve(int userId, int problemId) throws ServiceException {
 		Problem problem = problemDAO.findById(problemId);
 		Asserts.notNull(problem, "所选题目不存在");
-		checkAccess(userId, problem);
+		if (problem.getCreator() != null && userId != 0 && userId != problem.getCreator().getId()) {
+			throw new AccessDeniedException();
+		}
 		return new ProblemVO(problem);
 	}
 
