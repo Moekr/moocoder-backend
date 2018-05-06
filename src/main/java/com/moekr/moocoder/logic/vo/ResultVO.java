@@ -1,5 +1,6 @@
 package com.moekr.moocoder.logic.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.moekr.moocoder.data.entity.Commit;
@@ -36,6 +37,7 @@ public class ResultVO {
 	}
 
 	// 提供给ResultFileController获取内部用户名
+	@JsonIgnore
 	public String getUsername() {
 		return owner.username;
 	}

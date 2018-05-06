@@ -1,5 +1,6 @@
 package com.moekr.moocoder.logic.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.moekr.moocoder.data.entity.Problem;
@@ -27,6 +28,9 @@ public class ProblemVO {
 	@JsonProperty("created_at")
 	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
 	private LocalDateTime createdAt;
+	@JsonProperty("modified_at")
+	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
+	private LocalDateTime modifiedAt;
 	private boolean deprecated;
 	private NestedUserVO creator;
 
@@ -35,6 +39,7 @@ public class ProblemVO {
 		this.creator = problem.getCreator() == null ? null : new NestedUserVO(problem.getCreator());
 	}
 
+	@JsonIgnore
 	public String getUniqueName() {
 		return (id + "-" + name).toLowerCase();
 	}

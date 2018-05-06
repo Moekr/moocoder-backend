@@ -168,7 +168,7 @@
         <dependency>
             <groupId>com.moekr</groupId>
             <artifactId>moocoder-frontend-webjars</artifactId>
-            <version>0.1.0</version>
+            <version>0.1.1</version>
         </dependency>
 
         <!-- Database Driver Dependencies -->

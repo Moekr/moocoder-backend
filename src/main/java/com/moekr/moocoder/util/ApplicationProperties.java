@@ -65,7 +65,6 @@ public class ApplicationProperties {
 
 	@Data
 	public static class Docker {
-		@URL
 		@NotEmpty
 		private String host = "unix:///var/run/docker.sock";
 		@NotEmpty
