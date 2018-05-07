@@ -30,6 +30,11 @@ server:
   tomcat:
     remote-ip-header: X-Forwarded-For
     protocol-header: X-Forwarded-Proto
+  servlet:
+    session:
+      persistent: true
+      store-dir: ${java.io.tmpdir}/moocoder-session
+      timeout: 1d
 management:
   endpoints:
     web:

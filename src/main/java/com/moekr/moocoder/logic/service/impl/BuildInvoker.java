@@ -6,6 +6,7 @@ import com.moekr.moocoder.data.dao.ResultDAO;
 import com.moekr.moocoder.data.entity.*;
 import com.moekr.moocoder.logic.api.JenkinsApi;
 import com.moekr.moocoder.util.ApplicationProperties;
+import com.moekr.moocoder.util.ToolKit;
 import com.moekr.moocoder.util.enums.BuildStatus;
 import com.offbytwo.jenkins.model.QueueItem;
 import lombok.extern.apachecommons.CommonsLog;
@@ -46,7 +47,7 @@ public class BuildInvoker {
 				record.setStatus(BuildStatus.RUNNING);
 				break;
 			} catch (Exception e) {
-				log.error("触发构建#" + record.getId() + "时发生异常[" + e.getClass() + "]:" + e.getMessage());
+				log.error("触发构建#" + record.getId() + "时发生异常" + ToolKit.format(e));
 				record.setStatus(BuildStatus.FAILURE);
 			} finally {
 				recordDAO.save(record);
@@ -71,11 +72,12 @@ public class BuildInvoker {
 	}
 
 	private void completeCommit(Commit commit) {
+		int problemCount = commit.getResult().getExam().getProblems().size();
 		Set<Record> records = commit.getRecords();
-		commit.setScore(records.stream()
+		commit.setScore((records.stream()
 				.map(Record::getScore)
 				.reduce((a, b) -> a + b)
-				.orElse(0) / Math.max(records.size(), 1));
+				.orElse(0) + (problemCount - records.size()) * 100) / problemCount);
 		commit.setFinished(true);
 		commit = commitDAO.save(commit);
 		Result result = commit.getResult();

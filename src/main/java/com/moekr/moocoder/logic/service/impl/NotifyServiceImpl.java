@@ -36,18 +36,22 @@ public class NotifyServiceImpl implements NotifyService {
 	@Override
 	@Async
 	public void callback(int id, int buildNumber) {
-		try {
-			// 等待一点点时间，避免Jenkins控制台输出不完整
-			Thread.sleep(3000);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-		BuildDetails buildDetails = null;
-		try {
-			buildDetails = jenkinsApi.fetchBuildDetails(id, buildNumber);
-		} catch (Exception e) {
-			log.error("获取项目" + id + "的构建记录" + buildNumber + "时发生异常" + ToolKit.format(e));
-		}
+		BuildDetails buildDetails;
+		do {
+			try {
+				// 等待一点点时间，避免Jenkins控制台输出不完整或BuildResult为null
+				// 此处时间为经验取值
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			try {
+				buildDetails = jenkinsApi.fetchBuildDetails(id, buildNumber);
+			} catch (Exception e) {
+				log.error("获取项目" + id + "的构建记录" + buildNumber + "时发生异常" + ToolKit.format(e));
+				return;
+			}
+		} while (buildDetails == null || buildDetails.getBuildResult() == null); // 如果为null则重新获取
 		buildRecorder.record(id, buildNumber, buildDetails);
 		buildInvoker.invokeNextBuild(id);
 	}

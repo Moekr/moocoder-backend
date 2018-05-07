@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @CommonsLog
@@ -31,21 +34,41 @@ public class CommitInitializer {
 		Result result = resultDAO.findById(resultId);
 		LocalDateTime now = LocalDateTime.now();
 		if (result != null && result.getExam().getEndAt().isAfter(now)) {
-			Commit commit = new Commit();
-			commit.setHash(commitHash);
-			commit.setResult(result);
-			commit = commitDAO.save(commit);
-			for (Problem problem : commit.getResult().getExam().getProblems()) {
-				Record record = new Record();
-				record.setNumber(-1);
-				record.setCommit(commit);
-				record.setProblem(problem);
-				recordDAO.save(record);
+			Commit lastBuiltCommit = lastBuiltCommit(resultId);
+			Set<Problem> problems;
+			if (lastBuiltCommit != null) {
+				problems = lastBuiltCommit.getRecords().stream()
+						.filter(r -> r.getScore() < 100)
+						.map(Record::getProblem)
+						.collect(Collectors.toSet());
+			} else {
+				problems = result.getExam().getProblems();
 			}
-			result.setLastCommitAt(now);
-			resultDAO.save(result);
-			return true;
+			if (!problems.isEmpty()) {
+				Commit newCommit = new Commit();
+				newCommit.setHash(commitHash);
+				newCommit.setResult(result);
+				newCommit = commitDAO.save(newCommit);
+				for (Problem problem : problems) {
+					Record record = new Record();
+					record.setNumber(-1);
+					record.setCommit(newCommit);
+					record.setProblem(problem);
+					recordDAO.save(record);
+				}
+				result.setLastCommitAt(now);
+				resultDAO.save(result);
+				return true;
+			}
 		}
 		return false;
+	}
+
+	private Commit lastBuiltCommit(int resultId) {
+		List<Commit> commitList = commitDAO.findAllByResult_IdAndFinishedOrderByIdAsc(resultId, true);
+		if (!commitList.isEmpty()) {
+			return commitList.get(commitList.size() - 1);
+		}
+		return null;
 	}
 }
