@@ -35,6 +35,7 @@ server:
       persistent: true
       store-dir: ${java.io.tmpdir}/moocoder-session
       timeout: 1d
+  use-forward-headers: true
 management:
   endpoints:
     web:
