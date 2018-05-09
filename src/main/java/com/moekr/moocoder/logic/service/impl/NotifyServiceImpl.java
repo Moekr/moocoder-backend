@@ -51,7 +51,7 @@ public class NotifyServiceImpl implements NotifyService {
 				log.error("获取项目" + id + "的构建记录" + buildNumber + "时发生异常" + ToolKit.format(e));
 				return;
 			}
-		} while (buildDetails == null || buildDetails.getBuildResult() == null); // 如果为null则重新获取
+		} while (buildDetails == null || buildDetails.getBuildResult() == null || buildDetails.getDuration() == 0); // 如果为null则重新获取
 		buildRecorder.record(id, buildNumber, buildDetails);
 		buildInvoker.invokeNextBuild(id);
 	}
