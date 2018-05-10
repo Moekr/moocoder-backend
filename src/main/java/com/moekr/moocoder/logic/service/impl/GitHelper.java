@@ -28,22 +28,23 @@ public class GitHelper {
 		this.provider = new UsernamePasswordCredentialsProvider(gitlab.getUsername(), gitlab.getToken());
 	}
 
-	public void push(File sourceDir, String project) throws GitAPIException, IOException {
+	public String push(File sourceDir, String project) throws GitAPIException, IOException {
 		String uri = gitlab.getHost() + "/" + gitlab.getUsername() + "/" + project + ".git";
 		File tempDir = Files.createTempDirectory(TEMP_PREFIX).toFile();
 		try {
-			push(sourceDir, tempDir, uri);
+			return push(sourceDir, tempDir, uri);
 		} finally {
 			FileUtils.deleteDirectory(tempDir);
 		}
 	}
 
-	private void push(File sourceDir, File tempDir, String uri) throws GitAPIException, IOException {
+	private String push(File sourceDir, File tempDir, String uri) throws GitAPIException, IOException {
 		Git targetRepo = Git.cloneRepository().setURI(uri).setDirectory(tempDir).setCredentialsProvider(provider).call();
 		FileUtils.copyDirectory(sourceDir, tempDir);
 		targetRepo.add().addFilepattern(".").call();
-		targetRepo.commit().setMessage(COMMIT_MESSAGE).call();
+		String hash = targetRepo.commit().setMessage(COMMIT_MESSAGE).call().getName();
 		targetRepo.push().setRemote("origin").setForce(true).setPushAll().setCredentialsProvider(provider).call();
 		targetRepo.close();
+		return hash;
 	}
 }

@@ -42,7 +42,7 @@ public class ExamPaperBuilder {
 		File tempDir = Files.createTempDirectory(TEMP_PREFIX).toFile();
 		try {
 			releaseCode(exam.getProblems(), tempDir);
-			helper.push(tempDir, exam.getUuid());
+			exam.setInitialHash(helper.push(tempDir, exam.getUuid()));
 			exam.setStatus(ExamStatus.AVAILABLE);
 		} catch (Exception e) {
 			exam.setStatus(ExamStatus.UNAVAILABLE);

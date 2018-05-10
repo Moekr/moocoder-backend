@@ -12,6 +12,9 @@ import org.gitlab4j.api.models.ImpersonationToken.Scope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Component
 public class GitlabApiImpl implements GitlabApi {
 	private final Gitlab gitlab;
@@ -80,6 +83,21 @@ public class GitlabApiImpl implements GitlabApi {
 			createWebHook(project.getId());
 		}
 		return project != null ? project.getId() : null;
+	}
+
+	@Override
+	public synchronized Set<String> compare(int projectId, String from, String to) throws GitLabApiException {
+		CompareResults compareResults = server.getRepositoryApi().compare(projectId, from, to);
+		return compareResults.getDiffs().stream()
+				.map(Diff::getNewPath)
+				.map(p -> {
+					int end = p.indexOf('/');
+					if (end == -1) {
+						end = p.length();
+					}
+					return p.substring(0, end);
+				})
+				.collect(Collectors.toSet());
 	}
 
 	private void createWebHook(int id) throws GitLabApiException {

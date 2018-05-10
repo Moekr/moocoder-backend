@@ -50,6 +50,10 @@ public class Exam {
 	@Column(name = "status", columnDefinition = "VARCHAR(255) NOT NULL DEFAULT 'PREPARING'")
 	private ExamStatus status = ExamStatus.PREPARING;
 
+	@Basic
+	@Column(name = "initial_hash")
+	private String initialHash;
+
 	@ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
 	@JoinColumn(name = "creator", referencedColumnName = "id")
 	private User creator;

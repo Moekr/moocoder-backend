@@ -4,6 +4,11 @@ import com.moekr.moocoder.util.enums.FileType;
 
 public class PythonCoverageHelper extends AbstractPythonHelper {
 	@Override
+	public String editableDirectory() {
+		return "/test";
+	}
+
+	@Override
 	public FileType fileType(String filePath) {
 		if (filePath.startsWith("/test/")) {
 			return FileType.PUBLIC;

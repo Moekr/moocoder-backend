@@ -8,16 +8,15 @@ import com.moekr.moocoder.logic.api.JenkinsApi;
 import com.moekr.moocoder.util.ApplicationProperties;
 import com.moekr.moocoder.util.ToolKit;
 import com.moekr.moocoder.util.enums.BuildStatus;
+import com.moekr.moocoder.util.problem.helper.ProblemHelper;
 import com.offbytwo.jenkins.model.QueueItem;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @CommonsLog
@@ -72,15 +71,24 @@ public class BuildInvoker {
 	}
 
 	private void completeCommit(Commit commit) {
-		int problemCount = commit.getResult().getExam().getProblems().size();
-		Set<Record> records = commit.getRecords();
-		commit.setScore((records.stream()
-				.map(Record::getScore)
-				.reduce((a, b) -> a + b)
-				.orElse(0) + (problemCount - records.size()) * 100) / problemCount);
+		Map<Problem, Record> recordMap = commit.getRecords().stream()
+				.collect(Collectors.toMap(Record::getProblem, r -> r));
+		Result result = commit.getResult();
+		Exam exam = result.getExam();
+		Set<Problem> problems = exam.getProblems();
+		int totalScore = 0;
+		for (Problem problem : problems) {
+			Record record = recordMap.get(problem);
+			if (record == null) {
+				record = recordDAO.findLastBuiltByResultAndProblem(result, problem);
+			}
+			if (record != null) {
+				totalScore = totalScore + record.getScore();
+			}
+		}
+		commit.setScore(totalScore / problems.size());
 		commit.setFinished(true);
 		commit = commitDAO.save(commit);
-		Result result = commit.getResult();
 		if (commit.getScore() > result.getScore()) {
 			result.setScore(commit.getScore());
 			resultDAO.save(result);
@@ -91,17 +99,15 @@ public class BuildInvoker {
 		Exam exam = record.getCommit().getResult().getExam();
 		User user = record.getCommit().getResult().getOwner();
 		Problem problem = record.getProblem();
+		String uniqueName = problem.getUniqueName();
+		ProblemHelper helper = problem.getType().getHelper();
 		Map<String, String> param = new HashMap<>();
 		param.put("GIT_URL", properties.getGitlab().getHost() + "/" + user.getUsername() + "/" + exam.getUuid());
 		param.put("COMMIT_HASH", record.getCommit().getHash());
 		param.put("DOCKER_IMAGE", properties.getDocker().getRegistry() + "/" + problem.getImageName() + ":" + problem.getImageTag());
-		StringBuilder builder = new StringBuilder();
-		builder.append("#!/bin/bash\n");
-		for (String publicFile : problem.getPublicFiles()) {
-			builder.append("cp --parents ").append(problem.getUniqueName()).append(publicFile).append(" /var/ws/code/ &>/dev/null || :\n");
-		}
-		builder.append(problem.getType().getHelper().runScript(problem.getUniqueName()));
-		param.put("EXECUTE_SHELL", builder.toString());
+		param.put("EXECUTE_SHELL", "#!/bin/bash\n" +
+				"cp --parents -R " + uniqueName + helper.editableDirectory() + "/*" + " /var/ws/code/ &>/dev/null || :\n" +
+				helper.runScript(uniqueName));
 		return param;
 	}
 }

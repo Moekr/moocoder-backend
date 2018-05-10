@@ -7,6 +7,8 @@ import java.util.List;
 public interface ProblemHelper {
 	boolean validate(List<String> fileList);
 
+	String editableDirectory();
+
 	FileType fileType(String filePath);
 
 	String dockerFile(String uniqueName);

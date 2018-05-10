@@ -4,6 +4,11 @@ import com.moekr.moocoder.util.enums.FileType;
 
 public class JavaHelper extends AbstractJavaHelper {
 	@Override
+	public String editableDirectory() {
+		return "/src/main";
+	}
+
+	@Override
 	public FileType fileType(String filePath) {
 		if (filePath.startsWith("/src/main/")) {
 			return FileType.PUBLIC;

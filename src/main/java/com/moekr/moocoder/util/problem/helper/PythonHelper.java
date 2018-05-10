@@ -4,6 +4,11 @@ import com.moekr.moocoder.util.enums.FileType;
 
 public class PythonHelper extends AbstractPythonHelper {
 	@Override
+	public String editableDirectory() {
+		return "/src";
+	}
+
+	@Override
 	public FileType fileType(String filePath) {
 		if (filePath.startsWith("/src/")) {
 			return FileType.PUBLIC;
