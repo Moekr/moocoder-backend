@@ -102,6 +102,7 @@ public class BuildInvoker {
 		String uniqueName = problem.getUniqueName();
 		ProblemHelper helper = problem.getType().getHelper();
 		Map<String, String> param = new HashMap<>();
+		param.put("PROB_TARGET", problem.getType().getTarget());
 		param.put("GIT_URL", properties.getGitlab().getHost() + "/" + user.getUsername() + "/" + exam.getUuid());
 		param.put("COMMIT_HASH", record.getCommit().getHash());
 		param.put("DOCKER_IMAGE", properties.getDocker().getRegistry() + "/" + problem.getImageName() + ":" + problem.getImageTag());

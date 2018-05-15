@@ -34,6 +34,6 @@ public class PythonHelper extends AbstractPythonHelper {
 				+ "nosetests3 --with-xunit || :\n"
 				+ "popd &>/dev/null\n"
 				+ "mkdir -p ./test-reports/" + uniqueName + "/ &>/dev/null\n"
-				+ "cp /var/ws/code/" + uniqueName + "/nosetests.xml ./test-reports/" + uniqueName + "/ &>/dev/null || :\n";
+				+ "cp /var/ws/code/" + uniqueName + "/nosetests.xml ./test-reports/ &>/dev/null || :\n";
 	}
 }

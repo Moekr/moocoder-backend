@@ -32,6 +32,6 @@ public class JavaCoverageHelper extends AbstractJavaHelper {
 				+ "mvn -fn clean cobertura:cobertura -Dcobertura.report.format=xml -Dmaven.repo.local=/var/ws/repository/\n"
 				+ "popd &>/dev/null\n"
 				+ "mkdir -p ./coverage-reports/" + uniqueName + "/ &>/dev/null\n"
-				+ "cp /var/ws/code/" + uniqueName + "/target/site/cobertura/*.xml ./coverage-reports/" + uniqueName + "/ &>/dev/null || :\n";
+				+ "cp /var/ws/code/" + uniqueName + "/target/site/cobertura/*.xml ./coverage-reports/ &>/dev/null || :\n";
 	}
 }

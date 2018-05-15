@@ -34,6 +34,6 @@ public class JavaHelper extends AbstractJavaHelper {
 				+ "mvn -fn clean test -Dmaven.repo.local=/var/ws/repository/\n"
 				+ "popd &>/dev/null\n"
 				+ "mkdir -p ./test-reports/" + uniqueName + "/ &>/dev/null\n"
-				+ "cp /var/ws/code/" + uniqueName + "/target/surefire-reports/*.xml ./test-reports/" + uniqueName + "/ &>/dev/null || :\n";
+				+ "cp /var/ws/code/" + uniqueName + "/target/surefire-reports/*.xml ./test-reports/ &>/dev/null || :\n";
 	}
 }

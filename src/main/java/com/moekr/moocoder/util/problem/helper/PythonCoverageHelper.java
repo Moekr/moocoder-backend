@@ -32,6 +32,6 @@ public class PythonCoverageHelper extends AbstractPythonHelper {
 				+ "nosetests3 --with-coverage --cover-xml || :\n"
 				+ "popd &>/dev/null\n"
 				+ "mkdir -p ./coverage-reports/" + uniqueName + "/ &>/dev/null\n"
-				+ "cp /var/ws/code/" + uniqueName + "/coverage.xml ./coverage-reports/" + uniqueName + "/ &>/dev/null || :\n";
+				+ "cp /var/ws/code/" + uniqueName + "/coverage.xml ./coverage-reports/ &>/dev/null || :\n";
 	}
 }

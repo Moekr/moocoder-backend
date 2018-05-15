@@ -14,4 +14,5 @@ public class BuildDetails {
 	private String consoleOutput;
 	private TestResult testResult;
 	private CoberturaResult coberturaResult;
+	private MutationResult mutationResult;
 }

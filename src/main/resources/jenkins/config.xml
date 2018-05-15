@@ -6,6 +6,12 @@
         <hudson.model.ParametersDefinitionProperty>
             <parameterDefinitions>
                 <hudson.model.TextParameterDefinition>
+                    <name>PROB_TARGET</name>
+                    <description/>
+                    <defaultValue/>
+                    <trim>false</trim>
+                </hudson.model.TextParameterDefinition>
+                <hudson.model.TextParameterDefinition>
                     <name>GIT_URL</name>
                     <description/>
                     <defaultValue/>
@@ -37,26 +43,26 @@
 pipeline {
     agent any
     stages {
-        stage(&apos;Clean&apos;) {
+        stage(&apos;Clean Workspace&apos;) {
             steps {
                 sh &apos;rm -rf ${WORKSPACE}/* ${WORKSPACE}/.[!.]*&apos;
             }
         }
-        stage(&apos;Pull&apos;) {
+        stage(&apos;Pull Code&apos;) {
             steps {
                 git credentialsId: &quot;MOOCODER&quot;, url: &quot;${GIT_URL}&quot;
             }
         }
-        stage(&apos;Reset&apos;) {
+        stage(&apos;Reset Git HEAD&apos;) {
             steps {
                 sh &quot;git reset --hard ${COMMIT_HASH}&quot;
             }
         }
-        stage(&apos;Run&apos;) {
+        stage(&apos;Run Build&apos;) {
             agent {
                 docker {
                     image &quot;${DOCKER_IMAGE}&quot;
-                    args &apos;--network none -h localhost&apos;
+                    args &apos;--network none --cpus 1 -m 1G -h localhost&apos;
                     reuseNode true
                 }
             }
@@ -70,11 +76,33 @@ pipeline {
                 echo &apos;==CONSOLE OUTPUT END==&apos;
             }
         }
+        stage(&apos;Collect Test Report&apos;) {
+            when {
+                environment name: &apos;PROB_TARGET&apos;, value: &apos;TEST&apos;
+            }
+            steps {
+                junit allowEmptyResults: true, testResults: &apos;test-reports/*.xml&apos;
+            }
+        }
+        stage(&apos;Collect Coverage Report&apos;) {
+            when {
+                environment name: &apos;PROB_TARGET&apos;, value: &apos;COVERAGE&apos;
+            }
+            steps {
+                cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: &apos;coverage-reports/*.xml&apos;, conditionalCoverageTargets: &apos;70, 0, 0&apos;, failNoReports: false, failUnhealthy: false, failUnstable: false, lineCoverageTargets: &apos;80, 0, 0&apos;, maxNumberOfBuilds: 0, methodCoverageTargets: &apos;80, 0, 0&apos;, onlyStable: false, sourceEncoding: &apos;ASCII&apos;, zoomCoverageChart: false
+            }
+        }
+        stage(&apos;Collect Mutation Report&apos;) {
+            when {
+                environment name: &apos;PROB_TARGET&apos;, value: &apos;MUTATION&apos;
+            }
+            steps {
+                archiveArtifacts allowEmptyArchive: true, artifacts: &apos;mutation-reports/mutations.xml&apos;
+            }
+        }
     }
     post {
         always {
-            junit allowEmptyResults: true, testResults: &apos;test-reports/*/*.xml&apos;
-            cobertura autoUpdateHealth: false, autoUpdateStability: false, coberturaReportFile: &apos;coverage-reports/*/*.xml&apos;, conditionalCoverageTargets: &apos;70, 0, 0&apos;, failNoReports: false, failUnhealthy: false, failUnstable: false, lineCoverageTargets: &apos;80, 0, 0&apos;, maxNumberOfBuilds: 0, methodCoverageTargets: &apos;80, 0, 0&apos;, onlyStable: false, sourceEncoding: &apos;ASCII&apos;, zoomCoverageChart: false
             sh &apos;curl -o /dev/null -s -X POST -H &quot;X-Moocoder-Secret: ${MOOCODER_SECRET}&quot; &quot;${MOOCODER_HOST}/internal/notify/callback/${JOB_NAME}/${BUILD_NUMBER}&quot;&apos;
         }
     }

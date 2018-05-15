@@ -4,13 +4,16 @@ import com.moekr.moocoder.logic.api.JenkinsApi;
 import com.moekr.moocoder.logic.api.vo.BuildDetails;
 import com.moekr.moocoder.logic.api.vo.CoberturaResult;
 import com.moekr.moocoder.logic.api.vo.ExecutableDetails;
+import com.moekr.moocoder.logic.api.vo.MutationResult;
 import com.moekr.moocoder.util.ApplicationProperties;
 import com.moekr.moocoder.util.ApplicationProperties.Jenkins;
 import com.offbytwo.jenkins.JenkinsServer;
-import com.offbytwo.jenkins.model.BuildWithDetails;
-import com.offbytwo.jenkins.model.Executable;
-import com.offbytwo.jenkins.model.QueueItem;
-import com.offbytwo.jenkins.model.QueueReference;
+import com.offbytwo.jenkins.model.*;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.dom4j.Attribute;
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +24,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -83,13 +87,39 @@ public class JenkinsApiImpl implements JenkinsApi {
 		buildDetails.setBuildResult(build.getResult());
 		try {
 			buildDetails.setTestResult(build.getTestResult());
-		} catch (IOException e) {
+		} catch (Exception e) {
 			buildDetails.setTestResult(null);
 		}
 		try {
 			buildDetails.setCoberturaResult(build.getClient().get(build.getUrl() + "/cobertura/?depth=2", CoberturaResult.class));
-		} catch (IOException e) {
+		} catch (Exception e) {
 			buildDetails.setCoberturaResult(null);
+		}
+		try {
+			List<Artifact> artifactList = build.getArtifacts();
+			Artifact artifact = artifactList.stream().filter(a -> a.getFileName().equals("mutations.xml")).findFirst().orElse(null);
+			if (artifact != null) {
+				MutationResult result = new MutationResult();
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				outputStream.write(build.downloadArtifact(artifact));
+				String mutationReport = new String(outputStream.toByteArray());
+				Document document = DocumentHelper.parseText(mutationReport);
+				Element root = document.getRootElement();
+				for (Object element : root.elements("mutation")) {
+					if (element instanceof Element) {
+						Attribute attribute = ((Element) element).attribute("detected");
+						if (attribute != null) {
+							result.setMutations(result.getMutations() + 1);
+							if ("true".equals(attribute.getValue())) {
+								result.setDetectedMutations(result.getDetectedMutations() + 1);
+							}
+						}
+					}
+				}
+				buildDetails.setMutationResult(result);
+			}
+		} catch (Exception e) {
+			buildDetails.setMutationResult(null);
 		}
 		return buildDetails;
 	}
