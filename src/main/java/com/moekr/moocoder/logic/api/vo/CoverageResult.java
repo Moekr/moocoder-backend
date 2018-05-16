@@ -11,10 +11,10 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
-public class CoberturaResult extends BaseModel {
+public class CoverageResult extends BaseModel {
 	private Results results;
 
-	public List<CoberturaElement> getElements() {
+	public List<CoverageResultElement> getElements() {
 		return results.getElements();
 	}
 
@@ -22,6 +22,6 @@ public class CoberturaResult extends BaseModel {
 	@EqualsAndHashCode
 	@ToString
 	private static class Results {
-		private List<CoberturaElement> elements;
+		private List<CoverageResultElement> elements;
 	}
 }

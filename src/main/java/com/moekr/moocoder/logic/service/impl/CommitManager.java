@@ -5,6 +5,7 @@ import com.moekr.moocoder.data.dao.RecordDAO;
 import com.moekr.moocoder.data.dao.ResultDAO;
 import com.moekr.moocoder.data.entity.*;
 import com.moekr.moocoder.logic.api.GitlabApi;
+import com.moekr.moocoder.util.enums.BuildStatus;
 import lombok.extern.apachecommons.CommonsLog;
 import org.gitlab4j.api.GitLabApiException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +18,14 @@ import java.util.stream.Collectors;
 
 @Component
 @CommonsLog
-public class CommitInitializer {
+public class CommitManager {
 	private final CommitDAO commitDAO;
 	private final RecordDAO recordDAO;
 	private final ResultDAO resultDAO;
 	private final GitlabApi gitlabApi;
 
 	@Autowired
-	public CommitInitializer(CommitDAO commitDAO, RecordDAO recordDAO, ResultDAO resultDAO, GitlabApi gitlabApi) {
+	public CommitManager(CommitDAO commitDAO, RecordDAO recordDAO, ResultDAO resultDAO, GitlabApi gitlabApi) {
 		this.commitDAO = commitDAO;
 		this.recordDAO = recordDAO;
 		this.resultDAO = resultDAO;
@@ -54,6 +55,43 @@ public class CommitInitializer {
 			return true;
 		}
 		return false;
+	}
+
+	@Transactional
+	public boolean finalizeCommit(int resultId) {
+		Result result = resultDAO.findById(resultId);
+		if (result == null) {
+			return false;
+		}
+		Commit commit = commitDAO.findFirstUnfinishedByResult(result);
+		if (commit == null) {
+			return false;
+		}
+		if (commit.getRecords().stream().anyMatch(r -> r.getStatus() == BuildStatus.WAITING || r.getStatus() == BuildStatus.RUNNING)) {
+			return false;
+		}
+		Map<Problem, Record> recordMap = commit.getRecords().stream()
+				.collect(Collectors.toMap(Record::getProblem, r -> r));
+		Exam exam = result.getExam();
+		Set<Problem> problems = exam.getProblems();
+		int totalScore = 0;
+		for (Problem problem : problems) {
+			Record record = recordMap.get(problem);
+			if (record == null) {
+				record = recordDAO.findLastBuiltByResultAndProblem(result, problem);
+			}
+			if (record != null) {
+				totalScore = totalScore + record.getScore();
+			}
+		}
+		commit.setScore(totalScore / problems.size());
+		commit.setFinished(true);
+		commit = commitDAO.save(commit);
+		if (commit.getScore() > result.getScore()) {
+			result.setScore(commit.getScore());
+			resultDAO.save(result);
+		}
+		return true;
 	}
 
 	private Set<Problem> calculateProblemsToBuild(Result result, String commitHash) {

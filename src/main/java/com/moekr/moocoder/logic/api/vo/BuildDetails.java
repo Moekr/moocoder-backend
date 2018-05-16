@@ -13,6 +13,6 @@ public class BuildDetails {
 	private BuildResult buildResult;
 	private String consoleOutput;
 	private TestResult testResult;
-	private CoberturaResult coberturaResult;
+	private CoverageResult coverageResult;
 	private MutationResult mutationResult;
 }

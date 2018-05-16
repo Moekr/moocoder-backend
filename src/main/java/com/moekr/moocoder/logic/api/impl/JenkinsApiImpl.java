@@ -2,19 +2,19 @@ package com.moekr.moocoder.logic.api.impl;
 
 import com.moekr.moocoder.logic.api.JenkinsApi;
 import com.moekr.moocoder.logic.api.vo.BuildDetails;
-import com.moekr.moocoder.logic.api.vo.CoberturaResult;
-import com.moekr.moocoder.logic.api.vo.ExecutableDetails;
+import com.moekr.moocoder.logic.api.vo.CoverageResult;
 import com.moekr.moocoder.logic.api.vo.MutationResult;
 import com.moekr.moocoder.util.ApplicationProperties;
 import com.moekr.moocoder.util.ApplicationProperties.Jenkins;
 import com.offbytwo.jenkins.JenkinsServer;
-import com.offbytwo.jenkins.model.*;
+import com.offbytwo.jenkins.client.JenkinsHttpClient;
+import com.offbytwo.jenkins.model.Artifact;
+import com.offbytwo.jenkins.model.BuildWithDetails;
+import com.offbytwo.jenkins.model.QueueItem;
+import com.offbytwo.jenkins.model.QueueReference;
+import lombok.extern.apachecommons.CommonsLog;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.dom4j.Attribute;
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.springframework.beans.BeanUtils;
+import org.dom4j.*;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@CommonsLog
 public class JenkinsApiImpl implements JenkinsApi {
 	private final ApplicationProperties properties;
 
@@ -41,7 +42,11 @@ public class JenkinsApiImpl implements JenkinsApi {
 	@PostConstruct
 	private void initialize() throws URISyntaxException, IOException {
 		Jenkins jenkins = properties.getJenkins();
-		server = new JenkinsServer(new URI(jenkins.getHost()), jenkins.getUsername(), jenkins.getToken());
+		URI uri = new URI(jenkins.getHost());
+		String username = jenkins.getUsername();
+		String token = jenkins.getToken();
+		JenkinsHttpClient client = new PoolingJenkinsHttpClient(uri, username, token);
+		server = new JenkinsServer(client);
 		configTemplate = readTemplate();
 	}
 
@@ -60,14 +65,14 @@ public class JenkinsApiImpl implements JenkinsApi {
 			reference = server.getJob(String.valueOf(id)).build(paramMap, false);
 		}
 		QueueItem item =  server.getQueueItem(reference);
-		try {
-			// 等待一段时间，避免对executable的请求返回404
-			Thread.sleep(500);
-		} catch (InterruptedException ignore) { }
-		ExecutableDetails details = item.getClient().get(item.getUrl() + "executable", ExecutableDetails.class);
-		Executable executable = new Executable();
-		BeanUtils.copyProperties(details, executable);
-		item.setExecutable(executable);
+		while (item.getExecutable() == null) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			item =  server.getQueueItem(reference);
+		}
 		return item;
 	}
 
@@ -77,51 +82,69 @@ public class JenkinsApiImpl implements JenkinsApi {
 	}
 
 	@Override
-	public BuildDetails fetchBuildDetails(int id, int buildNumber) throws IOException {
-		BuildDetails buildDetails = new BuildDetails();
+	public BuildDetails fetchBuildDetails(int id, int buildNumber, String target) throws IOException {
+		BuildDetails result = new BuildDetails();
 		BuildWithDetails build;
 		build = server.getJob(String.valueOf(id)).getBuildByNumber(buildNumber).details();
-		buildDetails.setConsoleOutput(build.getConsoleOutputText());
-		buildDetails.setNumber(build.getNumber());
-		buildDetails.setDuration(build.getDuration());
-		buildDetails.setBuildResult(build.getResult());
-		try {
-			buildDetails.setTestResult(build.getTestResult());
-		} catch (Exception e) {
-			buildDetails.setTestResult(null);
+		while (build.getResult() == null || build.getDuration() == 0) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			build = server.getJob(String.valueOf(id)).getBuildByNumber(buildNumber).details();
 		}
+		result.setConsoleOutput(build.getConsoleOutputText());
+		result.setNumber(build.getNumber());
+		result.setDuration(build.getDuration());
+		result.setBuildResult(build.getResult());
+		fetchTargetResult(result, build, target);
+		return result;
+	}
+
+	private void fetchTargetResult(BuildDetails result, BuildWithDetails build, String target) {
 		try {
-			buildDetails.setCoberturaResult(build.getClient().get(build.getUrl() + "/cobertura/?depth=2", CoberturaResult.class));
-		} catch (Exception e) {
-			buildDetails.setCoberturaResult(null);
-		}
-		try {
-			List<Artifact> artifactList = build.getArtifacts();
-			Artifact artifact = artifactList.stream().filter(a -> a.getFileName().equals("mutations.xml")).findFirst().orElse(null);
-			if (artifact != null) {
-				MutationResult result = new MutationResult();
-				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-				outputStream.write(build.downloadArtifact(artifact));
-				String mutationReport = new String(outputStream.toByteArray());
-				Document document = DocumentHelper.parseText(mutationReport);
-				Element root = document.getRootElement();
-				for (Object element : root.elements("mutation")) {
-					if (element instanceof Element) {
-						Attribute attribute = ((Element) element).attribute("detected");
-						if (attribute != null) {
-							result.setMutations(result.getMutations() + 1);
-							if ("true".equals(attribute.getValue())) {
-								result.setDetectedMutations(result.getDetectedMutations() + 1);
-							}
+			if ("TEST".equals(target)) {
+				fetchTestResult(result, build);
+			} else if ("COVERAGE".equals(target)) {
+				fetchCoverageResult(result, build);
+			} else if ("MUTATION".equals(target)) {
+				fetchMutationResult(result, build);
+			}
+		} catch (Exception ignore) { }
+	}
+
+	private void fetchTestResult(BuildDetails result, BuildWithDetails build) throws IOException {
+		result.setTestResult(build.getTestResult());
+	}
+
+	private void fetchCoverageResult(BuildDetails result, BuildWithDetails build) throws IOException {
+		result.setCoverageResult(build.getClient().get(build.getUrl() + "/cobertura/?depth=2", CoverageResult.class));
+	}
+
+	private void fetchMutationResult(BuildDetails result, BuildWithDetails build) throws IOException, URISyntaxException, DocumentException {
+		List<Artifact> artifactList = build.getArtifacts();
+		Artifact artifact = artifactList.stream().filter(a -> a.getFileName().equals("mutations.xml")).findFirst().orElse(null);
+		if (artifact != null) {
+			MutationResult mutationResult = new MutationResult();
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			outputStream.write(build.downloadArtifact(artifact));
+			String mutationReport = new String(outputStream.toByteArray());
+			Document document = DocumentHelper.parseText(mutationReport);
+			Element root = document.getRootElement();
+			for (Object element : root.elements("mutation")) {
+				if (element instanceof Element) {
+					Attribute attribute = ((Element) element).attribute("detected");
+					if (attribute != null) {
+						mutationResult.setMutations(mutationResult.getMutations() + 1);
+						if ("true".equals(attribute.getValue())) {
+							mutationResult.setDetectedMutations(mutationResult.getDetectedMutations() + 1);
 						}
 					}
 				}
-				buildDetails.setMutationResult(result);
 			}
-		} catch (Exception e) {
-			buildDetails.setMutationResult(null);
+			result.setMutationResult(mutationResult);
 		}
-		return buildDetails;
 	}
 
 	private String readTemplate() throws IOException {

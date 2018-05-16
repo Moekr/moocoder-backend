@@ -13,5 +13,5 @@ public interface JenkinsApi {
 
 	void deleteJob(int id) throws IOException;
 
-	BuildDetails fetchBuildDetails(int id, int buildNumber) throws IOException;
+	BuildDetails fetchBuildDetails(int id, int buildNumber, String target) throws IOException;
 }

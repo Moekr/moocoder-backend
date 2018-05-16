@@ -5,9 +5,12 @@ import com.moekr.moocoder.data.dao.RecordDAO;
 import com.moekr.moocoder.data.dao.ResultDAO;
 import com.moekr.moocoder.data.entity.*;
 import com.moekr.moocoder.logic.api.JenkinsApi;
+import com.moekr.moocoder.logic.api.vo.BuildDetails;
 import com.moekr.moocoder.util.ApplicationProperties;
 import com.moekr.moocoder.util.ToolKit;
 import com.moekr.moocoder.util.enums.BuildStatus;
+import com.moekr.moocoder.util.enums.ProblemType;
+import com.moekr.moocoder.util.problem.evaluator.Evaluator;
 import com.moekr.moocoder.util.problem.helper.ProblemHelper;
 import com.offbytwo.jenkins.model.QueueItem;
 import lombok.extern.apachecommons.CommonsLog;
@@ -15,12 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @CommonsLog
-public class BuildInvoker {
+public class BuildManager {
 	private final CommitDAO commitDAO;
 	private final RecordDAO recordDAO;
 	private final ResultDAO resultDAO;
@@ -28,7 +31,7 @@ public class BuildInvoker {
 	private final ApplicationProperties properties;
 
 	@Autowired
-	public BuildInvoker(CommitDAO commitDAO, RecordDAO recordDAO, ResultDAO resultDAO, JenkinsApi jenkinsApi, ApplicationProperties properties) {
+	public BuildManager(CommitDAO commitDAO, RecordDAO recordDAO, ResultDAO resultDAO, JenkinsApi jenkinsApi, ApplicationProperties properties) {
 		this.commitDAO = commitDAO;
 		this.recordDAO = recordDAO;
 		this.resultDAO = resultDAO;
@@ -37,14 +40,16 @@ public class BuildInvoker {
 	}
 
 	@Transactional
-	public void invokeNextBuild(int resultId) {
+	public boolean invokeNextBuild(int resultId) {
+		Result result = resultDAO.findById(resultId);
+		if (result == null) return false;
 		Record record;
-		while ((record = nextUnbuiltRecord(resultId)) != null) {
+		while ((record = nextUnbuiltRecord(result)) != null) {
 			try {
 				QueueItem item = jenkinsApi.invokeBuild(resultId, buildParam(record));
 				record.setNumber(item.getExecutable().getNumber().intValue());
 				record.setStatus(BuildStatus.RUNNING);
-				break;
+				return true;
 			} catch (Exception e) {
 				log.error("触发构建#" + record.getId() + "时发生异常" + ToolKit.format(e));
 				record.setStatus(BuildStatus.FAILURE);
@@ -52,47 +57,41 @@ public class BuildInvoker {
 				recordDAO.save(record);
 			}
 		}
-
+		return false;
 	}
 
-	private Record nextUnbuiltRecord(int resultId) {
-		List<Commit> commitList = commitDAO.findAllByResult_IdAndFinishedOrderByIdAsc(resultId, false);
-		for (Commit commit : commitList) {
-			for (Record record : commit.getRecords()) {
-				if (record.getStatus() == BuildStatus.RUNNING) {
-					return null;
-				} else if (record.getStatus() == BuildStatus.WAITING) {
-					return record;
-				}
+	@Transactional
+	public boolean recordBuildResult(int id, int buildNumber) {
+		Record record = recordDAO.findByResultIdAndBuildNumber(id, buildNumber);
+		if (record == null || record.getStatus() != BuildStatus.RUNNING) {
+			return false;
+		}
+		Problem problem = record.getProblem();
+		ProblemType type = problem.getType();
+		try {
+			BuildDetails buildDetails = jenkinsApi.fetchBuildDetails(id, buildNumber, type.getTarget());
+			Evaluator evaluator = type.getEvaluator();
+			evaluator.evaluate(record, buildDetails);
+		} catch (Exception e) {
+			log.error("获取项目" + id + "的构建记录" + buildNumber + "时发生异常" + ToolKit.format(e));
+			record.setStatus(BuildStatus.FAILURE);
+		} finally {
+			recordDAO.save(record);
+		}
+		return true;
+	}
+
+	private Record nextUnbuiltRecord(Result result) {
+		Commit commit = commitDAO.findFirstUnfinishedByResult(result);
+		if (commit == null) return null;
+		for (Record record : commit.getRecords()) {
+			if (record.getStatus() == BuildStatus.RUNNING) {
+				return null;
+			} else if (record.getStatus() == BuildStatus.WAITING) {
+				return record;
 			}
-			completeCommit(commit);
 		}
 		return null;
-	}
-
-	private void completeCommit(Commit commit) {
-		Map<Problem, Record> recordMap = commit.getRecords().stream()
-				.collect(Collectors.toMap(Record::getProblem, r -> r));
-		Result result = commit.getResult();
-		Exam exam = result.getExam();
-		Set<Problem> problems = exam.getProblems();
-		int totalScore = 0;
-		for (Problem problem : problems) {
-			Record record = recordMap.get(problem);
-			if (record == null) {
-				record = recordDAO.findLastBuiltByResultAndProblem(result, problem);
-			}
-			if (record != null) {
-				totalScore = totalScore + record.getScore();
-			}
-		}
-		commit.setScore(totalScore / problems.size());
-		commit.setFinished(true);
-		commit = commitDAO.save(commit);
-		if (commit.getScore() > result.getScore()) {
-			result.setScore(commit.getScore());
-			resultDAO.save(result);
-		}
 	}
 
 	private Map<String, String> buildParam(Record record) {

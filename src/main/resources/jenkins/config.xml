@@ -103,7 +103,7 @@ pipeline {
     }
     post {
         always {
-            sh &apos;curl -o /dev/null -s -X POST -H &quot;X-Moocoder-Secret: ${MOOCODER_SECRET}&quot; &quot;${MOOCODER_HOST}/internal/notify/callback/${JOB_NAME}/${BUILD_NUMBER}&quot;&apos;
+            sh &apos;curl -o /dev/null -s -X POST -H &quot;X-Moocoder-Secret: ${MOOCODER_SECRET}&quot; &quot;${MOOCODER_HOST}/internal/notify/callback/${JOB_NAME}/${BUILD_NUMBER}&quot; || :&apos;
         }
     }
 }

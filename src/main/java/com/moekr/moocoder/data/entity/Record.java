@@ -11,8 +11,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"commit", "problem"})
-@ToString(exclude = {"commit", "problem"})
+@EqualsAndHashCode(exclude = {"failures", "commit", "problem"})
+@ToString(exclude = {"consoleOutput", "failures", "commit", "problem"})
 @Entity
 @Table(name = "ENTITY_RECORD")
 public class Record {
