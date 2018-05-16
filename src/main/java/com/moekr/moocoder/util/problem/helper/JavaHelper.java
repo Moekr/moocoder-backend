@@ -12,7 +12,7 @@ public class JavaHelper extends AbstractJavaHelper {
 	public FileType fileType(String filePath) {
 		if (filePath.startsWith("/src/main/")) {
 			return FileType.PUBLIC;
-		} else if (filePath.startsWith("/src/test/")){
+		} else if (filePath.startsWith("/src/test/")) {
 			return FileType.PRIVATE;
 		} else {
 			return FileType.PROTECTED;

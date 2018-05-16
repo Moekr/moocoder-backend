@@ -24,7 +24,7 @@ public @interface FieldCompare {
 
 	Class<?>[] groups() default {};
 
-	Class<? extends Payload>[] payload() default { };
+	Class<? extends Payload>[] payload() default {};
 
 	String lessField();
 

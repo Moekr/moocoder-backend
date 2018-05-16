@@ -2,8 +2,8 @@ package com.moekr.moocoder.util.problem.evaluator;
 
 import com.moekr.moocoder.data.entity.Record;
 import com.moekr.moocoder.logic.api.vo.BuildDetails;
-import com.moekr.moocoder.logic.api.vo.CoverageResultElement;
 import com.moekr.moocoder.logic.api.vo.CoverageResult;
+import com.moekr.moocoder.logic.api.vo.CoverageResultElement;
 import com.moekr.moocoder.util.enums.BuildStatus;
 import com.offbytwo.jenkins.model.BuildResult;
 import org.apache.commons.lang3.StringUtils;

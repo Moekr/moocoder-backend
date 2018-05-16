@@ -14,7 +14,7 @@ public class PythonHelper extends AbstractPythonHelper {
 			return FileType.PUBLIC;
 		} else if (filePath.startsWith("/test/")) {
 			return FileType.PRIVATE;
-		} else  {
+		} else {
 			return FileType.PROTECTED;
 		}
 	}

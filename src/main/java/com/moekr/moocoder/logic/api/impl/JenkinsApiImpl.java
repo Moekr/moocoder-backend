@@ -64,14 +64,14 @@ public class JenkinsApiImpl implements JenkinsApi {
 			// 0.3.7版本的Jenkins客户端库中build(Map<String, String> params)方法存在BUG，会触发两次构建
 			reference = server.getJob(String.valueOf(id)).build(paramMap, false);
 		}
-		QueueItem item =  server.getQueueItem(reference);
+		QueueItem item = server.getQueueItem(reference);
 		while (item.getExecutable() == null) {
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
-			item =  server.getQueueItem(reference);
+			item = server.getQueueItem(reference);
 		}
 		return item;
 	}

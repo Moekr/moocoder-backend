@@ -69,9 +69,9 @@ public class ProblemController extends AbstractApiController {
 
 	@PutMapping("/problem/{problemId:\\d+}")
 	public Response update(@AuthenticationPrincipal CustomUserDetails userDetails,
-						  @PathVariable int problemId,
-						  @RequestPart String path,
-						  @RequestPart MultipartFile file) throws ServiceException, IOException {
+						   @PathVariable int problemId,
+						   @RequestPart String path,
+						   @RequestPart MultipartFile file) throws ServiceException, IOException {
 		byte[] content = file.getBytes();
 		problemService.update(userDetails.getId(), problemId, path, content);
 		return new EmptyResponse();
