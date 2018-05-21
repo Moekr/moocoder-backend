@@ -39,6 +39,7 @@ public class BuildManager {
 		this.properties = properties;
 	}
 
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	@Transactional
 	public boolean invokeNextBuild(int resultId) {
 		Result result = resultDAO.findById(resultId);
@@ -51,7 +52,8 @@ public class BuildManager {
 				record.setStatus(BuildStatus.RUNNING);
 				return true;
 			} catch (Exception e) {
-				log.error("触发构建#" + record.getId() + "时发生异常" + ToolKit.format(e));
+				log.error("触发构建" + record.getId() + "时发生异常" + ToolKit.format(e));
+				record.setConsoleOutput("系统内部发生未知异常，请尝试重新提交！");
 				record.setStatus(BuildStatus.FAILURE);
 			} finally {
 				recordDAO.save(record);
@@ -73,7 +75,8 @@ public class BuildManager {
 			Evaluator evaluator = type.getEvaluator();
 			evaluator.evaluate(record, buildDetails);
 		} catch (Exception e) {
-			log.error("获取项目" + id + "的构建记录" + buildNumber + "时发生异常" + ToolKit.format(e));
+			log.error("获取构建记录" + buildNumber + "时发生异常" + ToolKit.format(e));
+			record.setConsoleOutput("系统内部发生未知异常，请尝试重新提交！");
 			record.setStatus(BuildStatus.FAILURE);
 		} finally {
 			recordDAO.save(record);
@@ -84,14 +87,18 @@ public class BuildManager {
 	private Record nextUnbuiltRecord(Result result) {
 		Commit commit = commitDAO.findFirstUnfinishedByResult(result);
 		if (commit == null) return null;
+		Record unbuiltRecord = null;
 		for (Record record : commit.getRecords()) {
-			if (record.getStatus() == BuildStatus.RUNNING) {
-				return null;
-			} else if (record.getStatus() == BuildStatus.WAITING) {
-				return record;
+			switch (record.getStatus()) {
+				case RUNNING:
+					return null;
+				case WAITING:
+					if (unbuiltRecord == null) {
+						unbuiltRecord = record;
+					}
 			}
 		}
-		return null;
+		return unbuiltRecord;
 	}
 
 	private Map<String, String> buildParam(Record record) {
