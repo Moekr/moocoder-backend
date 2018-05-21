@@ -28,10 +28,11 @@ public class PythonCoverageHelper extends AbstractPythonHelper {
 
 	@Override
 	public String runScript(String uniqueName) {
-		return "pushd /var/ws/code/" + uniqueName + "/ &>/dev/null\n"
+		return "pushd /var/ws/tmp/ &>/dev/null\n"
 				+ "nosetests3 --with-coverage --cover-xml || :\n"
 				+ "popd &>/dev/null\n"
-				+ "mkdir -p ./coverage-reports/" + uniqueName + "/ &>/dev/null\n"
-				+ "cp /var/ws/code/" + uniqueName + "/coverage.xml ./coverage-reports/ &>/dev/null || :\n";
+				+ "rm -rf coverage-reports &>/dev/null\n"
+				+ "mkdir coverage-reports &>/dev/null\n"
+				+ "cp /var/ws/tmp/coverage.xml ./coverage-reports/ &>/dev/null || :\n";
 	}
 }

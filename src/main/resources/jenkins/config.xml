@@ -62,7 +62,7 @@ pipeline {
             agent {
                 docker {
                     image &quot;${DOCKER_IMAGE}&quot;
-                    args &apos;--network none --cpus 1 -m 1G -h localhost&apos;
+                    args &apos;--network none --cpus 1 -m 1G -h localhost --mount type=tmpfs,destination=/var/ws/tmp,tmpfs-size=134217728&apos;
                     reuseNode true
                 }
             }

@@ -112,9 +112,12 @@ public class BuildManager {
 		param.put("GIT_URL", properties.getGitlab().getHost() + "/" + user.getUsername() + "/" + exam.getUuid());
 		param.put("COMMIT_HASH", record.getCommit().getHash());
 		param.put("DOCKER_IMAGE", properties.getDocker().getRegistry() + "/" + problem.getImageName() + ":" + problem.getImageTag());
-		param.put("EXECUTE_SHELL", "#!/bin/bash\n" +
-				"cp --parents -R " + uniqueName + helper.editableDirectory() + "/*" + " /var/ws/code/ &>/dev/null || :\n" +
-				helper.runScript(uniqueName));
+		param.put("EXECUTE_SHELL", "#!/bin/bash\n"
+				+ "cp -R /var/ws/code/" + uniqueName + "/* /var/ws/tmp/ &>/dev/null || :\n"
+				+ "pushd " + uniqueName + " &>/dev/null\n"
+				+ "cp --parents -R ." + helper.editableDirectory() + "/*" + " /var/ws/tmp/ &>/dev/null || :\n"
+				+ "popd &>/dev/null\n"
+				+ helper.runScript(uniqueName));
 		return param;
 	}
 }

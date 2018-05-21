@@ -30,10 +30,11 @@ public class JavaHelper extends AbstractJavaHelper {
 
 	@Override
 	public String runScript(String uniqueName) {
-		return "pushd /var/ws/code/" + uniqueName + "/ &>/dev/null\n"
+		return "pushd /var/ws/tmp/ &>/dev/null\n"
 				+ "mvn -fn clean test -Dmaven.repo.local=/var/ws/repository/\n"
 				+ "popd &>/dev/null\n"
-				+ "mkdir -p ./test-reports/" + uniqueName + "/ &>/dev/null\n"
-				+ "cp /var/ws/code/" + uniqueName + "/target/surefire-reports/*.xml ./test-reports/ &>/dev/null || :\n";
+				+ "rm -rf test-reports &>/dev/null\n"
+				+ "mkdir test-reports &>/dev/null\n"
+				+ "cp /var/ws/tmp/target/surefire-reports/*.xml ./test-reports/ &>/dev/null || :\n";
 	}
 }
