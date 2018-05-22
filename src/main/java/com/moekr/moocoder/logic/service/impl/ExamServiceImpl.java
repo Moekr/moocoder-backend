@@ -169,7 +169,8 @@ public class ExamServiceImpl implements ExamService {
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选考试不存在");
 		checkAccess(userId, exam);
-		BeanUtils.copyProperties(examDTO, exam, "name");
+		exam.setStartAt(examDTO.getStartAt());
+		exam.setEndAt(examDTO.getEndAt());
 		return new ExamVO(examDAO.save(exam));
 	}
 

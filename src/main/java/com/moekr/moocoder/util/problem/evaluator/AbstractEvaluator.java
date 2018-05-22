@@ -39,6 +39,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 				return BuildStatus.UNSTABLE;
 			case ABORTED:
 			case FAILURE:
+				// FIXME 当出现排队情况时该种方法检测是否超时不准确
 				if (details.getDuration() > timeout) {
 					return BuildStatus.TIMEOUT;
 				}

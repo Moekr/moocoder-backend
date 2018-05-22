@@ -82,11 +82,11 @@ public class JenkinsApiImpl implements JenkinsApi {
 	}
 
 	@Override
-	public BuildDetails fetchBuildDetails(int id, int buildNumber, String target) throws IOException {
+	public BuildDetails fetchBuildDetails(int id, int buildNumber, String target, boolean waitFinished) throws IOException {
 		BuildDetails result = new BuildDetails();
 		BuildWithDetails build;
 		build = server.getJob(String.valueOf(id)).getBuildByNumber(buildNumber).details();
-		while (build.getResult() == null || build.getDuration() == 0) {
+		while (waitFinished && (build.getResult() == null || build.getDuration() == 0)) {
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {

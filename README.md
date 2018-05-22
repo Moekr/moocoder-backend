@@ -12,7 +12,7 @@ MOOCODER Backend
 - [x] 自动化测试，实时展示成绩
 - [x] 完全隐藏GitLab和Jenkins
 - [x] Docker中运行测试，隔离网络
-- [ ] CPU、内存资源限制
+- [x] CPU、内存资源限制
 - [ ] LDAP统一认证
 - [ ] 分布式与GitLab集群
 - [ ] WebIDE支持
@@ -23,7 +23,7 @@ MOOCODER Backend
 - [x] Python覆盖率测试
 - [x] Java
 - [x] Java覆盖率测试
-- [ ] Java变异覆盖测试
+- [x] Java变异覆盖测试
 
 ### 编译
 
@@ -39,14 +39,15 @@ MOOCODER Backend
 * 邮件发送支持
 * 一个GitLab实例
     ```
-    docker run -d --name moocoder-gitlab -p 8081:80 --restart always -v /srv/moocoder/gitlab/config:/etc/gitlab:Z -v /srv/moocoder/gitlab/log:/var/log/gitlab:Z -v /srv/moocoder/gitlab/data:/var/opt/gitlab:Z gitlab/gitlab-ce:10.6.4-ce.0
+    docker run -d --name moocoder-gitlab -p 8081:80 --restart always -v /srv/moocoder/gitlab/config:/etc/gitlab:Z -v /srv/moocoder/gitlab/log:/var/log/gitlab:Z -v /srv/moocoder/gitlab/data:/var/opt/gitlab:Z gitlab/gitlab-ce:10.8.0-ce.0
     ```
 * 一个Jenkins实例
     ```
-    docker run -d --name moocoder-jenkins -p 8082:8080 --restart always -v /srv/moocoder/jenkins:/var/jenkins_home:Z -v /usr/bin/docker:/usr/bin/docker:Z -v /var/run/docker.sock:/var/run/docker.sock:Z -u root jenkins/jenkins:2.117
+    docker run -d --name moocoder-jenkins -p 8082:8080 --restart always -v /srv/moocoder/jenkins:/var/jenkins_home:Z -v /usr/bin/docker:/usr/bin/docker:Z -v /var/run/docker.sock:/var/run/docker.sock:Z -u root jenkins/jenkins:2.124
     ```
     
     注意：最新版本的Jenkins官方Docker镜像缺少docker二进制文件所依赖的运行库libltdl，需要使用`apt install libltdl-dev`进行安装
+    其他：由于Jenkins Workspace中的文件均为临时性文件，当磁盘负担较重时可以使用`-v /dev/shm/jenkins:/var/jenkins_home/workspace:Z`来使用内存进行加速
     
 * 一个Docker Registry实例
     ```

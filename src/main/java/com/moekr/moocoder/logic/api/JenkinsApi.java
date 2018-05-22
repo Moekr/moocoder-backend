@@ -13,5 +13,6 @@ public interface JenkinsApi {
 
 	void deleteJob(int id) throws IOException;
 
-	BuildDetails fetchBuildDetails(int id, int buildNumber, String target) throws IOException;
+	// waitFinished: 是否等待直到构建完全完成
+	BuildDetails fetchBuildDetails(int id, int buildNumber, String target, boolean waitFinished) throws IOException;
 }

@@ -3,8 +3,11 @@ package com.moekr.moocoder.logic.service.impl;
 import com.moekr.moocoder.data.dao.RecordDAO;
 import com.moekr.moocoder.data.entity.Record;
 import com.moekr.moocoder.data.entity.Result;
+import com.moekr.moocoder.logic.api.JenkinsApi;
+import com.moekr.moocoder.logic.api.vo.BuildDetails;
 import com.moekr.moocoder.logic.service.NotifyService;
 import com.moekr.moocoder.util.enums.BuildStatus;
+import com.moekr.moocoder.util.enums.ProblemType;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +23,14 @@ public class ClosedBuildChecker {
 	private static final int THRESHOLD = 3;
 
 	private final RecordDAO recordDAO;
+	private final JenkinsApi jenkinsApi;
 	private final NotifyService notifyService;
 
 	private Map<Integer, Integer> history;
 
-	public ClosedBuildChecker(RecordDAO recordDAO, NotifyService notifyService) {
+	public ClosedBuildChecker(RecordDAO recordDAO, JenkinsApi jenkinsApi, NotifyService notifyService) {
 		this.recordDAO = recordDAO;
+		this.jenkinsApi = jenkinsApi;
 		this.notifyService = notifyService;
 		this.history = new HashMap<>();
 	}
@@ -41,10 +46,16 @@ public class ClosedBuildChecker {
 
 	private void invokeCallback(int recordId) {
 		Record record = recordDAO.findById(recordId);
-		if (record == null || record.getStatus() != BuildStatus.RUNNING) {
+		if (record.getStatus() != BuildStatus.RUNNING) return;
+		Result result = record.getCommit().getResult();
+		ProblemType type = record.getProblem().getType();
+		try {
+			BuildDetails details = jenkinsApi.fetchBuildDetails(result.getId(), record.getNumber(), type.getTarget(), false);
+			// 表明构建仍在进行，此时不应该触发回调
+			if (details.getBuildResult() == null) return;
+		} catch (Exception e) {
 			return;
 		}
-		Result result = record.getCommit().getResult();
 		notifyService.callback(result.getId(), record.getNumber());
 	}
 }

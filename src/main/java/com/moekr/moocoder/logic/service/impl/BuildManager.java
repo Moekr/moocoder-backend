@@ -71,7 +71,7 @@ public class BuildManager {
 		Problem problem = record.getProblem();
 		ProblemType type = problem.getType();
 		try {
-			BuildDetails buildDetails = jenkinsApi.fetchBuildDetails(id, buildNumber, type.getTarget());
+			BuildDetails buildDetails = jenkinsApi.fetchBuildDetails(id, buildNumber, type.getTarget(), true);
 			Evaluator evaluator = type.getEvaluator();
 			evaluator.evaluate(record, buildDetails);
 		} catch (Exception e) {
