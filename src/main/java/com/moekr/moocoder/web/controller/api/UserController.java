@@ -15,6 +15,10 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
+
+import static com.moekr.moocoder.web.security.WebSecurityConstants.ADMIN_ROLE;
+
 @RestController
 @RequestMapping("/api")
 public class UserController extends AbstractApiController {
@@ -26,12 +30,14 @@ public class UserController extends AbstractApiController {
 	}
 
 	@PostMapping("/user")
+	@RolesAllowed(ADMIN_ROLE)
 	public Response create(@RequestBody @Validated(PostMapping.class) UserDTO userDTO, Errors errors) throws ServiceException {
 		checkErrors(errors);
 		return new ResourceResponse(userService.create(userDTO));
 	}
 
 	@GetMapping("/user")
+	@RolesAllowed(ADMIN_ROLE)
 	public Response retrievePage(@RequestParam(defaultValue = "1") int page,
 								 @RequestParam(defaultValue = "10") int limit,
 								 @RequestParam(defaultValue = "") String search) throws ServiceException {
@@ -39,6 +45,7 @@ public class UserController extends AbstractApiController {
 	}
 
 	@GetMapping("/user/{userId:\\d+}")
+	@RolesAllowed(ADMIN_ROLE)
 	public Response retrieve(@PathVariable int userId) throws ServiceException {
 		return new ResourceResponse(userService.retrieve(userId));
 	}
@@ -52,6 +59,7 @@ public class UserController extends AbstractApiController {
 	}
 
 	@DeleteMapping("/user/{userId:\\d+}")
+	@RolesAllowed(ADMIN_ROLE)
 	public Response delete(@PathVariable int userId) throws ServiceException {
 		userService.delete(userId);
 		return new EmptyResponse();

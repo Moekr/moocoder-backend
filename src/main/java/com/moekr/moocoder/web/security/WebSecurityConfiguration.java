@@ -6,20 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-@EnableWebSecurity
-public class WebSecurityConfiguration {
-	public static final GrantedAuthority STUDENT_AUTHORITY = new SimpleGrantedAuthority("STUDENT");
-	public static final GrantedAuthority TEACHER_AUTHORITY = new SimpleGrantedAuthority("TEACHER");
-	public static final GrantedAuthority ADMIN_AUTHORITY = new SimpleGrantedAuthority("ADMIN");
+import static com.moekr.moocoder.web.security.WebSecurityConstants.*;
 
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(jsr250Enabled = true)
+public class WebSecurityConfiguration {
 	@Configuration
 	@Order(Ordered.HIGHEST_PRECEDENCE)
 	public static class ApiWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -27,13 +24,6 @@ public class WebSecurityConfiguration {
 		protected void configure(HttpSecurity http) throws Exception {
 			http.antMatcher("/api/**")
 					.authorizeRequests()
-					.antMatchers(HttpMethod.POST, "/api/exam").hasAnyAuthority(TEACHER_AUTHORITY.getAuthority())
-					.antMatchers(HttpMethod.POST, "/api/exam/*/join").hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), STUDENT_AUTHORITY.getAuthority())
-					.antMatchers(HttpMethod.GET, "/api/user/current").authenticated()
-					.antMatchers("/api/user", "/api/user/**").hasAuthority(ADMIN_AUTHORITY.getAuthority())
-					.antMatchers(HttpMethod.POST).hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), ADMIN_AUTHORITY.getAuthority())
-					.antMatchers(HttpMethod.PUT).hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), ADMIN_AUTHORITY.getAuthority())
-					.antMatchers(HttpMethod.DELETE).hasAnyAuthority(TEACHER_AUTHORITY.getAuthority(), ADMIN_AUTHORITY.getAuthority())
 					.anyRequest().authenticated()
 					.and()
 					.httpBasic()

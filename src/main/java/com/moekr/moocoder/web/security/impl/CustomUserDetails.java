@@ -1,7 +1,6 @@
 package com.moekr.moocoder.web.security.impl;
 
 import com.moekr.moocoder.data.entity.User;
-import com.moekr.moocoder.web.security.WebSecurityConfiguration;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -13,6 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Collections;
 import java.util.Set;
+
+import static com.moekr.moocoder.web.security.WebSecurityConstants.*;
 
 @Data
 @EqualsAndHashCode
@@ -27,10 +28,10 @@ public class CustomUserDetails implements UserDetails {
 		BeanUtils.copyProperties(user, this);
 		switch (user.getRole()) {
 			case STUDENT:
-				this.authorities = Collections.singleton(WebSecurityConfiguration.STUDENT_AUTHORITY);
+				this.authorities = Collections.singleton(STUDENT_AUTHORITY);
 				break;
 			case TEACHER:
-				this.authorities = Collections.singleton(WebSecurityConfiguration.TEACHER_AUTHORITY);
+				this.authorities = Collections.singleton(TEACHER_AUTHORITY);
 				break;
 			default:
 				throw new UsernameNotFoundException(username);
@@ -41,7 +42,7 @@ public class CustomUserDetails implements UserDetails {
 		this.id = 0;
 		this.username = username;
 		this.password = DigestUtils.sha256Hex(password);
-		this.authorities = Collections.singleton(WebSecurityConfiguration.ADMIN_AUTHORITY);
+		this.authorities = Collections.singleton(ADMIN_AUTHORITY);
 	}
 
 	@Override
@@ -65,14 +66,14 @@ public class CustomUserDetails implements UserDetails {
 	}
 
 	public boolean isStudent() {
-		return authorities.contains(WebSecurityConfiguration.STUDENT_AUTHORITY);
+		return authorities.contains(STUDENT_AUTHORITY);
 	}
 
 	public boolean isTeacher() {
-		return authorities.contains(WebSecurityConfiguration.TEACHER_AUTHORITY);
+		return authorities.contains(TEACHER_AUTHORITY);
 	}
 
 	public boolean isAdmin() {
-		return authorities.contains(WebSecurityConfiguration.ADMIN_AUTHORITY);
+		return authorities.contains(ADMIN_AUTHORITY);
 	}
 }

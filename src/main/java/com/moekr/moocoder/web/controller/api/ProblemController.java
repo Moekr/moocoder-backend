@@ -2,7 +2,6 @@ package com.moekr.moocoder.web.controller.api;
 
 import com.moekr.moocoder.logic.service.ProblemService;
 import com.moekr.moocoder.util.enums.ProblemType;
-import com.moekr.moocoder.util.exceptions.AccessDeniedException;
 import com.moekr.moocoder.util.exceptions.ServiceException;
 import com.moekr.moocoder.web.dto.ProblemDTO;
 import com.moekr.moocoder.web.response.EmptyResponse;
@@ -17,10 +16,15 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.security.RolesAllowed;
 import java.io.IOException;
+
+import static com.moekr.moocoder.web.security.WebSecurityConstants.ADMIN_ROLE;
+import static com.moekr.moocoder.web.security.WebSecurityConstants.TEACHER_ROLE;
 
 @RestController
 @RequestMapping("/api")
+@RolesAllowed({TEACHER_ROLE, ADMIN_ROLE})
 public class ProblemController extends AbstractApiController {
 	private final ProblemService problemService;
 
@@ -49,22 +53,16 @@ public class ProblemController extends AbstractApiController {
 		} catch (IllegalArgumentException e) {
 			type = null;
 		}
-		if (userDetails.isTeacher()) {
-			return new PageResourceResponse(problemService.retrievePage(userDetails.getId(), page, limit, type));
-		} else if (userDetails.isAdmin()) {
+		if (userDetails.isAdmin()) {
 			return new PageResourceResponse(problemService.retrievePage(page, limit, type));
 		}
-		throw new AccessDeniedException();
+		return new PageResourceResponse(problemService.retrievePage(userDetails.getId(), page, limit, type));
 	}
 
 	@GetMapping("/problem/{problemId:\\d+}")
 	public Response retrieve(@AuthenticationPrincipal CustomUserDetails userDetails,
 							 @PathVariable int problemId) throws ServiceException {
-		if (userDetails.isStudent()) {
-			throw new AccessDeniedException();
-		} else {
-			return new ResourceResponse(problemService.retrieve(userDetails.getId(), problemId));
-		}
+		return new ResourceResponse(problemService.retrieve(userDetails.getId(), problemId));
 	}
 
 	@PutMapping("/problem/{problemId:\\d+}")

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,6 +25,9 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.moekr.moocoder.web.security.WebSecurityConstants.ADMIN_ROLE;
+import static com.moekr.moocoder.web.security.WebSecurityConstants.TEACHER_ROLE;
 
 @Controller
 @RequestMapping("/file/result")
@@ -41,12 +45,18 @@ public class ResultFileController {
 	}
 
 	@GetMapping("/{examId:\\d+}")
+	@RolesAllowed({TEACHER_ROLE, ADMIN_ROLE})
 	public void score(@AuthenticationPrincipal CustomUserDetails userDetails,
 					  @PathVariable int examId,
 					  HttpServletResponse response) throws IOException {
 		Map<String, Integer> scoreMap = new HashMap<>();
 		try {
-			List<ResultVO> resultList = resultService.retrieveByExam(userDetails.getId(), examId);
+			List<ResultVO> resultList;
+			if (userDetails.isAdmin()) {
+				resultList = resultService.retrieveByExam(examId);
+			} else {
+				resultList = resultService.retrieveByExam(userDetails.getId(), examId);
+			}
 			for (ResultVO result : resultList) {
 				scoreMap.put(result.getUsername(), result.getScore());
 			}

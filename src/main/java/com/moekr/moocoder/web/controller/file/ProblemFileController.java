@@ -18,10 +18,14 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import static com.moekr.moocoder.web.security.WebSecurityConstants.ADMIN_ROLE;
+import static com.moekr.moocoder.web.security.WebSecurityConstants.TEACHER_ROLE;
 
 @Controller
 @RequestMapping("/file/problem")
@@ -41,6 +45,7 @@ public class ProblemFileController {
 	}
 
 	@GetMapping(value = "/{problemId:\\d+}")
+	@RolesAllowed({TEACHER_ROLE, ADMIN_ROLE})
 	public void result(@AuthenticationPrincipal CustomUserDetails userDetails,
 					   @PathVariable int problemId,
 					   HttpServletResponse response) throws IOException {

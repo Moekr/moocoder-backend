@@ -15,6 +15,10 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
+
+import static com.moekr.moocoder.web.security.WebSecurityConstants.*;
+
 @RestController
 @RequestMapping("/api")
 public class ExamController extends AbstractApiController {
@@ -26,6 +30,7 @@ public class ExamController extends AbstractApiController {
 	}
 
 	@PostMapping("/exam")
+	@RolesAllowed(TEACHER_ROLE)
 	public Response create(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @RequestBody @Validated(PostMapping.class) ExamDTO examDTO, Errors errors) throws ServiceException {
 		checkErrors(errors);
@@ -48,9 +53,8 @@ public class ExamController extends AbstractApiController {
 			return new PageResourceResponse(examService.retrievePage(userDetails.getId(), page, limit, status));
 		} else if (userDetails.isAdmin()) {
 			return new PageResourceResponse(examService.retrievePage(page, limit, status));
-		} else {
-			return new PageResourceResponse(examService.retrievePage(userDetails.getId(), page, limit, joined, status));
 		}
+		return new PageResourceResponse(examService.retrievePage(userDetails.getId(), page, limit, joined, status));
 	}
 
 	@GetMapping("/exam/{examId:\\d+}")
@@ -63,6 +67,7 @@ public class ExamController extends AbstractApiController {
 	}
 
 	@PutMapping("/exam/{examId:\\d+}")
+	@RolesAllowed({TEACHER_ROLE, ADMIN_ROLE})
 	public Response update(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @PathVariable int examId,
 						   @RequestBody @Validated(PutMapping.class) ExamDTO examDTO, Errors errors) throws ServiceException {
@@ -71,6 +76,7 @@ public class ExamController extends AbstractApiController {
 	}
 
 	@DeleteMapping("/exam/{examId:\\d+}")
+	@RolesAllowed({TEACHER_ROLE, ADMIN_ROLE})
 	public Response delete(@AuthenticationPrincipal CustomUserDetails userDetails,
 						   @PathVariable int examId) throws ServiceException {
 		examService.delete(userDetails.getId(), examId);
@@ -78,6 +84,7 @@ public class ExamController extends AbstractApiController {
 	}
 
 	@PostMapping("/exam/{examId:\\d+}/join")
+	@RolesAllowed({STUDENT_ROLE, TEACHER_ROLE})
 	public Response join(@AuthenticationPrincipal CustomUserDetails userDetails,
 						 @PathVariable int examId) throws ServiceException {
 		examService.join(userDetails.getId(), examId);

@@ -27,8 +27,7 @@ public class CommitController extends AbstractApiController {
 							 @PathVariable int commitId) throws ServiceException {
 		if (userDetails.isAdmin()) {
 			return new ResourceResponse(commitService.retrieve(commitId));
-		} else {
-			return new ResourceResponse(commitService.retrieve(userDetails.getId(), commitId));
 		}
+		return new ResourceResponse(commitService.retrieve(userDetails.getId(), commitId));
 	}
 }

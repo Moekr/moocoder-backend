@@ -27,8 +27,7 @@ public class RecordController extends AbstractApiController {
 							 @PathVariable int recordId) throws ServiceException {
 		if (userDetails.isAdmin()) {
 			return new ResourceResponse(recordService.retrieve(recordId));
-		} else {
-			return new ResourceResponse(recordService.retrieve(userDetails.getId(), recordId));
 		}
+		return new ResourceResponse(recordService.retrieve(userDetails.getId(), recordId));
 	}
 }
