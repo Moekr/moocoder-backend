@@ -22,7 +22,7 @@ import java.util.Set;
 @Component
 @CommonsLog
 public class ExamPaperBuilder {
-	private static final String TEMP_PREFIX = "AES-CODE-";
+	private static final String TEMP_PREFIX = "MOOCODER-PAPER-";
 
 	private final ExamDAO examDAO;
 	private final StorageProvider provider;

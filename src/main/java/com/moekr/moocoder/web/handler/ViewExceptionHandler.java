@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.servlet.http.HttpServletResponse;
 
-@ControllerAdvice("com.moekr.aes.web.controller.view")
+@ControllerAdvice({"com.moekr.moocoder.web.controller.view", "com.moekr.moocoder.web.controller.file"})
 public class ViewExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	public String handle(HttpServletResponse response, Model model, Exception exception) {

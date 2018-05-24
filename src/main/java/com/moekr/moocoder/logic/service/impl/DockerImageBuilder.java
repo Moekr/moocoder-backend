@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Component
 @CommonsLog
 public class DockerImageBuilder {
-	private static final String TEMP_PREFIX = "AES-DOCKER-";
+	private static final String TEMP_PREFIX = "MOOCODER-DOCKER-";
 
 	private final ProblemDAO problemDAO;
 	private final DockerApi dockerApi;

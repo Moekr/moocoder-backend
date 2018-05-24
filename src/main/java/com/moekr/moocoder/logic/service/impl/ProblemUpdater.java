@@ -11,7 +11,7 @@ import java.nio.file.Files;
 
 @CommonsLog
 public class ProblemUpdater {
-	private static final String TEMP_PREFIX = "AES-PROB-";
+	private static final String TEMP_PREFIX = "MOOCODER-PROBLEM-";
 	private static final Charset CHARSET = Charset.forName("UTF-8");
 
 	public byte[] update(byte[] origin, String path, byte[] content) throws IOException {

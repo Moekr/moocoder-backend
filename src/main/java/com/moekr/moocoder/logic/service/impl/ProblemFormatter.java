@@ -24,7 +24,7 @@ import java.util.zip.ZipException;
 
 @CommonsLog
 public class ProblemFormatter {
-	private static final String TEMP_PREFIX = "AES-PROB-";
+	private static final String TEMP_PREFIX = "MOOCODER-PROBLEM-";
 	private static final Charset CHARSET = Charset.forName("UTF-8");
 	private static final Charset ALT_CHARSET = Charset.forName("GBK");
 	private static final List<Pattern> USELESS_FILE_PATH_PATTERN = Arrays.asList(

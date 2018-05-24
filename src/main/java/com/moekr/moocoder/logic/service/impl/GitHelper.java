@@ -16,7 +16,7 @@ import java.nio.file.Files;
 
 @Component
 public class GitHelper {
-	private static final String TEMP_PREFIX = "AES-REPO-";
+	private static final String TEMP_PREFIX = "MOOCODER-REPOSITORY-";
 	private static final String COMMIT_MESSAGE = "初始化";
 
 	private final Gitlab gitlab;
