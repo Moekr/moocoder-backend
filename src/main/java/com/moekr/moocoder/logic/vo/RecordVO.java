@@ -18,9 +18,6 @@ import java.util.stream.Collectors;
 public class RecordVO {
 	private Integer id;
 	private Integer number;
-	@JsonProperty("created_at")
-	@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
-	private LocalDateTime createdAt;
 	private BuildStatus status;
 	@JsonProperty("console_output")
 	private String consoleOutput;
@@ -65,6 +62,9 @@ public class RecordVO {
 	@Data
 	private static class NestedCommitVO {
 		private Integer id;
+		@JsonProperty("created_at")
+		@JsonSerialize(using = TimestampLocalDateTimeSerializer.class)
+		private LocalDateTime createdAt;
 
 		NestedCommitVO(Commit commit) {
 			BeanUtils.copyProperties(commit, this);
