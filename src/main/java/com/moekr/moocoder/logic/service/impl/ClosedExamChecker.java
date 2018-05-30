@@ -35,7 +35,7 @@ public class ClosedExamChecker {
 	public void check() {
 		List<Exam> examList = examDAO.findAllByStatus(ExamStatus.AVAILABLE);
 		// XXX 等待30分钟所有提交均完成测试
-		LocalDateTime now = LocalDateTime.now().plusMinutes(30);
+		LocalDateTime now = LocalDateTime.now().minusMinutes(30);
 		examList = examList.stream()
 				.filter(e -> e.getEndAt().isBefore(now))
 				.peek(e -> e.setStatus(ExamStatus.CLOSED))
