@@ -12,7 +12,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-import static com.moekr.moocoder.web.security.WebSecurityConstants.*;
+import static com.moekr.moocoder.web.security.WebSecurityConstants.ADMIN_AUTHORITY;
+import static com.moekr.moocoder.web.security.WebSecurityConstants.TEACHER_AUTHORITY;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)

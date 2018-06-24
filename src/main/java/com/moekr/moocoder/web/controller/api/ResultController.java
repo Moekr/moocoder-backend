@@ -1,6 +1,7 @@
 package com.moekr.moocoder.web.controller.api;
 
 import com.moekr.moocoder.logic.service.ResultService;
+import com.moekr.moocoder.util.exceptions.AccessDeniedException;
 import com.moekr.moocoder.util.exceptions.ServiceException;
 import com.moekr.moocoder.web.response.ResourceResponse;
 import com.moekr.moocoder.web.response.Response;
@@ -14,8 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.security.RolesAllowed;
 
-import static com.moekr.moocoder.web.security.WebSecurityConstants.ADMIN_ROLE;
-import static com.moekr.moocoder.web.security.WebSecurityConstants.TEACHER_ROLE;
+import static com.moekr.moocoder.web.security.WebSecurityConstants.*;
 
 @RestController
 @RequestMapping("/api")
@@ -36,10 +36,22 @@ public class ResultController extends AbstractApiController {
 		return new ResourceResponse(resultService.retrieve(userDetails.getId(), resultId));
 	}
 
+	@GetMapping({"/result", "/user/{userId:\\d+}/result"})
+	@RolesAllowed({STUDENT_ROLE, ADMIN_ROLE})
+	public Response retrieveByOwner(@AuthenticationPrincipal CustomUserDetails userDetails,
+									@PathVariable(required = false) Integer userId) throws ServiceException {
+		if (userDetails.isAdmin() && userId != null) {
+			return new ResourceResponse(resultService.retrieveByOwner(userId));
+		} else if (userId == null) {
+			return new ResourceResponse(resultService.retrieveByOwner(userDetails.getId()));
+		}
+		throw new AccessDeniedException();
+	}
+
 	@GetMapping("/exam/{examId:\\d+}/result")
 	@RolesAllowed({TEACHER_ROLE, ADMIN_ROLE})
-	public Response retrieveByExamination(@AuthenticationPrincipal CustomUserDetails userDetails,
-										  @PathVariable int examId) throws ServiceException {
+	public Response retrieveByExam(@AuthenticationPrincipal CustomUserDetails userDetails,
+								   @PathVariable int examId) throws ServiceException {
 		if (userDetails.isAdmin()) {
 			return new ResourceResponse(resultService.retrieveByExam(examId));
 		}

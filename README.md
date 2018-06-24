@@ -47,6 +47,7 @@ MOOCODER Backend
     ```
     
     注意：最新版本的Jenkins官方Docker镜像缺少docker二进制文件所依赖的运行库libltdl，需要使用`apt install libltdl-dev`进行安装
+    
     其他：由于Jenkins Workspace中的文件均为临时性文件，当磁盘负担较重时可以使用`-v /dev/shm/jenkins:/var/jenkins_home/workspace:Z`来使用内存进行加速
     
 * 一个Docker Registry实例

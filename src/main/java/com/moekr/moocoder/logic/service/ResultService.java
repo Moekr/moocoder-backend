@@ -8,6 +8,8 @@ import java.util.List;
 public interface ResultService {
 	ResultVO retrieve(int userId, int resultId) throws ServiceException;
 
+	List<ResultVO> retrieveByOwner(int userId) throws ServiceException;
+
 	List<ResultVO> retrieveByExam(int userId, int examId) throws ServiceException;
 
 	ResultVO retrieve(int resultId) throws ServiceException;

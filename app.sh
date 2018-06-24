@@ -5,7 +5,7 @@ path=/srv/moocoder
 # Application username.
 name=moocoder-backend
 # Application version.
-version=0.4.3
+version=0.4.4
 
 # Application config file. Default config.yml
 config_file=${path}/config.yml

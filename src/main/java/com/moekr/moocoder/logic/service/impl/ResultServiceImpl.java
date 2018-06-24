@@ -43,6 +43,13 @@ public class ResultServiceImpl implements ResultService {
 	}
 
 	@Override
+	public List<ResultVO> retrieveByOwner(int userId) throws ServiceException {
+		User user = userDAO.findById(userId);
+		Asserts.notNull(user, "所选用户不存在");
+		return resultDAO.findAllByOwner(user).stream().map(r -> new ResultVO(r, false)).collect(Collectors.toList());
+	}
+
+	@Override
 	public List<ResultVO> retrieveByExam(int userId, int examId) throws ServiceException {
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选的考试不存在");
