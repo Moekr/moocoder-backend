@@ -96,14 +96,8 @@ public class ExamServiceImpl implements ExamService {
 			pageResult = examDAO.findAllJoined(userId, pageable);
 		} else if (status == null) {
 			pageResult = examDAO.findAll(pageable);
-		} else if (status == ExamStatus.READY) {
-			pageResult = examDAO.findAllReady(pageable);
-		} else if (status == ExamStatus.AVAILABLE) {
-			pageResult = examDAO.findAllAvailable(pageable);
-		} else if (status == ExamStatus.FINISHED) {
-			pageResult = examDAO.findAllFinished(pageable);
 		} else {
-			pageResult = examDAO.findAllByStatus(status, pageable);
+			pageResult = examDAO.findAllByActualStatus(status, pageable);
 		}
 		return pageResult.map(e -> convert(userId, e));
 	}
@@ -116,7 +110,7 @@ public class ExamServiceImpl implements ExamService {
 		if (status == null) {
 			pageResult = examDAO.findAllByCreator(user, pageable);
 		} else {
-			pageResult = examDAO.findAllByCreatorAndStatus(user, status, pageable);
+			pageResult = examDAO.findAllByCreatorAndActualStatus(user, status, pageable);
 		}
 		return pageResult.map(e -> convert(user, e));
 	}
@@ -125,10 +119,10 @@ public class ExamServiceImpl implements ExamService {
 	public Page<ExamVO> retrievePage(int page, int limit, ExamStatus status) {
 		Pageable pageable = PageRequest.of(page, limit, PAGE_SORT);
 		Page<Exam> pageResult;
-		if (status != null) {
-			pageResult = examDAO.findAllByStatus(status, pageable);
-		} else {
+		if (status == null) {
 			pageResult = examDAO.findAll(pageable);
+		} else {
+			pageResult = examDAO.findAllByActualStatus(status, pageable);
 		}
 		return pageResult.map(JoinedExamVO::new);
 	}
