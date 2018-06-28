@@ -12,8 +12,10 @@ import com.moekr.moocoder.logic.vo.UserVO;
 import com.moekr.moocoder.util.ToolKit;
 import com.moekr.moocoder.util.enums.UserRole;
 import com.moekr.moocoder.util.exceptions.Asserts;
+import com.moekr.moocoder.util.exceptions.InvalidRequestException;
 import com.moekr.moocoder.util.exceptions.ServiceException;
 import com.moekr.moocoder.web.dto.UserDTO;
+import com.moekr.moocoder.web.dto.form.ChangePasswordForm;
 import com.moekr.moocoder.web.dto.form.RegisterForm;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.gitlab4j.api.GitLabApiException;
@@ -126,5 +128,37 @@ public class UserServiceImpl implements UserService {
 		model.addAttribute("role", role);
 		mailService.send(email, username, "注册成功 | MOOCODER", new ModelAndView("mail/register", model));
 		return new UserVO(userDAO.save(user));
+	}
+
+	@Override
+	public void changePassword(int userId, ChangePasswordForm form) throws ServiceException {
+		User user = userDAO.findById(userId);
+		if (!user.getPassword().equals(DigestUtils.sha256Hex(form.getOrigin()))) {
+			throw new InvalidRequestException("原密码验证失败，如忘记密码请联系管理员重置");
+		}
+		changePassword(user, form.getPassword(), false);
+	}
+
+	@Override
+	public void resetPassword(int userId) throws ServiceException {
+		User user = userDAO.findById(userId);
+		Asserts.notNull(user, "所选用户不存在");
+		String password = ToolKit.randomPassword();
+		changePassword(user, password, true);
+	}
+
+	private void changePassword(User user, String password, boolean reset) throws ServiceException {
+		try {
+			gitlabApi.changePassword(user.getId(), password);
+		} catch (GitLabApiException e) {
+			throw new ServiceException("修改GitLab用户密码时发生异常[" + e.getMessage() + "]");
+		}
+		user.setPassword(DigestUtils.sha256Hex(password));
+		user = userDAO.save(user);
+		ModelMap model = new ModelMap();
+		if (reset) {
+			model.addAttribute("password", password);
+		}
+		mailService.send(user.getEmail(), user.getUsername(), "密码变更提醒 | MOOCODER", new ModelAndView("mail/password", model));
 	}
 }

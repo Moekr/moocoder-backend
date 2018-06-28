@@ -112,9 +112,8 @@ public class GitlabApiImpl implements GitlabApi {
 
 	@Override
 	public synchronized void changePassword(int userId, String password) throws GitLabApiException {
-		User user;
-		user = server.getUserApi().getUser(userId);
-		server.getUserApi().modifyUser(user, password, 1000);
+		User user = server.getUserApi().getUser(userId);
+		server.getUserApi().modifyUser(user, password, user.getProjectsLimit());
 	}
 
 	@Override

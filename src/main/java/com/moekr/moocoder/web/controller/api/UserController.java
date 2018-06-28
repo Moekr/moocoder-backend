@@ -4,6 +4,7 @@ import com.moekr.moocoder.logic.service.UserService;
 import com.moekr.moocoder.logic.vo.UserVO;
 import com.moekr.moocoder.util.exceptions.ServiceException;
 import com.moekr.moocoder.web.dto.UserDTO;
+import com.moekr.moocoder.web.dto.form.ChangePasswordForm;
 import com.moekr.moocoder.web.response.EmptyResponse;
 import com.moekr.moocoder.web.response.PageResourceResponse;
 import com.moekr.moocoder.web.response.ResourceResponse;
@@ -16,8 +17,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
+import javax.validation.Valid;
 
-import static com.moekr.moocoder.web.security.WebSecurityConstants.ADMIN_ROLE;
+import static com.moekr.moocoder.web.security.WebSecurityConstants.*;
 
 @RestController
 @RequestMapping("/api")
@@ -62,6 +64,21 @@ public class UserController extends AbstractApiController {
 	@RolesAllowed(ADMIN_ROLE)
 	public Response delete(@PathVariable int userId) throws ServiceException {
 		userService.delete(userId);
+		return new EmptyResponse();
+	}
+
+	@PostMapping("/user/password/change")
+	@RolesAllowed({STUDENT_ROLE, TEACHER_ROLE})
+	public Response changePassword(@AuthenticationPrincipal CustomUserDetails userDetails,
+								   @RequestBody @Valid ChangePasswordForm form) throws ServiceException {
+		userService.changePassword(userDetails.getId(), form);
+		return new EmptyResponse();
+	}
+
+	@PostMapping("/user/{userId:\\d+}/password/reset")
+	@RolesAllowed(ADMIN_ROLE)
+	public Response resetPassword(@PathVariable int userId) throws ServiceException {
+		userService.resetPassword(userId);
 		return new EmptyResponse();
 	}
 }

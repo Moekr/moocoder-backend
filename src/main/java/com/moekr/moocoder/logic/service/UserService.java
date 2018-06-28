@@ -3,6 +3,7 @@ package com.moekr.moocoder.logic.service;
 import com.moekr.moocoder.logic.vo.UserVO;
 import com.moekr.moocoder.util.exceptions.ServiceException;
 import com.moekr.moocoder.web.dto.UserDTO;
+import com.moekr.moocoder.web.dto.form.ChangePasswordForm;
 import com.moekr.moocoder.web.dto.form.RegisterForm;
 import org.springframework.data.domain.Page;
 
@@ -16,4 +17,8 @@ public interface UserService {
 	void delete(int userId) throws ServiceException;
 
 	void register(RegisterForm form) throws ServiceException;
+
+	void changePassword(int userId, ChangePasswordForm form) throws ServiceException;
+
+	void resetPassword(int userId) throws ServiceException;
 }
