@@ -68,6 +68,6 @@ public class ResultServiceImpl implements ResultService {
 	public List<ResultVO> retrieveByExam(int examId) throws ServiceException {
 		Exam exam = examDAO.findById(examId);
 		Asserts.notNull(exam, "所选的考试不存在");
-		return resultDAO.findAllByExam(exam).stream().map(r -> new ResultVO(r, false)).collect(Collectors.toList());
+		return resultDAO.findAllByExamAndOwnerIsNot(exam, exam.getCreator()).stream().map(r -> new ResultVO(r, false)).collect(Collectors.toList());
 	}
 }

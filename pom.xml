@@ -4,7 +4,7 @@
 
     <groupId>com.moekr</groupId>
     <artifactId>moocoder-backend</artifactId>
-    <version>0.4.4</version>
+    <version>0.4.5</version>
 
     <packaging>jar</packaging>
 
@@ -168,7 +168,7 @@
         <dependency>
             <groupId>com.moekr</groupId>
             <artifactId>moocoder-frontend-webjars</artifactId>
-            <version>0.1.4</version>
+            <version>0.1.5</version>
         </dependency>
 
         <!-- Database Driver Dependencies -->

@@ -70,7 +70,8 @@ public class UserController extends AbstractApiController {
 	@PostMapping("/user/password/change")
 	@RolesAllowed({STUDENT_ROLE, TEACHER_ROLE})
 	public Response changePassword(@AuthenticationPrincipal CustomUserDetails userDetails,
-								   @RequestBody @Valid ChangePasswordForm form) throws ServiceException {
+								   @RequestBody @Valid ChangePasswordForm form, Errors errors) throws ServiceException {
+		checkErrors(errors);
 		userService.changePassword(userDetails.getId(), form);
 		return new EmptyResponse();
 	}
